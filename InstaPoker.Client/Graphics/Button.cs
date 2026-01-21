@@ -26,6 +26,7 @@ public class Button : IRenderObject, IMouseInteractable {
         
         ctx.Stack.Push();
         ctx.Stack.Multiply(Matrix4x4.CreateTranslation(Position.X, Position.Y, 0));
+        Translation = ctx.Stack.Peek();
         ctx.UpdateTransform();
 
         AllegroColor effectiveBackground = Style.Background;
@@ -57,7 +58,7 @@ public class Button : IRenderObject, IMouseInteractable {
     }
 
     public void OnMouseMove(Vector2 pos, Vector2 delta) {
-        pos = Utils.TransformToLocal(Position, pos);
+        pos = pos - new Vector2(Translation.Translation.X, Translation.Translation.Y);
         isHovering = pos.X >= 0 
                      && pos.X <= Size.X
                      && pos.Y >= 0 
@@ -92,4 +93,5 @@ public class Button : IRenderObject, IMouseInteractable {
 
     public Vector2 Position { get; set; }
     public Vector2 Size { get; set; }
+    public Matrix4x4 Translation { get; set; }
 }

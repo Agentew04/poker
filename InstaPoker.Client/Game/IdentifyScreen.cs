@@ -50,6 +50,7 @@ public class IdentifyScreen : IRenderObject, IMouseInteractable, IKeyboardIntera
     }
 
     public void Render(RenderContext ctx) {
+        Translation = Matrix4x4.Identity;
         nameTextBox.Size = new Vector2(500, 40);
         okButton.Size = new Vector2(300, 60);
         emptyNameFader.Size = new Vector2(300, 50);
@@ -83,9 +84,10 @@ public class IdentifyScreen : IRenderObject, IMouseInteractable, IKeyboardIntera
 
     public Vector2 Position { get; set; }
     public Vector2 Size { get; set; }
+    public Matrix4x4 Translation { get; set; }
 
     public void OnMouseMove(Vector2 pos, Vector2 delta) {
-        pos = Utils.TransformToLocal(Position, pos);
+        pos = pos - new Vector2(Translation.Translation.X, Translation.Translation.Y);
         nameTextBox.OnMouseMove(pos,delta);
         okButton.OnMouseMove(pos,delta);
     }

@@ -29,6 +29,11 @@ public class MatrixStack {
         matrices.Push(last);
     }
 
+    public Matrix4x4 Peek()
+    {
+        return matrices.Peek();
+    }
+
     public void AsTransform(ref AllegroTransform t) {
         Matrix4x4 m = matrices.Peek();
         

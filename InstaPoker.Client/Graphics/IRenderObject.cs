@@ -11,6 +11,8 @@ public interface IRenderObject {
     public Vector2 Position { get; set; }
 
     public Vector2 Size { get; set; }
+    
+    public Matrix4x4 Translation { get; set; }
 }
 
 public interface IKeyboardInteractable {

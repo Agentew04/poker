@@ -30,6 +30,7 @@ public class LoadingLabel : IRenderObject {
         
         ctx.Stack.Push();
         ctx.Stack.Multiply(Matrix4x4.CreateTranslation(Position.X, Position.Y, 0));
+        Translation = ctx.Stack.Peek();
         ctx.UpdateTransform();
 
         AllegroFont font = FontManager.GetFont("ShareTech-Regular", FontSize);
@@ -70,4 +71,5 @@ public class LoadingLabel : IRenderObject {
 
     public Vector2 Position { get; set; }
     public Vector2 Size { get; set; }
+    public Matrix4x4 Translation { get; set; }
 }

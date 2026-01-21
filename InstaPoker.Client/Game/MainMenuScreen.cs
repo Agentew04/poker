@@ -57,6 +57,7 @@ public class MainMenuScreen : IRenderObject, IKeyboardInteractable, IMouseIntera
     }
 
     public void Render(RenderContext ctx) {
+        Translation = Matrix4x4.Identity;
         createRoomButton.Size = new Vector2(300, 60);
         joinRoomButton.Size = new Vector2(300, 60);
         codeTextBox.Size = new Vector2(200, 40);
@@ -102,6 +103,7 @@ public class MainMenuScreen : IRenderObject, IKeyboardInteractable, IMouseIntera
 
     public Vector2 Position { get; set; }
     public Vector2 Size { get; set; }
+    public Matrix4x4 Translation { get; set; }
 
     public void OnKeyDown(KeyCode key, uint modifiers) {
         codeTextBox.OnKeyDown(key,modifiers);
@@ -115,8 +117,9 @@ public class MainMenuScreen : IRenderObject, IKeyboardInteractable, IMouseIntera
         codeTextBox.OnCharDown(character);
     }
 
-    public void OnMouseMove(Vector2 pos, Vector2 delta) {
-        pos = Utils.TransformToLocal(Position, pos);
+    public void OnMouseMove(Vector2 pos, Vector2 delta)
+    {
+        pos = pos - new Vector2(Translation.Translation.X, Translation.Translation.Y);
         createRoomButton.OnMouseMove(pos, delta);
         joinRoomButton.OnMouseMove(pos, delta);
         codeTextBox.OnMouseMove(pos, delta);

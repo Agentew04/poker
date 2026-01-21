@@ -20,6 +20,7 @@ public class TextBoard : IRenderObject {
     public void Render(RenderContext ctx) {
         ctx.Stack.Push();
         ctx.Stack.Multiply(Matrix4x4.CreateTranslation(Position.X, Position.Y, 0));
+        Translation = ctx.Stack.Peek();
         ctx.UpdateTransform();
 
         AllegroColor backgroundColor = Type switch {
@@ -66,6 +67,7 @@ public class TextBoard : IRenderObject {
 
     public Vector2 Position { get; set; }
     public Vector2 Size { get; set; }
+    public Matrix4x4 Translation { get; set; }
 }
 
 public enum TextBoardType {

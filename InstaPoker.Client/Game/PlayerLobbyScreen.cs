@@ -35,8 +35,12 @@ public class PlayerLobbyScreen : IRenderObject, IMouseInteractable {
 
     public Vector2 Position { get; set; }
     public Vector2 Size { get; set; }
+    public Matrix4x4 Translation { get; set; }
 
     public void OnMouseMove(Vector2 pos, Vector2 delta) {
+        pos = pos - new Vector2(Translation.Translation.X, Translation.Translation.Y);
+        
+        // delegate to members
     }
 
     public void OnMouseDown(uint button) {

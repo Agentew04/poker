@@ -45,11 +45,15 @@ public partial class TextBox : IRenderObject, IMouseInteractable, IKeyboardInter
         ctx.Stack.Multiply(Matrix4x4
             .CreateTranslation(new Vector3(Position, 0)));
         ctx.UpdateTransform();
+        Translation = ctx.Stack.Peek();
 
         AllegroColor background = isPressed ? Style.BackgroundPressed :
             isHovering ? Style.BackgroundHover : Style.Background;
         
         // background
+        Al.DrawRectangle(Position.X, Position.Y, Position.X + Size.X, Position.Y + Size.Y, AllegroColor.Black, 1);
+        //Al.SetClippingRectangle(0, 0, (int)Size.X, (int)Size.Y);
+        
         Al.DrawFilledRectangle(0,0, Size.X, Size.Y, background);
 
         AllegroFont font = FontManager.GetFont("ShareTech-Regular", Style.FontSize);
@@ -70,7 +74,7 @@ public partial class TextBox : IRenderObject, IMouseInteractable, IKeyboardInter
             VerticalAlign.Bottom => Size.Y - Al.GetFontAscent(font) - margin
         };
 
-        Al.SetClippingRectangle((int)Position.X, (int)Position.Y, (int)Size.X, (int)Size.Y);
+        
         if ((charCount == 0 && !isSelected) || charCount > 0) {
             Al.DrawText(font, color, (int)xPosition, (int)yPosition, 
                 FontAlignFlags.Left, text);
@@ -90,7 +94,6 @@ public partial class TextBox : IRenderObject, IMouseInteractable, IKeyboardInter
                     Style.Foreground, cursorThickness);
             }
         }
-        Al.ResetClippingRectangle();
 
         // border
         if (Style.BorderSize > 0) {
@@ -98,6 +101,8 @@ public partial class TextBox : IRenderObject, IMouseInteractable, IKeyboardInter
             Al.DrawRectangle(borderhalf,borderhalf, Size.X-borderhalf, Size.Y-borderhalf, 
                 Style.BorderColor, Style.BorderSize);
         }
+        
+        Al.ResetClippingRectangle();
         ctx.Stack.Pop();
     }
 
@@ -119,12 +124,14 @@ public partial class TextBox : IRenderObject, IMouseInteractable, IKeyboardInter
         
     }
 
-    public void OnMouseMove(Vector2 pos, Vector2 delta) {
-        pos = Utils.TransformToLocal(Position, pos);
+    public void OnMouseMove(Vector2 pos, Vector2 delta)
+    {
+        pos = pos - new Vector2(Translation.Translation.X, Translation.Translation.Y);
         isHovering = pos.X >= 0
                      && pos.X <= Size.X
                      && pos.Y >= 0 
                      && pos.Y <= Size.Y;
+        
         if (isPressed && !isHovering) {
             isPressed = false;
         }
@@ -212,7 +219,11 @@ public partial class TextBox : IRenderObject, IMouseInteractable, IKeyboardInter
     }
     
     public void OnCharDown(char character) {
-        if(!isSelected) return;
+        if(!isSelected)
+        {
+            Console.WriteLine("Not selected");
+            return;
+        }
         if (character == '\b') {
             Backspace();
             return;
@@ -254,6 +265,7 @@ public partial class TextBox : IRenderObject, IMouseInteractable, IKeyboardInter
 
     public Vector2 Position { get; set; }
     public Vector2 Size { get; set; }
+    public Matrix4x4 Translation { get; set; }
 }
 
 public enum TextboxKeyboard {
