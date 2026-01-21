@@ -5,12 +5,16 @@ namespace InstaPoker.Client.Network;
 public static class NetworkManager {
     // todo
     public static async Task<string> CreateRoom() {
-        await Task.Delay(Random.Shared.Next(1000, 3000));
-        return "123456";
+        // await Task.Delay(Random.Shared.Next(500, 1000));
+        return Random.Shared.Next(100000, 1000000).ToString();
     }
     
-    public static Task JoinRoom(string code) {
-        return Task.Delay(Random.Shared.Next(1000, 3000));
+    public static async Task JoinRoom(string code) {
+        // return Task.Delay(Random.Shared.Next(500, 1000));
+    }
+
+    public static async Task KickUser(string name) {
+        //return Task.Delay(Random.Shared.Next(100,500));
     }
 
     public static RoomSettings GetSettings() {

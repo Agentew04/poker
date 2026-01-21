@@ -15,6 +15,7 @@ public abstract class AllegroWindow {
     private string? windowTitle = null;
     private readonly List<KeyGesture> gestures = [];
     private readonly FontManager fontManager = new();
+    private readonly AudioManager audioManager = new();
     
     private bool isFullscreen;
     private bool fromFullscreen = false;
@@ -41,17 +42,21 @@ public abstract class AllegroWindow {
         Al.InitPrimitivesAddon();
         Al.InstallKeyboard();
         Al.InstallMouse();
+        Al.InstallAudio();
+        Al.InitACodecAddon();
 
         return true;
     }
 
     private void DeinitializeAllegro() {
         fontManager.Dispose(); // destroy fonts
+        audioManager.Dispose(); // destroy audio samples
         Al.ShutdownTtfAddon();
         Al.ShutdownPrimitivesAddon();
         Al.UninstallKeyboard();
         Al.UninstallMouse();
         Al.UninstallSystem();
+        Al.UninstallAudio();
     }
 
     public void Run() {
@@ -78,6 +83,9 @@ public abstract class AllegroWindow {
         AllegroEventQueue queue = Al.CreateEventQueue() ?? throw new Exception("Could not create event queue");
         RegisterEventSources(queue);
 
+        Al.ReserveSamples(4);
+        
+        
         running = true;
         double lastTime = Al.GetTime();
         while (running) {

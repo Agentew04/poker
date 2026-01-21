@@ -36,7 +36,7 @@ public class PlayerLobbyScreen : IRenderObject, IMouseInteractable {
     public Vector2 Position { get; set; }
     public Vector2 Size { get; set; }
 
-    public void OnMouseMove(int x, int y, int dx, int dy) {
+    public void OnMouseMove(Vector2 pos, Vector2 delta) {
     }
 
     public void OnMouseDown(uint button) {

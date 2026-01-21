@@ -29,6 +29,7 @@ internal class PokerGame : AllegroWindow {
 
     protected override void Initialize() {
         FontManager.RegisterFont("ShareTech-Regular");
+        AudioManager.RegisterAudio("bop.ogg", "bop");
         identifyScreen.Initialize();
         renderScreen = identifyScreen;
         identifyScreen.OkClicked += () => renderScreen = mainMenuScreen;
@@ -43,7 +44,9 @@ internal class PokerGame : AllegroWindow {
             renderScreen = playerLobbyScreen;
             playerLobbyScreen.OnShow(code);
         };
-
+        adminLobbyScreen.OnLeave += () => {
+            renderScreen = mainMenuScreen;
+        };
     }
 
     protected override void Update(double delta) {

@@ -70,6 +70,7 @@ public partial class TextBox : IRenderObject, IMouseInteractable, IKeyboardInter
             VerticalAlign.Bottom => Size.Y - Al.GetFontAscent(font) - margin
         };
 
+        Al.SetClippingRectangle((int)Position.X, (int)Position.Y, (int)Size.X, (int)Size.Y);
         if ((charCount == 0 && !isSelected) || charCount > 0) {
             Al.DrawText(font, color, (int)xPosition, (int)yPosition, 
                 FontAlignFlags.Left, text);
@@ -88,16 +89,15 @@ public partial class TextBox : IRenderObject, IMouseInteractable, IKeyboardInter
                 Al.DrawLine(x, yPosition, x, yPosition + Al.GetFontLineHeight(font), 
                     Style.Foreground, cursorThickness);
             }
-
         }
-        
+        Al.ResetClippingRectangle();
+
         // border
         if (Style.BorderSize > 0) {
             float borderhalf = Style.BorderSize * 0.5f;
             Al.DrawRectangle(borderhalf,borderhalf, Size.X-borderhalf, Size.Y-borderhalf, 
                 Style.BorderColor, Style.BorderSize);
         }
-        
         ctx.Stack.Pop();
     }
 
@@ -121,10 +121,10 @@ public partial class TextBox : IRenderObject, IMouseInteractable, IKeyboardInter
 
     public void OnMouseMove(Vector2 pos, Vector2 delta) {
         pos = Utils.TransformToLocal(Position, pos);
-        isHovering = pos.X >= Position.X 
-                     && pos.X <= Position.X + Size.X
-                     && pos.Y >= Position.Y 
-                     && pos.Y <= Position.Y + Size.Y;
+        isHovering = pos.X >= 0
+                     && pos.X <= Size.X
+                     && pos.Y >= 0 
+                     && pos.Y <= Size.Y;
         if (isPressed && !isHovering) {
             isPressed = false;
         }

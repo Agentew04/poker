@@ -6,5 +6,5 @@ public class LobbyUser {
     public string Name { get; set; } = string.Empty;
     public bool IsOwner { get; set; }
     public bool IsLocal { get; set; }
-    public Button? KickButton { get; set; } = null;
+    public Button? Button { get; set; } = null;
 }

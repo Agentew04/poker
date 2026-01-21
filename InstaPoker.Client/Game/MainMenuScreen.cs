@@ -115,10 +115,11 @@ public class MainMenuScreen : IRenderObject, IKeyboardInteractable, IMouseIntera
         codeTextBox.OnCharDown(character);
     }
 
-    public void OnMouseMove(int x, int y, int dx, int dy) {
-        createRoomButton.OnMouseMove(x,y,dx,dy);
-        joinRoomButton.OnMouseMove(x,y,dx,dy);
-        codeTextBox.OnMouseMove(x,y,dx,dy);
+    public void OnMouseMove(Vector2 pos, Vector2 delta) {
+        pos = Utils.TransformToLocal(Position, pos);
+        createRoomButton.OnMouseMove(pos, delta);
+        joinRoomButton.OnMouseMove(pos, delta);
+        codeTextBox.OnMouseMove(pos, delta);
     }
 
     public void OnMouseDown(uint button) {

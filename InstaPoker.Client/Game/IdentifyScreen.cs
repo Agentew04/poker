@@ -84,9 +84,10 @@ public class IdentifyScreen : IRenderObject, IMouseInteractable, IKeyboardIntera
     public Vector2 Position { get; set; }
     public Vector2 Size { get; set; }
 
-    public void OnMouseMove(int x, int y, int dx, int dy) {
-        nameTextBox.OnMouseMove(x,y,dx,dy);
-        okButton.OnMouseMove(x,y,dx,dy);
+    public void OnMouseMove(Vector2 pos, Vector2 delta) {
+        pos = Utils.TransformToLocal(Position, pos);
+        nameTextBox.OnMouseMove(pos,delta);
+        okButton.OnMouseMove(pos,delta);
     }
 
     public void OnMouseDown(uint button) {

@@ -45,8 +45,10 @@ public class Button : IRenderObject, IMouseInteractable {
         }
 
         AllegroFont font = FontManager.GetFont("ShareTech-Regular", Style.FontSize);
+        Al.SetClippingRectangle((int)Position.X, (int)Position.Y, (int)Size.X, (int)Size.Y);
         Al.DrawText(font, Style.Foreground, (int)(Size.X*0.5f),(int)(Size.Y*0.5f - Al.GetFontLineHeight(font)*0.5f),
             FontAlignFlags.Center, Label);
+        Al.ResetClippingRectangle();
         ctx.Stack.Pop();
     }
 
@@ -56,10 +58,10 @@ public class Button : IRenderObject, IMouseInteractable {
 
     public void OnMouseMove(Vector2 pos, Vector2 delta) {
         pos = Utils.TransformToLocal(Position, pos);
-        isHovering = pos.X >= Position.X 
-                     && pos.X <= Position.X + Size.X
-                     && pos.Y >= Position.Y 
-                     && pos.Y <= Position.Y + Size.Y;
+        isHovering = pos.X >= 0 
+                     && pos.X <= Size.X
+                     && pos.Y >= 0 
+                     && pos.Y <= Size.Y;
         if (isPressed && !isHovering) {
             isPressed = false;
         }
@@ -80,6 +82,9 @@ public class Button : IRenderObject, IMouseInteractable {
         }
 
         if (isPressed && isHovering) {
+            AllegroSample bopSample = AudioManager.GetAudio("bop");
+            AllegroSampleID? nil = null;
+            Al.PlaySample(bopSample, 1, 0, 1, PlayMode.Once, ref nil);
             Pressed?.Invoke();
         }
         isPressed = false;

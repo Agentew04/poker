@@ -15,6 +15,6 @@ public static class Extensions {
 
 public static class Utils {
     public static Vector2 TransformToLocal(Vector2 elementPosition, Vector2 mouseCoord) {
-        return elementPosition - mouseCoord;
+        return mouseCoord - elementPosition;
     }
 }
