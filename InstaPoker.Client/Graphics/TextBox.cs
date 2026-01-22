@@ -42,8 +42,7 @@ public partial class TextBox : IRenderObject, IMouseInteractable, IKeyboardInter
 
     public void Render(RenderContext ctx) {
         ctx.Stack.Push();
-        ctx.Stack.Multiply(Matrix4x4
-            .CreateTranslation(new Vector3(Position, 0)));
+        ctx.Stack.Multiply(Matrix4x4.CreateTranslation(new Vector3(Position.X, Position.Y, 0)));
         ctx.UpdateTransform();
         Translation = ctx.Stack.Peek();
 
@@ -51,8 +50,7 @@ public partial class TextBox : IRenderObject, IMouseInteractable, IKeyboardInter
             isHovering ? Style.BackgroundHover : Style.Background;
         
         // background
-        Al.DrawRectangle(Position.X, Position.Y, Position.X + Size.X, Position.Y + Size.Y, AllegroColor.Black, 1);
-        //Al.SetClippingRectangle(0, 0, (int)Size.X, (int)Size.Y);
+        Al.SetClippingRectangle((int)Translation.Translation.X, (int)Translation.Translation.Y, (int)Size.X, (int)Size.Y);
         
         Al.DrawFilledRectangle(0,0, Size.X, Size.Y, background);
 
@@ -60,13 +58,12 @@ public partial class TextBox : IRenderObject, IMouseInteractable, IKeyboardInter
         AllegroColor color = charCount == 0 ? Style.PlaceholderForeground : Style.Foreground;
         string text = charCount == 0 && isSelected ? string.Empty : charCount==0 ? Placeholder : cachedString!;
 
-        int bbx = 0, bby = 0, bbw = 0, bbh = 0;
-        Al.GetTextDimensions(font, text, ref bbx, ref bby, ref bbw, ref bbh);
+        int textWidth = Al.GetTextWidth(font, text);
         const float margin = 5;
         float xPosition = HorizontalFontAlignment switch {
             HorizontalAlign.Left => margin,
-            HorizontalAlign.Center => Size.X*0.5f - bbw*0.5f,
-            HorizontalAlign.Right => Size.X - bbw - margin
+            HorizontalAlign.Center => Size.X*0.5f - textWidth*0.5f,
+            HorizontalAlign.Right => Size.X - textWidth - margin
         };
         float yPosition = VerticalFontAlignment switch {
             VerticalAlign.Top => margin,
@@ -74,7 +71,6 @@ public partial class TextBox : IRenderObject, IMouseInteractable, IKeyboardInter
             VerticalAlign.Bottom => Size.Y - Al.GetFontAscent(font) - margin
         };
 
-        
         if ((charCount == 0 && !isSelected) || charCount > 0) {
             Al.DrawText(font, color, (int)xPosition, (int)yPosition, 
                 FontAlignFlags.Left, text);
@@ -82,7 +78,7 @@ public partial class TextBox : IRenderObject, IMouseInteractable, IKeyboardInter
 
         const double blinkPeriod = 0.75;
         // draw cursor
-        if ((charCount > 0 || isSelected) && Al.GetTime() % (blinkPeriod*2) < blinkPeriod) {
+        if ((isSelected || (charCount > 0 && isSelected)) && Al.GetTime() % (blinkPeriod*2) < blinkPeriod) {
             const float cursorThickness = 2;
             if (charCount == 0) {
                 Al.DrawLine(xPosition, yPosition, xPosition, yPosition + Al.GetFontLineHeight(font), 
@@ -114,7 +110,6 @@ public partial class TextBox : IRenderObject, IMouseInteractable, IKeyboardInter
     }
 
     private void IncreaseBuffer() {
-        Console.WriteLine("Increase buffer");
         char[] newBuffer = new char[buffer.Length + BlockSize];
         buffer.CopyTo(newBuffer);
         buffer = newBuffer;
@@ -219,9 +214,7 @@ public partial class TextBox : IRenderObject, IMouseInteractable, IKeyboardInter
     }
     
     public void OnCharDown(char character) {
-        if(!isSelected)
-        {
-            Console.WriteLine("Not selected");
+        if(!isSelected) {
             return;
         }
         if (character == '\b') {
@@ -235,6 +228,10 @@ public partial class TextBox : IRenderObject, IMouseInteractable, IKeyboardInter
         }
 
         if (!IsKeyValid(character)) {
+            return;
+        }
+
+        if (MaxCharacters > 0 && charCount >= MaxCharacters) {
             return;
         }
 

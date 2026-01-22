@@ -37,18 +37,12 @@ public class AdminLobbyScreen : IRenderObject, IMouseInteractable, IKeyboardInte
         maxBetTextbox.Initialize();
         maxPlayersTextbox.Initialize();
         smallblindTextbox.Initialize();
-        maxBetTextbox.Style = TextBoxStyle.Default;
-        maxPlayersTextbox.Style =  TextBoxStyle.Default;
-        smallblindTextbox.Style = TextBoxStyle.Default;
-        maxBetTextbox.Keyboard = TextboxKeyboard.Numeric;
-        maxPlayersTextbox.Keyboard = TextboxKeyboard.Numeric;
-        smallblindTextbox.Keyboard = TextboxKeyboard.Numeric;
-        maxBetTextbox.HorizontalFontAlignment = HorizontalAlign.Left;
-        maxPlayersTextbox.HorizontalFontAlignment = HorizontalAlign.Left;
-        smallblindTextbox.HorizontalFontAlignment = HorizontalAlign.Left;
-        maxBetTextbox.VerticalFontAlignment = VerticalAlign.Center;
-        maxPlayersTextbox.VerticalFontAlignment = VerticalAlign.Center;
-        smallblindTextbox.VerticalFontAlignment = VerticalAlign.Center;
+        smallblindTextbox.Style = maxPlayersTextbox.Style = maxBetTextbox.Style = TextBoxStyle.Default with {
+            FontSize = 20
+        };
+        smallblindTextbox.Keyboard = maxPlayersTextbox.Keyboard = maxBetTextbox.Keyboard = TextboxKeyboard.Numeric;
+        smallblindTextbox.HorizontalFontAlignment = maxPlayersTextbox.HorizontalFontAlignment = maxBetTextbox.HorizontalFontAlignment = HorizontalAlign.Left;
+        smallblindTextbox.VerticalFontAlignment = maxPlayersTextbox.VerticalFontAlignment = maxBetTextbox.VerticalFontAlignment = VerticalAlign.Center;
         maxBetTextbox.MaxCharacters = 12;
         maxPlayersTextbox.MaxCharacters = 2;
         smallblindTextbox.MaxCharacters = 6;
@@ -222,20 +216,21 @@ public class AdminLobbyScreen : IRenderObject, IMouseInteractable, IKeyboardInte
         ctx.Stack.Push();
         ctx.Stack.Multiply(Matrix4x4.CreateTranslation(margin, Size.Y*0.5f - totalHeight*0.5f, 0));
         ctx.UpdateTransform();
+
+        float targetWidth = p1.X - 2*margin;
         
-        Al.DrawRectangle(0,0, 200, totalHeight, AllegroColor.Black, 1);
-        smallblindTextbox.Size = new Vector2(100, itemHeight);
-        maxBetTextbox.Size = new Vector2(100, itemHeight);
-        maxPlayersTextbox.Size  = new Vector2(100, itemHeight);
+        
+        smallblindTextbox.Position = new Vector2(Al.GetTextWidth(font, "Small Blind: "), GetHeight(0));
+        maxBetTextbox.Position = new Vector2(Al.GetTextWidth(font, "Max Bet: "), GetHeight(1));
+        maxPlayersTextbox.Position = new Vector2(Al.GetTextWidth(font, "Max Players: "), GetHeight(2));
+        smallblindTextbox.Size = new Vector2(targetWidth-smallblindTextbox.Position.X , itemHeight);
+        maxBetTextbox.Size = new Vector2(targetWidth-maxBetTextbox.Position.X, itemHeight);
+        maxPlayersTextbox.Size  = new Vector2(targetWidth-maxPlayersTextbox.Position.X, itemHeight);
         
         Al.DrawText(font, AllegroColor.Black, 0, GetHeight(0), FontAlignFlags.Left, "Small Blind: ");
         Al.DrawText(font, AllegroColor.Black, 0, GetHeight(1), FontAlignFlags.Left, "Max Bet: ");
         Al.DrawText(font, AllegroColor.Black, 0, GetHeight(2), FontAlignFlags.Left, "Max Players: ");
 
-        smallblindTextbox.Position = new Vector2(Al.GetTextWidth(font, "Small Blind: "), GetHeight(0));
-        maxBetTextbox.Position = new Vector2(Al.GetTextWidth(font, "Max Bet: "), GetHeight(1));
-        maxPlayersTextbox.Position = new Vector2(Al.GetTextWidth(font, "Max Players: "), GetHeight(2));
-        
         smallblindTextbox.Render(ctx);
         maxBetTextbox.Render(ctx);
         maxPlayersTextbox.Render(ctx);
@@ -247,7 +242,7 @@ public class AdminLobbyScreen : IRenderObject, IMouseInteractable, IKeyboardInte
 
         float GetHeight(int i)
         {
-            return itemHeight * i + spacing * (i - 1) + Al.GetFontLineHeight(font) * 0.5f;
+            return itemHeight * i + spacing * (i - 1);// + Al.GetFontLineHeight(font) * 0.5f;
         }
     }
 

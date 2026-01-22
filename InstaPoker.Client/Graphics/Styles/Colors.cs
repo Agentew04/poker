@@ -8,6 +8,18 @@ public static class Colors {
             R = 0, G = 0, B = 0, A = 1
         };
 
+        public static AllegroColor Red => new() {
+            R = 1, G = 0, B = 0, A = 1
+        };
+
+        public static AllegroColor Green => new() {
+            R = 0, G = 1, B = 0, A = 1
+        };
+        
+        public static AllegroColor Blue => new() {
+            R = 0, G = 0, B = 1, A = 1
+        };
+        
         public static AllegroColor White => new() {
             R = 1, G = 1, B = 1, A = 1
         };
