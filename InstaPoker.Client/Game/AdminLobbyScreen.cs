@@ -21,6 +21,7 @@ public class AdminLobbyScreen : IRenderObject, IMouseInteractable, IKeyboardInte
     private readonly TextBox smallblindTextbox = new();
     private readonly TextBox maxBetTextbox = new();
     private readonly TextBox maxPlayersTextbox = new();
+    private readonly Checkbox allinEnabledCheckbox = new();
 
     public void Initialize()
     {
@@ -46,6 +47,8 @@ public class AdminLobbyScreen : IRenderObject, IMouseInteractable, IKeyboardInte
         maxBetTextbox.MaxCharacters = 12;
         maxPlayersTextbox.MaxCharacters = 2;
         smallblindTextbox.MaxCharacters = 6;
+        allinEnabledCheckbox.Initialize();
+        allinEnabledCheckbox.Style = CheckboxStyle.Default;
     }
 
     public void OnShow()
@@ -211,29 +214,36 @@ public class AdminLobbyScreen : IRenderObject, IMouseInteractable, IKeyboardInte
         var font = FontManager.GetFont("ShareTech-Regular", 28);
         float itemHeight = Al.GetFontLineHeight(font);
 
-        const int itemCount = 3; // TODO: trocar para 4 e add allowAllIn
+        const int itemCount = 4; // TODO: trocar para 4 e add allowAllIn
         float totalHeight = itemHeight * itemCount + spacing*(itemCount-1);
         ctx.Stack.Push();
         ctx.Stack.Multiply(Matrix4x4.CreateTranslation(margin, Size.Y*0.5f - totalHeight*0.5f, 0));
         ctx.UpdateTransform();
 
         float targetWidth = p1.X - 2*margin;
-        
+
         
         smallblindTextbox.Position = new Vector2(Al.GetTextWidth(font, "Small Blind: "), GetHeight(0));
         maxBetTextbox.Position = new Vector2(Al.GetTextWidth(font, "Max Bet: "), GetHeight(1));
         maxPlayersTextbox.Position = new Vector2(Al.GetTextWidth(font, "Max Players: "), GetHeight(2));
+        allinEnabledCheckbox.Position = new Vector2(
+            Al.GetTextWidth(font, "All-In Enabled:")+margin*0.5f, 
+            GetHeight(3) + itemHeight * 0.125f);
+        
         smallblindTextbox.Size = new Vector2(targetWidth-smallblindTextbox.Position.X , itemHeight);
         maxBetTextbox.Size = new Vector2(targetWidth-maxBetTextbox.Position.X, itemHeight);
         maxPlayersTextbox.Size  = new Vector2(targetWidth-maxPlayersTextbox.Position.X, itemHeight);
+        allinEnabledCheckbox.Size = new Vector2(itemHeight*0.75f, itemHeight*0.75f);
         
         Al.DrawText(font, AllegroColor.Black, 0, GetHeight(0), FontAlignFlags.Left, "Small Blind: ");
         Al.DrawText(font, AllegroColor.Black, 0, GetHeight(1), FontAlignFlags.Left, "Max Bet: ");
         Al.DrawText(font, AllegroColor.Black, 0, GetHeight(2), FontAlignFlags.Left, "Max Players: ");
+        Al.DrawText(font, AllegroColor.Black, 0, GetHeight(3), FontAlignFlags.Left, "All-In Enabled: ");
 
         smallblindTextbox.Render(ctx);
         maxBetTextbox.Render(ctx);
         maxPlayersTextbox.Render(ctx);
+        allinEnabledCheckbox.Render(ctx);
         
         ctx.Stack.Pop();
         Al.ResetClippingRectangle();
@@ -276,6 +286,7 @@ public class AdminLobbyScreen : IRenderObject, IMouseInteractable, IKeyboardInte
         maxBetTextbox.OnMouseMove(pos,delta);
         maxPlayersTextbox.OnMouseMove(pos,delta);
         smallblindTextbox.OnMouseMove(pos,delta);
+        allinEnabledCheckbox.OnMouseMove(pos,delta);
     }
 
     public void OnMouseDown(uint button)
@@ -288,6 +299,7 @@ public class AdminLobbyScreen : IRenderObject, IMouseInteractable, IKeyboardInte
         maxBetTextbox.OnMouseDown(button);
         maxPlayersTextbox.OnMouseDown(button);
         smallblindTextbox.OnMouseDown(button);
+        allinEnabledCheckbox.OnMouseDown(button);
     }
 
     public void OnMouseUp(uint button)
@@ -308,6 +320,7 @@ public class AdminLobbyScreen : IRenderObject, IMouseInteractable, IKeyboardInte
         maxBetTextbox.OnMouseUp(button);
         maxPlayersTextbox.OnMouseUp(button);
         smallblindTextbox.OnMouseUp(button);
+        allinEnabledCheckbox.OnMouseUp(button);
     }
 
     public void OnKeyDown(KeyCode key, uint modifiers)
