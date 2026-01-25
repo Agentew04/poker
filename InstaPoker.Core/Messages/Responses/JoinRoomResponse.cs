@@ -5,6 +5,7 @@ public class JoinRoomResponse : Message {
     public JoinRoomResult Result { get; set; }
     public List<string> ConnectedUsers { get; set; } = [];
     public RoomSettings Settings { get; set; } = new();
+    public string OwnerName { get; set; } = string.Empty;
     
     public override Guid UniqueId => new("02E08670-47CE-4E20-97FC-8F10D101CFC5");
     
@@ -15,6 +16,7 @@ public class JoinRoomResponse : Message {
             bw.Write(user);
         }
         Settings.Write(bw);
+        bw.Write(OwnerName);
     }
 
     public override void Read(BinaryReader br) {
@@ -26,6 +28,7 @@ public class JoinRoomResponse : Message {
             ConnectedUsers.Add(br.ReadString());
         }
         Settings.Read(br);
+        OwnerName = br.ReadString();
     }
 }
 
@@ -33,5 +36,6 @@ public enum JoinRoomResult {
     Success,
     RoomDoesNotExist,
     RoomFull,
-    UsernameAlreadyExist
+    UsernameAlreadyExist,
+    AlreadyInOtherRoom
 }

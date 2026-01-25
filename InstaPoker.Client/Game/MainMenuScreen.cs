@@ -45,15 +45,19 @@ public class MainMenuScreen : IRenderObject, IKeyboardInteractable, IMouseIntera
         emptyCodeBoard.Initialize();
         emptyCodeBoard.Type = TextBoardType.Error;
         emptyCodeBoard.FontSize = 24;
-        emptyCodeBoard.Text = "Type room code first!";
     }
 
     private void OnJoinClick() {
         if (!string.IsNullOrWhiteSpace(codeTextBox.GetString())) {
-            JoinRoomClicked?.Invoke(codeTextBox.GetString());
+            TryJoinRoom();
             return;
         }
+        emptyCodeBoard.Text = "Type room code first!";
         emptyCodeFader.ShowFor(3);
+    }
+
+    private void TryJoinRoom() {
+        JoinRoomClicked?.Invoke(codeTextBox.GetString());
     }
 
     public void Render(RenderContext ctx) {

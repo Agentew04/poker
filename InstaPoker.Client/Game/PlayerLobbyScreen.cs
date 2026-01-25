@@ -3,6 +3,8 @@ using InstaPoker.Client.Graphics;
 using InstaPoker.Client.Graphics.Styles;
 using InstaPoker.Client.Network;
 using InstaPoker.Core;
+using InstaPoker.Core.Messages.Notifications;
+using InstaPoker.Core.Messages.Responses;
 using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
 using SubC.AllegroDotNet.Models;
@@ -16,41 +18,55 @@ public class PlayerLobbyScreen : IRenderObject, IMouseInteractable {
     private readonly LoadingLabel loading = new();
     private RoomSettings roomSettings = new();
     private List<LobbyUser> users = [];
+
+    private Task<JoinRoomResponse>? joinTask;
     
     public void Initialize() {
         loading.Initialize();
         loading.Size = Size;
         loading.Position = Vector2.Zero;
-        loading.Text = "Joining room";
         loading.FontSize = 28;
     }
 
     public void OnShow(string code) {
         this.code = code;
-        Task joinTask = NetworkManager.JoinRoom(code);
-        joinTask.ContinueWith(x => {
+        loading.ShowDots = true;
+        loading.Text = "Joining room";
+        loading.Show();
+        joinTask = NetworkManager.JoinRoom(code);
+        joinTask.ContinueWith(task => {
+            if (task.Result.Result != JoinRoomResult.Success) {
+                loading.Text = task.Result.Result switch {
+                    JoinRoomResult.RoomDoesNotExist => "Room does not exist!",
+                    JoinRoomResult.RoomFull => "Room is full!",
+                    JoinRoomResult.UsernameAlreadyExist => "Room already has a player with your name!",
+                    JoinRoomResult.AlreadyInOtherRoom => "You are in another room!",
+                    _ => "Error joining: " + task.Result.Result
+                };
+                loading.Text += " Returning in 5 seconds";
+                loading.ShowDots = false;
+                loading.Show();
+                Task.Delay(5000).ContinueWith(_ => {
+                    OnLeave?.Invoke();
+                });
+                return;
+            }
+            
             title = "Room " + code;
             loading.Hide();
             users.Clear();
+            users.AddRange(task.Result.ConnectedUsers.Select(x => new LobbyUser()
+            {
+                Name = x,
+                IsLocal = false,
+                IsOwner = x == task.Result.OwnerName
+            }));
             users.Add(new LobbyUser() {
                 IsLocal = true,
                 IsOwner = false,
                 Name = LocalSettings.Username
             });
-            users.Add(new LobbyUser()
-            {
-                Name = "Carlos", IsLocal = false, IsOwner = false
-            });
-            users.Add(new LobbyUser()
-            {
-                Name = "Eduardo", IsLocal = false, IsOwner = true
-            });
-            roomSettings = new RoomSettings {
-                MaxPlayers = 8,
-                IsAllInEnabled = true,
-                MaxBet = 1000,
-                SmallBlind = 40
-            };
+            roomSettings = task.Result.Settings;
         });
     }
 
@@ -185,6 +201,27 @@ public class PlayerLobbyScreen : IRenderObject, IMouseInteractable {
 
     public void Update(double delta) {
         loading.Update(delta);
+        if (loading.IsEnabled) {
+            return;
+        }
+        
+        if (NetworkManager.Handler!.TryGetPendingMessage(out RoomListUpdatedNotification? listUpdate)) {
+            if (listUpdate.UpdateType is LobbyListUpdateType.UserLeft or LobbyListUpdateType.UserKicked) {
+                users.RemoveAll(x => x.Name == listUpdate.Username);
+            }else if (listUpdate.UpdateType == LobbyListUpdateType.UserJoined) {
+                users.Add(new LobbyUser() {
+                    Name = listUpdate.Username,
+                    IsLocal = false,
+                    IsOwner = false,
+                });
+            }
+        }
+
+        if (NetworkManager.Handler!.TryGetPendingMessage(
+                out RoomSettingsChangeNotification? settingsChangeNotification)) {
+            roomSettings = settingsChangeNotification.NewSettings;
+        }
+        
     }
 
     public Vector2 Position { get; set; }

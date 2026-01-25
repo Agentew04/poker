@@ -27,7 +27,6 @@ public class ClientConnection {
         
         while (!cts!.IsCancellationRequested && Client.Connected) {
             // wait for new packet
-            Console.WriteLine("Waiting for client packet");
             Message m = await mr.ReadNextMessageAsync();
             Console.WriteLine("Got message with type: " + m.GetType().Name);
             await IncomingMessages.Writer.WriteAsync(m);

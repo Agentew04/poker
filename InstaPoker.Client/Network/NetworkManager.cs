@@ -70,8 +70,10 @@ public static class NetworkManager {
         });
     }
     
-    public static Task JoinRoom(string code) {
-        return Task.Delay(Random.Shared.Next(50,500));
+    public static Task<JoinRoomResponse> JoinRoom(string code) {
+        return Handler!.SendRequest<JoinRoomRequest, JoinRoomResponse>(new JoinRoomRequest {
+            RoomCode = code
+        });
     }
 
     public static Task KickUser(string name) {
@@ -79,7 +81,6 @@ public static class NetworkManager {
             Username = name
         });
     }
-
 
     public static Task SendSettings(RoomSettings settings) {
         return Handler!.SendNotification(new RoomSettingsChangeNotification() {

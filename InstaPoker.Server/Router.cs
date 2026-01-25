@@ -39,6 +39,10 @@ public class Router {
                 await RoomManager.UserKick(conn, kickUserNotification.Username);
                 break;
             }
+            case JoinRoomRequest joinRoomRequest: {
+                await RoomManager.UserJoinRoom(conn, joinRoomRequest);
+                break;
+            }
         }
     }
 }

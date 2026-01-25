@@ -2,6 +2,7 @@
 using System.Text;
 using InstaPoker.Core;
 using InstaPoker.Core.Messages.Notifications;
+using InstaPoker.Core.Messages.Requests;
 using InstaPoker.Core.Messages.Responses;
 
 namespace InstaPoker.Server;
@@ -9,6 +10,8 @@ namespace InstaPoker.Server;
 public class RoomManager {
 
     private readonly List<Room> rooms = [];
+
+    private readonly Dictionary<ClientConnection, Room?> userRoom = [];
 
     public async Task CreateNewRoom(ClientConnection owner) {
         Room r = new() {
@@ -23,11 +26,12 @@ public class RoomManager {
             RoomCode = r.Code,
             Settings = r.Settings
         });
+        userRoom[owner] = r;
     }
 
     public async Task UpdateRoomSettings(ClientConnection owner, RoomSettings settings) {
-        Room? r = rooms.Find(x => x.Owner == owner);
-        if (r is null) {
+        Room? r = userRoom[owner];
+        if (r is null || r.Owner != owner) {
             Console.WriteLine("Non owner tried to update room settings");
             return;
         }
@@ -43,28 +47,23 @@ public class RoomManager {
     }
 
     public async Task UserLeaveRoom(ClientConnection conn) {
-        Room? emptyRoom = null;
-        foreach (Room room in rooms) {
-            if (!room.ConnectedUsers.Contains(conn)) {
-                continue;
-            }
-            room.ConnectedUsers.Remove(conn);
-            // notify users that player has left the room
-            await Parallel.ForEachAsync(room.ConnectedUsers, async (user, _) => {
-                await user.MessageWriter.WriteAsync(new RoomListUpdatedNotification() {
-                    Username = conn.Username,
-                    UpdateType = LobbyListUpdateType.UserLeft
-                });
-            });
+        Room? room = userRoom[conn];
+        if (room is null) {
+            return;
+        }
+        userRoom[conn] = null;
 
-            if (room.ConnectedUsers.Count == 0) {
-                emptyRoom = room;
-            }
-            
-            if (room.Owner != conn) {
-                continue;
-            }
-            // if user was owner decide new owner
+        room.ConnectedUsers.Remove(conn);
+        // notify users that player has left the room
+        await Parallel.ForEachAsync(room.ConnectedUsers, async (user, _) => {
+            await user.MessageWriter.WriteAsync(new RoomListUpdatedNotification() {
+                Username = conn.Username,
+                UpdateType = LobbyListUpdateType.UserLeft
+            });
+        });
+
+        // if user was owner decide new owner
+        if (room.Owner == conn) {
             ClientConnection newOwner = room.ConnectedUsers[Random.Shared.Next(room.ConnectedUsers.Count)];
             Console.WriteLine("New room owner: " + newOwner.Username);
             room.Owner = newOwner;
@@ -75,19 +74,21 @@ public class RoomManager {
             });
         }
 
-        if (emptyRoom is not null) {
-            rooms.Remove(emptyRoom);
+        if (room.ConnectedUsers.Count == 0) {
+            Console.WriteLine($"Room {room.Code} is empty. removing");
+            rooms.Remove(room);
         }
     }
 
     public async Task UserKick(ClientConnection conn, string kickedUser) {
-        Room? room = rooms.Find(x => x.Owner == conn);
-        if (room is null) {
+        Room? room = userRoom[conn];
+        if (room is null || room.Owner != conn) {
             return;
         }
 
         ClientConnection? kicked = room.ConnectedUsers.Find(x => x.Username == kickedUser);
         if (kicked is null) {
+            Console.WriteLine("Tried kicking non existent user");
             return;
         }
         
@@ -98,9 +99,63 @@ public class RoomManager {
                 UpdateType = LobbyListUpdateType.UserKicked
             });
         });
+        userRoom[kicked] = null;
         room.ConnectedUsers.Remove(kicked);
     }
-    
+
+    public async Task UserJoinRoom(ClientConnection conn, JoinRoomRequest req) {
+        userRoom.TryAdd(conn, null);
+        if (userRoom[conn] != null) {
+            Console.WriteLine("User");
+            await conn.MessageWriter.WriteAsync(new JoinRoomResponse() {
+                Result = JoinRoomResult.AlreadyInOtherRoom
+            });
+            return;
+        }
+
+        Room? r = rooms.Find(x => x.Code == req.RoomCode);
+
+        if (r is null) {
+            Console.WriteLine($"User {conn.Username} tried entering non existent room with code: \"{req.RoomCode}\". Rooms Available: {string.Join(", ", rooms.Select(x => $"\"{x.Code}\""))}");
+            await conn.MessageWriter.WriteAsync(new JoinRoomResponse() {
+                Result = JoinRoomResult.RoomDoesNotExist
+            });
+            return;
+        }
+
+        if (r.Settings.MaxPlayers <= r.ConnectedUsers.Count) {
+            Console.WriteLine($"Room {r.Code} full for {conn.Username}");
+            await conn.MessageWriter.WriteAsync(new JoinRoomResponse() {
+                Result = JoinRoomResult.RoomFull
+            });
+            return;
+        }
+
+        if (r.ConnectedUsers.Any(x => x.Username == conn.Username)) {
+            Console.WriteLine($"Duplicated username {conn.Username} in room {r.Code}");
+            await conn.MessageWriter.WriteAsync(new JoinRoomResponse() {
+                Result = JoinRoomResult.UsernameAlreadyExist
+            });
+            return;
+        }
+
+        Console.WriteLine($"User {conn.Username} joined room {r.Code}");
+        userRoom[conn] = r;
+        await conn.MessageWriter.WriteAsync(new JoinRoomResponse() {
+            Result = JoinRoomResult.Success,
+            Settings = r.Settings,
+            ConnectedUsers = r.ConnectedUsers.Select(x => x.Username).ToList(),
+            OwnerName = r.Owner.Username
+        });
+        // tell other players about new one
+        await Parallel.ForEachAsync(r.ConnectedUsers, async (user, _) => {
+            await user.MessageWriter.WriteAsync(new RoomListUpdatedNotification() {
+                Username = conn.Username,
+                UpdateType = LobbyListUpdateType.UserJoined
+            });
+        });
+        r.ConnectedUsers.Add(conn);
+    }
     
     private string GenerateRandomCode() {
         StringBuilder sb = new();

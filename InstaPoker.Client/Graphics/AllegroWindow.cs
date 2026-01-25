@@ -120,8 +120,8 @@ public abstract class AllegroWindow {
         if (windowTitle is null) {
             throw new Exception("Window title cant be null");
         }
-        Al.SetNewDisplayOption(DisplayOption.SampleBuffers, 1, DisplayImportance.Suggest);
-        Al.SetNewDisplayOption(DisplayOption.Samples, 4, DisplayImportance.Suggest);
+        // Al.SetNewDisplayOption(DisplayOption.SampleBuffers, 1, DisplayImportance.Suggest);
+        // Al.SetNewDisplayOption(DisplayOption.Samples, 4, DisplayImportance.Suggest);
         Al.SetNewDisplayFlags(DisplayFlags.Windowed|DisplayFlags.Resizable);
         windowedWidth = 1280;
         windowedHeight = 720;
