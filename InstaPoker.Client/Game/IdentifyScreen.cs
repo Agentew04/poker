@@ -16,10 +16,11 @@ public class IdentifyScreen : IRenderObject, IMouseInteractable, IKeyboardIntera
     private readonly Fader emptyNameFader = new();
     private readonly TextBoard emptyNameBoard = new();
     private readonly LoadingLabel loading = new();
+
+    private Task<bool>? connectionTask;
     
     public void Initialize() {
         loading.Initialize();
-        loading.Text = "Connecting to server";
         loading.FontSize = 28;
         loading.Hide();
         
@@ -52,15 +53,35 @@ public class IdentifyScreen : IRenderObject, IMouseInteractable, IKeyboardIntera
         if (!string.IsNullOrWhiteSpace(nameTextBox.GetString())) {
             LocalSettings.Username = nameTextBox.GetString();
 
-            loading.Show();
-            Task connectTask = NetworkManager.ConnectToServer(LocalSettings.Username);
-            connectTask.ContinueWith((t) => {
-                loading.Hide();
-                OkClicked?.Invoke();
-            });
+            
+            connectionTask = TryConnection();
+            connectionTask.ContinueWith(OnConnectEnd);
             return;
         }
         emptyNameFader.ShowFor(3);
+    }
+
+    private Task<bool> TryConnection() {
+        loading.ShowDots = true;
+        loading.Text = "Connecting to server";
+        loading.Show();
+        return NetworkManager.ConnectToServer(LocalSettings.Username);
+    }
+
+    private void OnConnectEnd(Task<bool> task) {
+        if (task.Result) {
+            loading.Hide();
+            OkClicked?.Invoke();
+        }
+        else {
+            loading.Text = "Could not connect to remote server. Retrying in 5 seconds";
+            loading.ShowDots = false;
+            loading.Show();
+            Task.Delay(5000).ContinueWith(_ => {
+                connectionTask = TryConnection();
+                connectionTask.ContinueWith(OnConnectEnd);
+            });
+        }
     }
 
     public void Render(RenderContext ctx) {

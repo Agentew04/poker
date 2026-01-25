@@ -39,6 +39,14 @@ public class MessageHandler(NetworkStream ns, MessageWriter writer, MessageReade
     }
 
     public void CheckForNewMessages() {
+        if (PendingMessages.Count > 0) {
+            Console.WriteLine("Warning. deleting untreated messages in 1 frame time: ");
+            foreach (Message msg in PendingMessages) {
+                Console.WriteLine("\t- " + msg.GetType().Name);
+            }
+        }
+        PendingMessages.Clear();
+        
         while (ns.DataAvailable) {
             Message m = reader.ReadNextMessageAsync().GetAwaiter().GetResult();
             Type type = m.GetType();

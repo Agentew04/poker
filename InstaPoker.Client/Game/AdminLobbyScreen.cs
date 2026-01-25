@@ -51,7 +51,11 @@ public class AdminLobbyScreen : IRenderObject, IMouseInteractable, IKeyboardInte
         smallblindTextbox.MaxCharacters = 6;
         allinEnabledCheckbox.Initialize();
         allinEnabledCheckbox.Style = CheckboxStyle.Default;
-
+        
+        allinEnabledCheckbox.OnValueChanged += _ => SendConfiguration();
+        smallblindTextbox.TextChanged += _ => SendConfiguration();
+        maxPlayersTextbox.TextChanged += _ => SendConfiguration();
+        maxBetTextbox.TextChanged += _ => SendConfiguration();
     }
 
     public void OnShow()
@@ -75,10 +79,6 @@ public class AdminLobbyScreen : IRenderObject, IMouseInteractable, IKeyboardInte
             smallblindTextbox.SetString(roomSettings.SmallBlind.ToString());
             maxBetTextbox.SetString(roomSettings.MaxBet.ToString());
 
-            allinEnabledCheckbox.OnValueChanged += _ => SendConfiguration();
-            smallblindTextbox.TextChanged += _ => SendConfiguration();
-            maxPlayersTextbox.TextChanged += _ => SendConfiguration();
-            maxBetTextbox.TextChanged += _ => SendConfiguration();
             loading.Hide();
         });
     }
@@ -266,6 +266,10 @@ public class AdminLobbyScreen : IRenderObject, IMouseInteractable, IKeyboardInte
     }
     
     private void SendConfiguration() {
+        if (loading.IsEnabled) {
+            return;
+        }
+        
         roomSettings.MaxPlayers = !string.IsNullOrEmpty(maxPlayersTextbox.GetString())
          ? int.Parse(maxPlayersTextbox.GetString()) : 0;
         roomSettings.SmallBlind = !string.IsNullOrEmpty(smallblindTextbox.GetString())

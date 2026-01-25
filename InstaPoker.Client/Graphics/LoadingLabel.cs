@@ -20,6 +20,8 @@ public class LoadingLabel : IRenderObject {
 
     public bool IsEnabled { get; private set; }
 
+    public bool ShowDots { get; set; } = true;
+
     public void Initialize() {
     }
 
@@ -35,10 +37,12 @@ public class LoadingLabel : IRenderObject {
 
         AllegroFont font = FontManager.GetFont("ShareTech-Regular", FontSize);
 
-        sb.Clear();
-        sb.Append(Text);
-        sb.Append(new string('.', dots));
-        string dottedText = sb.ToString();
+        if (ShowDots) {
+            sb.Clear();
+            sb.Append(Text);
+            sb.Append(new string('.', dots));
+        }
+        string dottedText = ShowDots ? sb.ToString() : Text;
 
         // measure from text, append dots after
         int w = Al.GetTextWidth(font, Text);
@@ -68,6 +72,7 @@ public class LoadingLabel : IRenderObject {
     public void Hide() {
         IsEnabled = false;
     }
+
 
     public Vector2 Position { get; set; }
     public Vector2 Size { get; set; }

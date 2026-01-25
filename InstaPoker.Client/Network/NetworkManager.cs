@@ -17,9 +17,29 @@ public static class NetworkManager {
     private const int Port = 12512;
     public static MessageHandler? Handler { get; private set; }
     
-    public static async Task ConnectToServer(string username) {
+    public static async Task<bool> ConnectToServer(string username) {
         client = new TcpClient();
-        await client.ConnectAsync(IPAddress.Loopback, Port);
+        Console.WriteLine("Connecting to remote server");
+        using CancellationTokenSource connectionCts = new(TimeSpan.FromSeconds(10));
+        try {
+            await client.ConnectAsync("localhost", Port, connectionCts.Token);
+        }
+        catch (OperationCanceledException e) {
+            Console.WriteLine("timeout. could not connect to remote server: " + e.Message + " " + e.GetType().Name);
+            return false;
+        }
+        catch (SocketException e) {
+            Console.WriteLine("Host computer rejected connection: " + e.Message + " " + e.GetType().Name);
+            return false;
+        }
+
+        if (!client.Connected) {
+            Console.WriteLine("unknown error. could not connect to remote server");
+            return false;
+        }
+
+        Console.WriteLine("connected");
+
         NetworkStream ns = client.GetStream();
         await using BinaryWriter bw = new (ns, Encoding.UTF8, true);
         using BinaryReader br = new(ns, Encoding.UTF8, true);
@@ -32,13 +52,14 @@ public static class NetworkManager {
         if (serverId != "InstaPoker.Server") {
             Console.WriteLine($"Could not recognize server id. Received \"{serverId}\". Expected: \"InstaPoker.Server\"");
             client.Close();
-            return;
+            return false;
         }
 
         Version serverVersion = br.ReadVersion();
         Console.WriteLine($"Server is at version {serverVersion.ToString()}");
 
         Handler = new MessageHandler(ns, new MessageWriter(ns, true), new MessageReader(ns, true));
+        return true;
     }
 
     public static Task<(string, RoomSettings)> CreateRoom() {
