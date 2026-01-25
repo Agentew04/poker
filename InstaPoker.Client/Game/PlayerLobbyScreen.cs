@@ -47,7 +47,7 @@ public class PlayerLobbyScreen : IRenderObject, IMouseInteractable {
                 loading.ShowDots = false;
                 loading.Show();
                 Task.Delay(5000).ContinueWith(_ => {
-                    OnLeave?.Invoke();
+                    UserLeft?.Invoke();
                 });
                 return;
             }
@@ -196,7 +196,7 @@ public class PlayerLobbyScreen : IRenderObject, IMouseInteractable {
 
     private void OnUserLeave() {
         NetworkManager.LeaveRoom();
-        OnLeave?.Invoke();
+        UserLeft?.Invoke();
     }
 
     public void Update(double delta) {
@@ -208,6 +208,13 @@ public class PlayerLobbyScreen : IRenderObject, IMouseInteractable {
         if (NetworkManager.Handler!.TryGetPendingMessage(out RoomListUpdatedNotification? listUpdate)) {
             if (listUpdate.UpdateType is LobbyListUpdateType.UserLeft or LobbyListUpdateType.UserKicked) {
                 users.RemoveAll(x => x.Name == listUpdate.Username);
+                if (listUpdate.UpdateType == LobbyListUpdateType.UserKicked && listUpdate.Username == LocalSettings.Username) {
+                    // user was kicked. show kick screen and return to main menu
+                    loading.ShowDots = false;
+                    loading.Text = "You were kicked from the room. Returning to Main Menu in 5 seconds";
+                    loading.Show();
+                    Task.Delay(5000).ContinueWith(_ => UserLeft?.Invoke());
+                }
             }else if (listUpdate.UpdateType == LobbyListUpdateType.UserJoined) {
                 users.Add(new LobbyUser() {
                     Name = listUpdate.Username,
@@ -220,6 +227,18 @@ public class PlayerLobbyScreen : IRenderObject, IMouseInteractable {
         if (NetworkManager.Handler!.TryGetPendingMessage(
                 out RoomSettingsChangeNotification? settingsChangeNotification)) {
             roomSettings = settingsChangeNotification.NewSettings;
+        }
+        
+        if(NetworkManager.Handler!.TryGetPendingMessage(out NewRoomOwnerNotification? newRoomOwnerNotification)) {
+            LobbyUser? owner = users.FirstOrDefault(x => x.Name == newRoomOwnerNotification.Owner);
+            if (owner is null) {
+                throw new Exception("Unknown user became owner!!");
+            }
+            users.ForEach(x => x.IsOwner = false);
+            owner.IsOwner = true;
+            if (owner.IsLocal) {
+                UpgradedToAdmin?.Invoke(users, roomSettings, code);
+            }
         }
         
     }
@@ -247,5 +266,7 @@ public class PlayerLobbyScreen : IRenderObject, IMouseInteractable {
         }
     }
 
-    public event Action? OnLeave;
+    public event Action? UserLeft;
+
+    public event Action<List<LobbyUser>, RoomSettings,string>? UpgradedToAdmin;
 }

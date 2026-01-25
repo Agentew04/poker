@@ -9,6 +9,7 @@ public static class MessageTypeCache {
 
     static MessageTypeCache() {
         MessageTypes = [];
+        MessageTypes[new KickUserNotification().UniqueId] = typeof(KickUserNotification);
         MessageTypes[new LeaveRoomNotification().UniqueId] = typeof(LeaveRoomNotification);
         MessageTypes[new NewRoomOwnerNotification().UniqueId] = typeof(NewRoomOwnerNotification);
         MessageTypes[new RoomListUpdatedNotification().UniqueId] = typeof(RoomListUpdatedNotification);

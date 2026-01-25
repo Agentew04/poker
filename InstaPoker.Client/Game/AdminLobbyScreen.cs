@@ -83,6 +83,26 @@ public class AdminLobbyScreen : IRenderObject, IMouseInteractable, IKeyboardInte
         });
     }
 
+    public void OnUpgrade(List<LobbyUser> users, RoomSettings settings, string code) {
+        this.code = code;
+        title = "Room " + code;
+        this.users.Clear();
+        this.users.AddRange(users);
+        roomSettings.IsAllInEnabled = settings.IsAllInEnabled;
+        roomSettings.MaxPlayers = settings.MaxPlayers;
+        roomSettings.MaxBet = settings.MaxBet;
+        roomSettings.SmallBlind = settings.SmallBlind;
+
+        loading.ShowDots = false;
+        loading.Text = "Becoming owner";
+        loading.Show();
+        allinEnabledCheckbox.Value = roomSettings.IsAllInEnabled;
+        maxPlayersTextbox.SetString(roomSettings.MaxPlayers.ToString());
+        smallblindTextbox.SetString(roomSettings.SmallBlind.ToString());
+        maxBetTextbox.SetString(roomSettings.MaxBet.ToString());
+        loading.Hide();
+    }
+    
     public void Render(RenderContext ctx)
     {
         loading.Size = Size;
@@ -301,6 +321,8 @@ public class AdminLobbyScreen : IRenderObject, IMouseInteractable, IKeyboardInte
                 });
             }
         }
+        // ignore updates from the server. we are admin and we are the source of truth (hopefully)
+        NetworkManager.Handler!.TryGetPendingMessage(out RoomSettingsChangeNotification _);
     }
 
     public Vector2 Position { get; set; }

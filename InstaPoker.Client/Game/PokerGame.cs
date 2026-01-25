@@ -47,8 +47,12 @@ internal class PokerGame : AllegroWindow {
         adminLobbyScreen.OnLeave += () => {
             renderScreen = mainMenuScreen;
         };
-        playerLobbyScreen.OnLeave += () => {
+        playerLobbyScreen.UserLeft += () => {
             renderScreen = mainMenuScreen;
+        };
+        playerLobbyScreen.UpgradedToAdmin += (users, settings, code) => {
+            renderScreen = adminLobbyScreen;
+            adminLobbyScreen.OnUpgrade(users, settings, code);
         };
     }
 

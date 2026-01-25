@@ -78,7 +78,6 @@ public abstract class AllegroWindow {
 
         running = true;
         double lastTime = Al.GetTime();
-        int i = 0;
         
         double targetFps = Al.GetDisplayRefreshRate(Display);
         double targetFpsDelta = 1.0 / targetFps;
@@ -86,11 +85,6 @@ public abstract class AllegroWindow {
             double time = Al.GetTime();
             double delta = time - lastTime;
             lastTime = time;
-            if (i % 300 == 0) {
-                Console.WriteLine("FPS: " + (int)(1.0/delta));
-                i = 0;
-            }
-            i++;
 
             ProcessEvents(queue);
             NetworkManager.Handler?.CheckForNewMessages();
