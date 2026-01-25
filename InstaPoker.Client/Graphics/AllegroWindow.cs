@@ -69,30 +69,28 @@ public abstract class AllegroWindow {
         RegisterGesture(new KeyGesture([KeyCode.KeyEnter], 4, ToggleFullscreen));
         RegisterGesture(new KeyGesture([KeyCode.KeyF11], 0, ToggleFullscreen));
         
-        if (windowTitle is null) {
-            throw new Exception("Window title cant be null");
-        }
-
-        Al.SetNewDisplayFlags(DisplayFlags.Windowed|DisplayFlags.Resizable);
-        windowedWidth = 1280;
-        windowedHeight = 720;
-        Display = Al.CreateDisplay(windowedWidth, windowedHeight) ?? throw new Exception("Could not create display");
-        Width = Al.GetDisplayWidth(Display);
-        Height = Al.GetDisplayHeight(Display);
-        displayPtr = GetPointer(Display);
-        Al.SetWindowTitle(Display, windowTitle);
+        CreateDisplay();
         AllegroEventQueue queue = Al.CreateEventQueue() ?? throw new Exception("Could not create event queue");
         RegisterEventSources(queue);
 
+        // audio samples
         Al.ReserveSamples(4);
-        
-        
+
         running = true;
         double lastTime = Al.GetTime();
+        int i = 0;
+        
+        double targetFps = Al.GetDisplayRefreshRate(Display);
+        double targetFpsDelta = 1.0 / targetFps;
         while (running) {
             double time = Al.GetTime();
             double delta = time - lastTime;
             lastTime = time;
+            if (i % 300 == 0) {
+                Console.WriteLine("FPS: " + (int)(1.0/delta));
+                i = 0;
+            }
+            i++;
 
             ProcessEvents(queue);
             NetworkManager.Handler?.CheckForNewMessages();
@@ -100,6 +98,14 @@ public abstract class AllegroWindow {
             Render();
             
             Al.FlipDisplay();
+            
+            // wait for new frame
+            double endTime = Al.GetTime();
+            double frameDelta = endTime - lastTime;
+            double sleepDelta = targetFpsDelta - frameDelta;
+            if (sleepDelta > 0) {
+                Thread.Sleep(TimeSpan.FromSeconds(sleepDelta));
+            }
         }
 
         WindowClosing?.Invoke();
@@ -108,6 +114,22 @@ public abstract class AllegroWindow {
         Al.DestroyDisplay(Display);
         Display = null;
         DeinitializeAllegro();
+    }
+
+    private void CreateDisplay() {
+        if (windowTitle is null) {
+            throw new Exception("Window title cant be null");
+        }
+        Al.SetNewDisplayOption(DisplayOption.SampleBuffers, 1, DisplayImportance.Suggest);
+        Al.SetNewDisplayOption(DisplayOption.Samples, 4, DisplayImportance.Suggest);
+        Al.SetNewDisplayFlags(DisplayFlags.Windowed|DisplayFlags.Resizable);
+        windowedWidth = 1280;
+        windowedHeight = 720;
+        Display = Al.CreateDisplay(windowedWidth, windowedHeight) ?? throw new Exception("Could not create display");
+        Width = Al.GetDisplayWidth(Display);
+        Height = Al.GetDisplayHeight(Display);
+        displayPtr = GetPointer(Display);
+        Al.SetWindowTitle(Display, windowTitle);
     }
 
     private void RegisterEventSources(AllegroEventQueue queue) {
