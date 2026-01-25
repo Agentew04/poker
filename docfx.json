@@ -16,17 +16,11 @@
   "build": {
     "content": [
       {
-		"src": "docs",
         "files": [
+		  "toc.yml",
           "**/*.{md,yml}"
         ]
-      },
-	  {
-		"src": ".",
-		"files": [
-		  "toc.yml"
-		]
-	  }
+      }
     ],
     "resource": [
       {
