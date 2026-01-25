@@ -39,8 +39,9 @@
       "modern"
     ],
     "globalMetadata": {
-      "_appName": "InstaPokerDocs",
-      "_appTitle": "InstaPokerDocs",
+      "_appName": "InstaPoker Documentation",
+	  "_appLogoPath": "images/logo.png",
+      "_appTitle": "InstaPoker Documentation",
       "_enableSearch": true,
       "pdf": false
     }
