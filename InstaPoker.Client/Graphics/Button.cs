@@ -83,7 +83,7 @@ public class Button : IRenderObject, IMouseInteractable {
         }
 
         if (isPressed && isHovering) {
-            AllegroSample bopSample = AudioManager.GetAudio("bop");
+            AllegroSample bopSample = AudioManager.GetAudio("bap");
             AllegroSampleID? nil = null;
             Al.PlaySample(bopSample, 1, 0, 1, PlayMode.Once, ref nil);
             Pressed?.Invoke();

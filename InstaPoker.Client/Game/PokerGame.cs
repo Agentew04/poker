@@ -29,7 +29,7 @@ internal class PokerGame : AllegroWindow {
 
     protected override void Initialize() {
         FontManager.RegisterFont("ShareTech-Regular");
-        AudioManager.RegisterAudio("bop.ogg", "bop");
+        RegisterAudio();
         identifyScreen.Initialize();
         renderScreen = identifyScreen;
         identifyScreen.OkClicked += () => renderScreen = mainMenuScreen;
@@ -109,5 +109,30 @@ internal class PokerGame : AllegroWindow {
         if (renderScreen is IMouseInteractable mouse) {
             mouse.OnMouseUp(button);
         }
+    }
+
+    private void RegisterAudio() {
+        // bap
+        AudioManager.RegisterAudio("bap1.ogg", "bap1");
+        AudioManager.RegisterAudio("bap2.ogg", "bap2");
+        AudioManager.RegisterAudio("bap3.ogg", "bap3");
+        AudioManager.RegisterAudio("bap4.ogg", "bap4");
+        AudioManager.RegisterAudio("bap5.ogg", "bap5");
+        AudioManager.RegisterAudio("bap6.ogg", "bap6");
+        AudioManager.RegisterAudio("bap7.ogg", "bap7");
+        AudioManager.RegisterAudio("bap8.ogg", "bap8");
+        AudioManager.RegisterAudio("bap9.ogg", "bap9");
+        AudioManager.CreateGroup("bap", "bap1", "bap2", "bap3", "bap4", "bap5", "bap6", "bap7", "bap8", "bap9");
+        
+        // bop
+        AudioManager.RegisterAudio("bop1.ogg", "bop1");
+        AudioManager.RegisterAudio("bop2.ogg", "bop2");
+        AudioManager.RegisterAudio("bop3.ogg", "bop3");
+        AudioManager.RegisterAudio("bop4.ogg", "bop4");
+        AudioManager.RegisterAudio("bop5.ogg", "bop5");
+        AudioManager.RegisterAudio("bop6.ogg", "bop6");
+        AudioManager.RegisterAudio("bop7.ogg", "bop7");
+        AudioManager.RegisterAudio("bop8.ogg", "bop8");
+        AudioManager.CreateGroup("bop", "bop1", "bop2", "bop3", "bop4", "bop5", "bop6", "bop7", "bop8");
     }
 }
