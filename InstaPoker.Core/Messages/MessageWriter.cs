@@ -1,8 +1,10 @@
 ﻿using System.Net.Sockets;
-using System.Threading.Channels;
 
 namespace InstaPoker.Core.Messages;
 
+/// <summary>
+/// 
+/// </summary>
 public sealed class MessageWriter : IDisposable, IAsyncDisposable {
 
     private readonly bool leaveOpen;

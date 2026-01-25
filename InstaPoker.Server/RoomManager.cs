@@ -1,5 +1,4 @@
-﻿using System.Runtime.Intrinsics.X86;
-using System.Text;
+﻿using System.Text;
 using InstaPoker.Core;
 using InstaPoker.Core.Messages.Notifications;
 using InstaPoker.Core.Messages.Requests;

@@ -1,6 +1,4 @@
-﻿using System.Buffers.Binary;
-
-namespace InstaPoker.Core.Messages.Notifications;
+﻿namespace InstaPoker.Core.Messages.Notifications;
 
 /// <summary>
 /// Notificacao avisando que existe um novo dono da sala

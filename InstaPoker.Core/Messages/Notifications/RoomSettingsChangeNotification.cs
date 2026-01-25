@@ -6,6 +6,9 @@
 /// <remarks>Client[Owner] to Server || Server to Client</remarks>
 public class RoomSettingsChangeNotification : Message {
 
+    /// <summary>
+    /// The new settings that the current room has.
+    /// </summary>
     public RoomSettings NewSettings { get; set; } = new();
     
     public override Guid UniqueId => new("55E044F9-7AC4-425F-8A02-11B2BFE54169");

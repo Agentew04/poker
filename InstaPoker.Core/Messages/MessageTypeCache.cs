@@ -4,7 +4,10 @@ using InstaPoker.Core.Messages.Responses;
 
 namespace InstaPoker.Core.Messages;
 
-public static class MessageTypeCache {
+/// <summary>
+/// Static class that holds mappings of <see cref="Guid"/> and its respective <see cref="Message"/>.
+/// </summary>
+internal static class MessageTypeCache {
     private static readonly Dictionary<Guid, Type> MessageTypes;
 
     static MessageTypeCache() {
@@ -20,6 +23,12 @@ public static class MessageTypeCache {
         MessageTypes[new JoinRoomResponse().UniqueId] = typeof(JoinRoomResponse);
     }
 
+    /// <summary>
+    /// Returns the <see cref="Type"/> associated with a <see cref="Guid"/> or <see langword="null"/> if
+    /// not registered.
+    /// </summary>
+    /// <param name="id">The message id to be queried</param>
+    /// <returns>The type of the message, inheriting from <see cref="Message"/> or <see langword="null"/></returns>
     public static Type? GetMessageType(Guid id) {
         return MessageTypes.GetValueOrDefault(id);
     }

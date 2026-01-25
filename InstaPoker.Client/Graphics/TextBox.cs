@@ -1,6 +1,4 @@
 ﻿using System.Numerics;
-using System.Runtime.InteropServices;
-using System.Text;
 using InstaPoker.Client.Graphics.Styles;
 using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;

@@ -1,5 +1,4 @@
-﻿using System.Drawing;
-using System.Numerics;
+﻿using System.Numerics;
 using InstaPoker.Client.Graphics.Styles;
 using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;

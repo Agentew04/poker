@@ -1,14 +1,11 @@
 ﻿using System.Buffers;
-using System.Diagnostics.CodeAnalysis;
 using System.Net.Sockets;
-using System.Reflection;
-using System.Threading.Channels;
-using InstaPoker.Core.Messages.Notifications;
-using InstaPoker.Core.Messages.Requests;
-using InstaPoker.Core.Messages.Responses;
 
 namespace InstaPoker.Core.Messages;
 
+/// <summary>
+/// A class that reads <see cref="Message"/>s from a <see cref="NetworkStream"/>.
+/// </summary>
 public class MessageReader : IDisposable {
 
     private readonly bool leaveOpen;
@@ -25,6 +22,12 @@ public class MessageReader : IDisposable {
         }
     }
 
+    /// <summary>
+    /// Waits for the next message asyncronously and parses it.
+    /// </summary>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="Exception"></exception>
     public async Task<Message> ReadNextMessageAsync() {
         byte[] guidBytes = ArrayPool<byte>.Shared.Rent(16);
         await ns.ReadExactlyAsync(guidBytes, 0, 16);
@@ -47,6 +50,7 @@ public class MessageReader : IDisposable {
 
         Type? messageType = MessageTypeCache.GetMessageType(messageId);
         if (messageType is null) {
+            Console.WriteLine("Message ID not recognized, throwing Exception. Exception may be lost in async environments.");
             throw new Exception("Message ID not recognized");
         }
         Message message = (Message)Activator.CreateInstance(messageType)!;

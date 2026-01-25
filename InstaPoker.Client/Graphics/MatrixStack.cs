@@ -1,5 +1,4 @@
 ﻿using System.Numerics;
-using System.Text;
 using SubC.AllegroDotNet.Models;
 
 namespace InstaPoker.Client.Graphics;

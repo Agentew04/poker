@@ -1,8 +1,6 @@
-﻿using System.Net;
-using System.Net.Sockets;
+﻿using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
-using InstaPoker.Client.Game;
 using InstaPoker.Core;
 using InstaPoker.Core.Messages;
 using InstaPoker.Core.Messages.Notifications;

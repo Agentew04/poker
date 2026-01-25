@@ -1,5 +1,11 @@
-﻿namespace InstaPoker.Core.Messages.Responses;
+﻿using InstaPoker.Core.Messages.Requests;
 
+namespace InstaPoker.Core.Messages.Responses;
+
+/// <summary>
+/// Response for a room creation. Pairs with <see cref="CreateRoomRequest"/>.
+/// </summary>
+/// <remarks>Server to Client</remarks>
 public class CreateRoomResponse : Message {
 
     public string RoomCode { get; set; } = string.Empty;

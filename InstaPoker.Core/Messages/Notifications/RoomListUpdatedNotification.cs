@@ -6,7 +6,15 @@
 /// </summary>
 /// <remarks>Server to Client</remarks>
 public class RoomListUpdatedNotification : Message {
+    
+    /// <summary>
+    /// The name of the user that has been added/removed.
+    /// </summary>
     public string Username { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// The type of update that has occurred.
+    /// </summary>
     public LobbyListUpdateType UpdateType { get; set; }
     
     public override Guid UniqueId => new("32A9C853-EE23-4C0A-83C4-030C3F452F1F");

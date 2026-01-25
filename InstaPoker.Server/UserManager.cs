@@ -1,6 +1,4 @@
-﻿using System.Net.Sockets;
-
-namespace InstaPoker.Server;
+﻿namespace InstaPoker.Server;
 
 public class UserManager {
 

@@ -2,7 +2,9 @@
 
 public static class SerializationExtensions {
     
-    
+    /// <summary>
+    /// Serialize a <see cref="Version"/> object as 4 integers using 7 bit encoding.
+    /// </summary>
     public static void Write(this BinaryWriter bw, Version v) {
         bw.Write7BitEncodedInt(v.Major);
         bw.Write7BitEncodedInt(v.Minor);
@@ -10,6 +12,11 @@ public static class SerializationExtensions {
         bw.Write7BitEncodedInt(v.Revision);
     }
 
+    /// <summary>
+    /// Deserializes a <see cref="Version"/> object
+    /// </summary>
+    /// <param name="br"></param>
+    /// <returns></returns>
     public static Version ReadVersion(this BinaryReader br) {
         int major = br.Read7BitEncodedInt();
         int minor = br.Read7BitEncodedInt();

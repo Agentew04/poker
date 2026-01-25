@@ -1,5 +1,4 @@
-﻿using System.Net.NetworkInformation;
-using System.Numerics;
+﻿using System.Numerics;
 using InstaPoker.Client.Graphics;
 using InstaPoker.Client.Graphics.Styles;
 using InstaPoker.Client.Network;

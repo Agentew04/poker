@@ -2,7 +2,6 @@
 using InstaPoker.Client.Graphics;
 using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
-using SubC.AllegroDotNet.Extensions;
 using SubC.AllegroDotNet.Models;
 
 namespace InstaPoker.Client.Game;

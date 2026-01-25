@@ -8,8 +8,6 @@ public class RenderContext {
     public AllegroTransform Transform = new();
     public MultiplyFloatStack AlphaStack { get; set; } = new();
     public float Alpha => AlphaStack.Peek();
-    
-
 
     public void UpdateTransform() {
         Stack.AsTransform(ref Transform);
