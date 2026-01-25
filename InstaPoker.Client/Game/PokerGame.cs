@@ -47,6 +47,9 @@ internal class PokerGame : AllegroWindow {
         adminLobbyScreen.OnLeave += () => {
             renderScreen = mainMenuScreen;
         };
+        playerLobbyScreen.OnLeave += () => {
+            renderScreen = mainMenuScreen;
+        };
     }
 
     protected override void Update(double delta) {

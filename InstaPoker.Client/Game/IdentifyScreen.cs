@@ -1,6 +1,8 @@
-﻿using System.Numerics;
+﻿using System.Net.NetworkInformation;
+using System.Numerics;
 using InstaPoker.Client.Graphics;
 using InstaPoker.Client.Graphics.Styles;
+using InstaPoker.Client.Network;
 using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
 using SubC.AllegroDotNet.Models;
@@ -13,8 +15,14 @@ public class IdentifyScreen : IRenderObject, IMouseInteractable, IKeyboardIntera
     private readonly Button okButton = new();
     private readonly Fader emptyNameFader = new();
     private readonly TextBoard emptyNameBoard = new();
+    private readonly LoadingLabel loading = new();
     
     public void Initialize() {
+        loading.Initialize();
+        loading.Text = "Connecting to server";
+        loading.FontSize = 28;
+        loading.Hide();
+        
         nameTextBox.Initialize();
         nameTextBox.Style = TextBoxStyle.Default with {
             FontSize = 28
@@ -43,13 +51,26 @@ public class IdentifyScreen : IRenderObject, IMouseInteractable, IKeyboardIntera
     private void OnOkClick() {
         if (!string.IsNullOrWhiteSpace(nameTextBox.GetString())) {
             LocalSettings.Username = nameTextBox.GetString();
-            OkClicked?.Invoke();
+
+            loading.Show();
+            Task connectTask = NetworkManager.ConnectToServer(LocalSettings.Username);
+            connectTask.ContinueWith((t) => {
+                loading.Hide();
+                OkClicked?.Invoke();
+            });
             return;
         }
         emptyNameFader.ShowFor(3);
     }
 
     public void Render(RenderContext ctx) {
+        loading.Size = Size;
+        loading.Position = Vector2.Zero;
+        loading.Render(ctx);
+        if (loading.IsEnabled) {
+            return;
+        }
+        
         Translation = Matrix4x4.Identity;
         nameTextBox.Size = new Vector2(500, 40);
         okButton.Size = new Vector2(300, 60);

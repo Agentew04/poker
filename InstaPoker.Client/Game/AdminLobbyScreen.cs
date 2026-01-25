@@ -3,6 +3,8 @@ using System.Security.Claims;
 using InstaPoker.Client.Graphics;
 using InstaPoker.Client.Graphics.Styles;
 using InstaPoker.Client.Network;
+using InstaPoker.Core;
+using InstaPoker.Core.Messages.Notifications;
 using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
 using SubC.AllegroDotNet.Models;
@@ -49,13 +51,14 @@ public class AdminLobbyScreen : IRenderObject, IMouseInteractable, IKeyboardInte
         smallblindTextbox.MaxCharacters = 6;
         allinEnabledCheckbox.Initialize();
         allinEnabledCheckbox.Style = CheckboxStyle.Default;
+
     }
 
     public void OnShow()
     {
         loading.Show();
-        Task<string> createRoomTask = NetworkManager.CreateRoom();
-        createRoomTask.ContinueWith(x =>
+        Task<(string,RoomSettings)> createRoomTask = NetworkManager.CreateRoom();
+        createRoomTask.ContinueWith(task =>
         {
             users.Clear();
             users.Add(new LobbyUser()
@@ -64,23 +67,18 @@ public class AdminLobbyScreen : IRenderObject, IMouseInteractable, IKeyboardInte
                 IsLocal = true,
                 IsOwner = true
             });
-            users.Add(new LobbyUser()
-            {
-                Name = "Carlos", IsLocal = false, IsOwner = false
-            });
-            users.Add(new LobbyUser()
-            {
-                Name = "Eduardo", IsLocal = false, IsOwner = false
-            });
-            code = x.Result;
+            code = task.Result.Item1;
             title = "Room " + code;
-            roomSettings = new RoomSettings()
-            {
-                SmallBlind = 50,
-                IsAllInEnabled = true,
-                MaxPlayers = 8,
-                MaxBet = 1000
-            };
+            roomSettings = task.Result.Item2;
+            allinEnabledCheckbox.Value = roomSettings.IsAllInEnabled;
+            maxPlayersTextbox.SetString(roomSettings.MaxPlayers.ToString());
+            smallblindTextbox.SetString(roomSettings.SmallBlind.ToString());
+            maxBetTextbox.SetString(roomSettings.MaxBet.ToString());
+
+            allinEnabledCheckbox.OnValueChanged += _ => SendConfiguration();
+            smallblindTextbox.TextChanged += _ => SendConfiguration();
+            maxPlayersTextbox.TextChanged += _ => SendConfiguration();
+            maxBetTextbox.TextChanged += _ => SendConfiguration();
             loading.Hide();
         });
     }
@@ -162,7 +160,7 @@ public class AdminLobbyScreen : IRenderObject, IMouseInteractable, IKeyboardInte
                     user.Button = new Button();
                     user.Button.Initialize();
                     user.Button.Label = "Leave";
-                    user.Button.Pressed += () => { OnLeave?.Invoke(); };
+                    user.Button.Pressed += OnUserLeave;
                     user.Button.Style = ButtonStyle.RedButton with
                     {
                         FontSize = 24
@@ -180,7 +178,7 @@ public class AdminLobbyScreen : IRenderObject, IMouseInteractable, IKeyboardInte
                     user.Button = new Button();
                     user.Button.Initialize();
                     user.Button.Label = "Kick";
-                    user.Button.Pressed += () => { OnUserKick(user); };
+                    user.Button.Pressed += () => OnUserKick(user);
                     user.Button.Style = ButtonStyle.RedButton with
                     {
                         FontSize = 24
@@ -196,7 +194,7 @@ public class AdminLobbyScreen : IRenderObject, IMouseInteractable, IKeyboardInte
 
         ctx.Stack.Pop();
 
-        foreach (var user in users)
+        foreach (LobbyUser user in users)
         {
             user.Button?.Render(ctx);
         }
@@ -234,7 +232,7 @@ public class AdminLobbyScreen : IRenderObject, IMouseInteractable, IKeyboardInte
         maxBetTextbox.Size = new Vector2(targetWidth-maxBetTextbox.Position.X, itemHeight);
         maxPlayersTextbox.Size  = new Vector2(targetWidth-maxPlayersTextbox.Position.X, itemHeight);
         allinEnabledCheckbox.Size = new Vector2(itemHeight*0.75f, itemHeight*0.75f);
-        
+
         Al.DrawText(font, AllegroColor.Black, 0, GetHeight(0), FontAlignFlags.Left, "Small Blind: ");
         Al.DrawText(font, AllegroColor.Black, 0, GetHeight(1), FontAlignFlags.Left, "Max Bet: ");
         Al.DrawText(font, AllegroColor.Black, 0, GetHeight(2), FontAlignFlags.Left, "Max Players: ");
@@ -252,7 +250,7 @@ public class AdminLobbyScreen : IRenderObject, IMouseInteractable, IKeyboardInte
 
         float GetHeight(int i)
         {
-            return itemHeight * i + spacing * (i - 1);// + Al.GetFontLineHeight(font) * 0.5f;
+            return itemHeight * i + spacing * (i - 1);
         }
     }
 
@@ -262,12 +260,42 @@ public class AdminLobbyScreen : IRenderObject, IMouseInteractable, IKeyboardInte
         _ = NetworkManager.KickUser(user.Name);
     }
 
+    private void OnUserLeave() {
+        NetworkManager.LeaveRoom();
+        OnLeave?.Invoke();
+    }
+    
+    private void SendConfiguration() {
+        roomSettings.MaxPlayers = !string.IsNullOrEmpty(maxPlayersTextbox.GetString())
+         ? int.Parse(maxPlayersTextbox.GetString()) : 0;
+        roomSettings.SmallBlind = !string.IsNullOrEmpty(smallblindTextbox.GetString())
+            ? int.Parse(smallblindTextbox.GetString()) : 0;
+        roomSettings.MaxBet = !string.IsNullOrEmpty(maxBetTextbox.GetString())
+            ? int.Parse(maxBetTextbox.GetString()) : 0;
+        roomSettings.IsAllInEnabled = allinEnabledCheckbox.Value;
+
+        Console.WriteLine("Sending Configuration");
+        _ = NetworkManager.SendSettings(roomSettings);
+    }
+    
     public void Update(double delta)
     {
         loading.Update(delta);
         if (loading.IsEnabled)
         {
             return;
+        }
+
+        if (NetworkManager.Handler!.TryGetPendingMessage(out RoomListUpdatedNotification? listUpdate)) {
+            if (listUpdate.UpdateType is LobbyListUpdateType.UserLeft or LobbyListUpdateType.UserKicked) {
+                users.RemoveAll(x => x.Name == listUpdate.Username);
+            }else if (listUpdate.UpdateType == LobbyListUpdateType.UserJoined) {
+                users.Add(new LobbyUser() {
+                    Name = listUpdate.Username,
+                    IsLocal = false,
+                    IsOwner = false,
+                });
+            }
         }
     }
 

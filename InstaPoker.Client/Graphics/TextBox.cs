@@ -17,6 +17,8 @@ public partial class TextBox : IRenderObject, IMouseInteractable, IKeyboardInter
     public VerticalAlign VerticalFontAlignment { get; set; }
     public HorizontalAlign HorizontalFontAlignment { get; set; }
 
+    public event Action<string>? TextChanged;
+
     // text edition
     private const int BlockSize = 32;
     private char[] buffer = [];
@@ -107,6 +109,17 @@ public partial class TextBox : IRenderObject, IMouseInteractable, IKeyboardInter
             BuildString();
         }
         return cachedString!;
+    }
+
+    public void SetString(string value) {
+        cachedString = value;
+        buffer = new char[value.Length];
+        for (int i = 0; i < value.Length; i++) {
+            buffer[i] = value[i];
+        }
+        charCount = value.Length;
+        cursor = charCount;
+        TextChanged?.Invoke(cachedString);
     }
 
     private void IncreaseBuffer() {
@@ -200,6 +213,7 @@ public partial class TextBox : IRenderObject, IMouseInteractable, IKeyboardInter
             charCount--;
         }
         BuildString();
+        TextChanged?.Invoke(cachedString!);
     }
 
     private void Delete() {
@@ -211,6 +225,7 @@ public partial class TextBox : IRenderObject, IMouseInteractable, IKeyboardInter
         }
         charCount--;
         BuildString();
+        TextChanged?.Invoke(cachedString!);
     }
     
     public void OnCharDown(char character) {
@@ -254,6 +269,7 @@ public partial class TextBox : IRenderObject, IMouseInteractable, IKeyboardInter
         charCount++;
         cursor++;
         BuildString();
+        TextChanged?.Invoke(cachedString!);
     }
 
     private void BuildString() {

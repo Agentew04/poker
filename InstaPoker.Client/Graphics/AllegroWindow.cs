@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using System.Runtime.InteropServices;
+using InstaPoker.Client.Network;
 using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
 using SubC.AllegroDotNet.Extensions;
@@ -94,6 +95,7 @@ public abstract class AllegroWindow {
             lastTime = time;
 
             ProcessEvents(queue);
+            NetworkManager.Handler?.CheckForNewMessages();
             Update(delta);
             Render();
             

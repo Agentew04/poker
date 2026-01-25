@@ -41,10 +41,10 @@ public class Checkbox : IRenderObject, IMouseInteractable{
                 Style.Background;
         }
         Al.DrawFilledRectangle(0,0, Size.X, Size.Y, background);
-        
+
         // draw border
         Al.DrawRectangle(0,0, Size.X, Size.Y, Style.BorderColor, Style.BorderSize);
-        
+
         // draw check
         if (Value) {
             if (cachedSize == -1 || cachedSize != (int)((Size.X + Size.Y) * 0.5f)) {
@@ -58,12 +58,13 @@ public class Checkbox : IRenderObject, IMouseInteractable{
                 checkVertices[3] = p1.Y * size;
                 checkVertices[4] = p2.X * size;
                 checkVertices[5] = p2.Y * size;
+                cachedSize = (int)size;
             }
             
             const float thickRatio = 0.112244897959184f;
             float thickness = thickRatio * ((Size.X + Size.Y) * 0.5f); 
 
-            Al.DrawPolyline(checkVertices, 2*sizeof(float), 3,LineJoin.Round, LineCap.Round, Style.Foreground, thickness, 1);
+            Al.DrawPolyline(checkVertices, 2*sizeof(float), 3,LineJoin.Round, LineCap.Round, Style.Foreground, thickness, 8);
         }
         
         ctx.Stack.Pop();
