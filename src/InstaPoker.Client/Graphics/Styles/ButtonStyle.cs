@@ -13,7 +13,7 @@ public struct ButtonStyle {
 
     public static readonly ButtonStyle Default = new() {
         FontSize = 16,
-        Foreground = AllegroColor.WhiteSmoke,
+        Foreground = Colors.WhiteSmoke,
         Background = new AllegroColor() {
             R = 0.30196078431372547f,
             G = 0.6705882352941176f,
@@ -33,12 +33,12 @@ public struct ButtonStyle {
             A = 1.0f
         },
         BorderSize = 1,
-        BorderColor = AllegroColor.Black
+        BorderColor = Colors.Black
     };
 
     public static readonly ButtonStyle RedButton = new() {
         FontSize = 16,
-        Foreground = AllegroColor.WhiteSmoke,
+        Foreground = Colors.WhiteSmoke,
         Background = new AllegroColor() {
             R = 0.9607843137254902f,
             G = 0.3058823529411765f,

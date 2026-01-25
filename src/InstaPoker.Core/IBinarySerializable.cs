@@ -1,5 +1,8 @@
 ﻿namespace InstaPoker.Core;
 
+/// <summary>
+/// Interface that specifies that an object can be (de)serialized as binary data.
+/// </summary>
 public interface IBinarySerializable {
     
     /// <summary>

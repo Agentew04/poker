@@ -115,7 +115,7 @@ public class IdentifyScreen : IRenderObject, IMouseInteractable, IKeyboardIntera
 
         ctx.UpdateTransform();
         AllegroFont font = FontManager.GetFont("ShareTech-Regular", 32);
-        Al.DrawText(font, AllegroColor.Black, (int)(Size.X*0.5f), (int)(Size.Y*0.25f),
+        Al.DrawText(font, Colors.Black, (int)(Size.X*0.5f), (int)(Size.Y*0.25f),
             FontAlignFlags.Center, "Hello! What's your name?");
     }
 

@@ -3,7 +3,7 @@
 namespace InstaPoker.Client.Graphics.Styles;
 
 public static class Colors {
-    extension(AllegroColor) {
+    // extension(AllegroColor) {
         public static AllegroColor Black => new() {
             R = 0, G = 0, B = 0, A = 1
         };
@@ -37,5 +37,5 @@ public static class Colors {
             B = 1.0f,
             A = 1.0f
         };
-    }
+    // }
 }

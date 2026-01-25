@@ -84,13 +84,13 @@ public class PlayerLobbyScreen : IRenderObject, IMouseInteractable {
         
         // title
         AllegroFont titleFont = FontManager.GetFont("ShareTech-Regular", 36);
-        Al.DrawText(titleFont, AllegroColor.Black,
+        Al.DrawText(titleFont, Colors.Black,
         (int)(Size.X * 0.5f), (int)(Size.Y * 0.0625 - Al.GetFontLineHeight(titleFont) * 0.5f),
         FontAlignFlags.Center, title);
         
         // draw waiting for host
         AllegroFont subtitlefont = FontManager.GetFont("ShareTech-Regular", 34);
-        Al.DrawText(subtitlefont, AllegroColor.Black, 
+        Al.DrawText(subtitlefont, Colors.Black, 
             (int)(Size.X * 0.5f),
             (int)(Size.Y - Size.Y * 0.0625f - Al.GetFontLineHeight(subtitlefont)*0.5f),
             FontAlignFlags.Center,
@@ -106,8 +106,8 @@ public class PlayerLobbyScreen : IRenderObject, IMouseInteractable {
         Vector2 p1 = new(Size.X * 0.5f - width * 0.5f, Size.Y * 0.125f);
         Vector2 p2 = new(Size.X * 0.5f + width * 0.5f, Size.Y - Size.Y * 0.125f);
         ctx.UpdateTransform();
-        Al.DrawFilledRectangle(p1.X, p1.Y, p2.X, p2.Y, AllegroColor.BackgroundWhite);
-        Al.DrawRectangle(p1.X, p1.Y, p2.X, p2.Y, AllegroColor.Black, 1);
+        Al.DrawFilledRectangle(p1.X, p1.Y, p2.X, p2.Y, Colors.BackgroundWhite);
+        Al.DrawRectangle(p1.X, p1.Y, p2.X, p2.Y, Colors.Black, 1);
         Al.SetClippingRectangle((int)p1.X, (int)p1.Y, (int)(p2.X - p1.X), (int)(p2.Y - p1.Y));
         const float margin = 15;
         const float spacing = 5;
@@ -120,19 +120,19 @@ public class PlayerLobbyScreen : IRenderObject, IMouseInteractable {
         float y = margin + Al.GetFontLineHeight(font) * 0.5f;
         foreach (LobbyUser user in users) {
             float x = margin;
-            Al.DrawText(font, AllegroColor.Black, (int)x, (int)(y - Al.GetFontLineHeight(font) * 0.5f),
+            Al.DrawText(font, Colors.Black, (int)x, (int)(y - Al.GetFontLineHeight(font) * 0.5f),
                 FontAlignFlags.Left, user.Name);
             x += Al.GetTextWidth(font, user.Name);
             if (user.IsOwner)
             {
-                Al.DrawText(font, AllegroColor.Black, (int)x, (int)(y - Al.GetFontLineHeight(font) * 0.5f),
+                Al.DrawText(font, Colors.Black, (int)x, (int)(y - Al.GetFontLineHeight(font) * 0.5f),
                     FontAlignFlags.Left, " (Owner)");
                 x += Al.GetTextWidth(font, " (Owner)");
             }
 
             if (user.IsLocal)
             {
-                Al.DrawText(font, AllegroColor.Black, (int)x, (int)(y - Al.GetFontLineHeight(font) * 0.5f),
+                Al.DrawText(font, Colors.Black, (int)x, (int)(y - Al.GetFontLineHeight(font) * 0.5f),
                     FontAlignFlags.Left, " (You)");
                 x += Al.GetTextWidth(font, " (You)");
                 // leave button
@@ -179,10 +179,10 @@ public class PlayerLobbyScreen : IRenderObject, IMouseInteractable {
         ctx.Stack.Multiply(Matrix4x4.CreateTranslation(margin, Size.Y*0.5f - totalHeight*0.5f, 0));
         ctx.UpdateTransform();
         
-        Al.DrawText(font, AllegroColor.Black, 0, GetHeight(0), FontAlignFlags.Left, "Small Blind: " + roomSettings.SmallBlind);
-        Al.DrawText(font, AllegroColor.Black, 0, GetHeight(1), FontAlignFlags.Left, "Max Bet: " + roomSettings.MaxBet);
-        Al.DrawText(font, AllegroColor.Black, 0, GetHeight(2), FontAlignFlags.Left, "Max Players: " + roomSettings.MaxPlayers);
-        Al.DrawText(font, AllegroColor.Black, 0, GetHeight(3), FontAlignFlags.Left, "All-In Enabled: " + (roomSettings.IsAllInEnabled ? "Yes" : "No" ));
+        Al.DrawText(font, Colors.Black, 0, GetHeight(0), FontAlignFlags.Left, "Small Blind: " + roomSettings.SmallBlind);
+        Al.DrawText(font, Colors.Black, 0, GetHeight(1), FontAlignFlags.Left, "Max Bet: " + roomSettings.MaxBet);
+        Al.DrawText(font, Colors.Black, 0, GetHeight(2), FontAlignFlags.Left, "Max Players: " + roomSettings.MaxPlayers);
+        Al.DrawText(font, Colors.Black, 0, GetHeight(3), FontAlignFlags.Left, "All-In Enabled: " + (roomSettings.IsAllInEnabled ? "Yes" : "No" ));
         
         ctx.Stack.Pop();
         Al.ResetClippingRectangle();

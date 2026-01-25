@@ -11,7 +11,7 @@ public class LoadingLabel : IRenderObject {
 
     public string Text { get; set; } = string.Empty;
     public int FontSize { get; set; } = 26;
-    public AllegroColor Foreground { get; set; } = AllegroColor.Black;
+    public AllegroColor Foreground { get; set; } = Colors.Black;
 
     private double lifetime = 0;
     private const double DotDelay = 1;

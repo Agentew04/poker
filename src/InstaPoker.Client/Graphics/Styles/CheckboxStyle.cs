@@ -14,7 +14,7 @@ public struct CheckboxStyle {
     public float BorderSize { get; set; }
 
     public static readonly CheckboxStyle Default = new() {
-        Foreground = AllegroColor.White,
+        Foreground = Colors.White,
         BackgroundCheck = new AllegroColor {
             R = 0.13333333333333333f,
             G = 0.5450980392156862f,
@@ -51,7 +51,7 @@ public struct CheckboxStyle {
             B = 0.9882352941176471f,
             A = 1
         },
-        BorderColor = AllegroColor.Black,
+        BorderColor = Colors.Black,
         BorderSize = 1
     };
 }

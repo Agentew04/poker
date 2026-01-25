@@ -44,9 +44,9 @@ public class TextBoard : IRenderObject {
         backgroundColor.A = ctx.Alpha;
 
         AllegroColor foregroundColor = Type switch {
-            TextBoardType.Information => AllegroColor.WhiteSmoke,
-            TextBoardType.Warning => AllegroColor.Black,
-            TextBoardType.Error => AllegroColor.White,
+            TextBoardType.Information => Colors.WhiteSmoke,
+            TextBoardType.Warning => Colors.Black,
+            TextBoardType.Error => Colors.White,
             _ => throw new ArgumentOutOfRangeException()
         };
         foregroundColor.A = ctx.Alpha;

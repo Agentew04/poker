@@ -20,9 +20,9 @@ public struct TextBoxStyle {
             B = 0.2f,
             A = 1.0f
         },
-        Background = AllegroColor.BackgroundWhite,
+        Background = Colors.BackgroundWhite,
         BorderSize = 1,
-        BorderColor = AllegroColor.Black,
+        BorderColor = Colors.Black,
         PlaceholderForeground = new AllegroColor() {
             R = 0.5f,
             G = 0.5f,
