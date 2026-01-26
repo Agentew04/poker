@@ -10,6 +10,10 @@ using SubC.AllegroDotNet.Models;
 
 namespace InstaPoker.Client.Game;
 
+/// <summary>
+/// Screen that renders a lobby with additional controls for admins, like lobby settings edition and the ability
+/// to kick other players from the room. 
+/// </summary>
 public class AdminLobbyScreen : IRenderObject, IMouseInteractable, IKeyboardInteractable
 {
     private string code;
@@ -35,7 +39,7 @@ public class AdminLobbyScreen : IRenderObject, IMouseInteractable, IKeyboardInte
         {
             FontSize = 30
         };
-        startGameButton.Pressed += () => OnGameStart?.Invoke();
+        startGameButton.Pressed += () => GameStarted?.Invoke();
         maxBetTextbox.Initialize();
         maxPlayersTextbox.Initialize();
         smallblindTextbox.Initialize();
@@ -57,6 +61,10 @@ public class AdminLobbyScreen : IRenderObject, IMouseInteractable, IKeyboardInte
         maxBetTextbox.TextChanged += _ => SendConfiguration();
     }
 
+    /// <summary>
+    /// Function that is called when the screen is first shown to the user after clicking the button to
+    /// create a room.
+    /// </summary>
     public void OnShow()
     {
         loading.Show();
@@ -82,6 +90,13 @@ public class AdminLobbyScreen : IRenderObject, IMouseInteractable, IKeyboardInte
         });
     }
 
+    /// <summary>
+    /// Function called when the user was a normal player using <see cref="PlayerLobbyScreen"/> and became the
+    /// new owner/admin.
+    /// </summary>
+    /// <param name="users">A list with the connected users</param>
+    /// <param name="settings">The settings of the room</param>
+    /// <param name="code">The code of the room</param>
     public void OnUpgrade(List<LobbyUser> users, RoomSettings settings, string code) {
         this.code = code;
         title = "Room " + code;
@@ -281,7 +296,7 @@ public class AdminLobbyScreen : IRenderObject, IMouseInteractable, IKeyboardInte
 
     private void OnUserLeave() {
         NetworkManager.LeaveRoom();
-        OnLeave?.Invoke();
+        UserLeft?.Invoke();
     }
     
     private void SendConfiguration() {
@@ -342,7 +357,7 @@ public class AdminLobbyScreen : IRenderObject, IMouseInteractable, IKeyboardInte
         allinEnabledCheckbox.OnMouseMove(pos,delta);
     }
 
-    public void OnMouseDown(uint button)
+    public void OnMouseDown(MouseButton button)
     {
         startGameButton.OnMouseDown(button);
         foreach (LobbyUser user in users)
@@ -355,7 +370,7 @@ public class AdminLobbyScreen : IRenderObject, IMouseInteractable, IKeyboardInte
         allinEnabledCheckbox.OnMouseDown(button);
     }
 
-    public void OnMouseUp(uint button)
+    public void OnMouseUp(MouseButton button)
     {
         startGameButton.OnMouseUp(button);
         foreach (LobbyUser user in users)
@@ -376,14 +391,14 @@ public class AdminLobbyScreen : IRenderObject, IMouseInteractable, IKeyboardInte
         allinEnabledCheckbox.OnMouseUp(button);
     }
 
-    public void OnKeyDown(KeyCode key, uint modifiers)
+    public void OnKeyDown(KeyCode key, KeyModifiers modifiers)
     {
         maxBetTextbox.OnKeyDown(key,modifiers);
         maxPlayersTextbox.OnKeyDown(key,modifiers);
         smallblindTextbox.OnKeyDown(key,modifiers);
     }
 
-    public void OnKeyUp(KeyCode key, uint modifiers)
+    public void OnKeyUp(KeyCode key, KeyModifiers modifiers)
     {
         maxBetTextbox.OnKeyUp(key,modifiers);
         maxPlayersTextbox.OnKeyUp(key,modifiers);
@@ -397,7 +412,13 @@ public class AdminLobbyScreen : IRenderObject, IMouseInteractable, IKeyboardInte
         smallblindTextbox.OnCharDown(character);
     }
 
-    public event Action? OnGameStart;
+    /// <summary>
+    /// Event called when the user signals the game to start.
+    /// </summary>
+    public event Action? GameStarted;
 
-    public event Action? OnLeave;
+    /// <summary>
+    /// Event called when the user leaves the room and returns to the main menu.
+    /// </summary>
+    public event Action? UserLeft;
 }

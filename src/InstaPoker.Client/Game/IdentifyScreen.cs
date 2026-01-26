@@ -8,6 +8,14 @@ using SubC.AllegroDotNet.Models;
 
 namespace InstaPoker.Client.Game;
 
+/// <summary>
+/// First screen the user sees when the game launches. Prompts the user to enter their username
+/// and after that, establishes a connection to the remote game server.
+/// </summary>
+/// <remarks>
+/// If for some reason the connection to the remote server fails, the client automatically tries again.
+/// There is no limit of retries.
+/// </remarks>
 public class IdentifyScreen : IRenderObject, IMouseInteractable, IKeyboardInteractable {
 
     private readonly TextBox nameTextBox = new();
@@ -66,7 +74,7 @@ public class IdentifyScreen : IRenderObject, IMouseInteractable, IKeyboardIntera
         loading.Show();
         return NetworkManager.ConnectToServer(LocalSettings.Username);
     }
-
+    
     private void OnConnectEnd(Task<bool> task) {
         if (task.Result) {
             loading.Hide();
@@ -133,21 +141,21 @@ public class IdentifyScreen : IRenderObject, IMouseInteractable, IKeyboardIntera
         okButton.OnMouseMove(pos,delta);
     }
 
-    public void OnMouseDown(uint button) {
+    public void OnMouseDown(MouseButton button) {
         nameTextBox.OnMouseDown(button);
         okButton.OnMouseDown(button);
     }
 
-    public void OnMouseUp(uint button) {
+    public void OnMouseUp(MouseButton button) {
         nameTextBox.OnMouseUp(button);
         okButton.OnMouseUp(button);
     }
 
-    public void OnKeyDown(KeyCode key, uint modifiers) {
+    public void OnKeyDown(KeyCode key, KeyModifiers modifiers) {
         nameTextBox.OnKeyDown(key,modifiers);
     }
 
-    public void OnKeyUp(KeyCode key, uint modifiers) {
+    public void OnKeyUp(KeyCode key, KeyModifiers modifiers) {
         nameTextBox.OnKeyUp(key,modifiers);
     }
 
@@ -155,5 +163,9 @@ public class IdentifyScreen : IRenderObject, IMouseInteractable, IKeyboardIntera
         nameTextBox.OnCharDown(character);
     }
 
+    /// <summary>
+    /// Event fired when the user clicks on the Ok button. <see cref="IdentifyScreen"/> performs internal validation
+    /// and only fires this event when the username is valid.
+    /// </summary>
     public event Action? OkClicked;
 }

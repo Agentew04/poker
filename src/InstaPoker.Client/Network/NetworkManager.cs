@@ -18,7 +18,7 @@ public static class NetworkManager {
     public static async Task<bool> ConnectToServer(string username) {
         client = new TcpClient();
         Console.WriteLine("Connecting to remote server");
-        using CancellationTokenSource connectionCts = new(TimeSpan.FromSeconds(10));
+        using CancellationTokenSource connectionCts = new(TimeSpan.FromSeconds(20));
         try {
             await client.ConnectAsync("localhost", Port, connectionCts.Token);
         }

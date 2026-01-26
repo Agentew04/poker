@@ -132,7 +132,7 @@ public partial class TextBox : IRenderObject, IMouseInteractable, IKeyboardInter
 
     public void OnMouseMove(Vector2 pos, Vector2 delta)
     {
-        pos = pos - new Vector2(Translation.Translation.X, Translation.Translation.Y);
+        pos -= new Vector2(Translation.Translation.X, Translation.Translation.Y);
         isHovering = pos.X >= 0
                      && pos.X <= Size.X
                      && pos.Y >= 0 
@@ -143,8 +143,8 @@ public partial class TextBox : IRenderObject, IMouseInteractable, IKeyboardInter
         }
     }
 
-    public void OnMouseDown(uint button) {
-        if (button != 1) {
+    public void OnMouseDown(MouseButton button) {
+        if (button != MouseButton.Left) {
             return;
         }
         if (isHovering) {
@@ -156,8 +156,8 @@ public partial class TextBox : IRenderObject, IMouseInteractable, IKeyboardInter
         }
     }
 
-    public void OnMouseUp(uint button) {
-        if (button != 1) {
+    public void OnMouseUp(MouseButton button) {
+        if (button != MouseButton.Left) {
             return;
         }
         isPressed = false;
@@ -176,7 +176,7 @@ public partial class TextBox : IRenderObject, IMouseInteractable, IKeyboardInter
         }
     }
 
-    public void OnKeyDown(KeyCode key, uint modifiers) {
+    public void OnKeyDown(KeyCode key, KeyModifiers modifiers) {
         if(!isSelected) return;
         if (key == KeyCode.KeyLeft && cursor > 0) {
             cursor--;
@@ -189,7 +189,7 @@ public partial class TextBox : IRenderObject, IMouseInteractable, IKeyboardInter
         }
     }
 
-    public void OnKeyUp(KeyCode key, uint modifiers) {
+    public void OnKeyUp(KeyCode key, KeyModifiers modifiers) {
         
     }
 

@@ -6,7 +6,11 @@ using SubC.AllegroDotNet.Models;
 
 namespace InstaPoker.Client.Game;
 
-internal class PokerGame : AllegroWindow {
+/// <summary>
+/// Main class that shapes the application logic. Controls event forwarding and ties calls and events
+/// between different screens.
+/// </summary>
+public class PokerGame : AllegroWindow {
 
     public PokerGame() {
         Title = "Poker";
@@ -43,7 +47,7 @@ internal class PokerGame : AllegroWindow {
             renderScreen = playerLobbyScreen;
             playerLobbyScreen.OnShow(code);
         };
-        adminLobbyScreen.OnLeave += () => {
+        adminLobbyScreen.UserLeft += () => {
             renderScreen = mainMenuScreen;
         };
         playerLobbyScreen.UserLeft += () => {
@@ -74,7 +78,7 @@ internal class PokerGame : AllegroWindow {
         renderScreen.Render(renderContext);
     }
 
-    protected override void OnKeyDown(KeyCode key, uint modifiers) {
+    protected override void OnKeyDown(KeyCode key, KeyModifiers modifiers) {
         if (renderScreen is IKeyboardInteractable keyb) {
             keyb.OnKeyDown(key,modifiers);
         }
@@ -86,7 +90,7 @@ internal class PokerGame : AllegroWindow {
         }
     }
 
-    protected override void OnKeyUp(KeyCode key, uint modifiers) {
+    protected override void OnKeyUp(KeyCode key, KeyModifiers modifiers) {
         if (renderScreen is IKeyboardInteractable keyb) {
             keyb.OnKeyUp(key,modifiers);
         }
@@ -98,13 +102,13 @@ internal class PokerGame : AllegroWindow {
         }
     }
 
-    protected override void OnMouseDown(uint button) {
+    protected override void OnMouseDown(MouseButton button) {
         if (renderScreen is IMouseInteractable mouse) {
             mouse.OnMouseDown(button);
         }
     }
 
-    protected override void OnMouseUp(uint button) {
+    protected override void OnMouseUp(MouseButton button) {
         if (renderScreen is IMouseInteractable mouse) {
             mouse.OnMouseUp(button);
         }

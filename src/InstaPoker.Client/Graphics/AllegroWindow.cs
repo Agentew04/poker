@@ -66,7 +66,7 @@ public abstract class AllegroWindow {
         }
         Initialize();
 
-        RegisterGesture(new KeyGesture([KeyCode.KeyEnter], 4, ToggleFullscreen));
+        RegisterGesture(new KeyGesture([KeyCode.KeyEnter], KeyModifiers.LeftAlt, ToggleFullscreen));
         RegisterGesture(new KeyGesture([KeyCode.KeyF11], 0, ToggleFullscreen));
         
         CreateDisplay();
@@ -148,13 +148,21 @@ public abstract class AllegroWindow {
 
             switch (e.Type) {
                 case EventType.KeyDown: {
-                    gestures.ForEach(x => x.OnKeyDown(e.Keyboard.KeyCode, e.Keyboard.Modifiers));
-                    OnKeyDown(e.Keyboard.KeyCode, e.Keyboard.Modifiers);
+                    KeyModifiers modif = (KeyModifiers)e.Keyboard.Modifiers;
+                    if (e.Keyboard.Modifiers == 66) {
+                        modif = KeyModifiers.RightAlt;
+                    }
+                    gestures.ForEach(x => x.OnKeyDown(e.Keyboard.KeyCode, modif));
+                    OnKeyDown(e.Keyboard.KeyCode, modif);
                     break;
                 }
                 case EventType.KeyUp: {
-                    gestures.ForEach(x => x.OnKeyUp(e.Keyboard.KeyCode, e.Keyboard.Modifiers));
-                    OnKeyUp(e.Keyboard.KeyCode, e.Keyboard.Modifiers);
+                    KeyModifiers modif = (KeyModifiers)e.Keyboard.Modifiers;
+                    if (e.Keyboard.Modifiers == 66) {
+                        modif = KeyModifiers.RightAlt;
+                    }
+                    gestures.ForEach(x => x.OnKeyUp(e.Keyboard.KeyCode, modif));
+                    OnKeyUp(e.Keyboard.KeyCode, modif);
                     break;
                 }
                 case EventType.MouseAxes: {
@@ -162,11 +170,12 @@ public abstract class AllegroWindow {
                     break;
                 }
                 case EventType.MouseButtonDown: {
-                    OnMouseDown(e.Mouse.Button);
+                    Console.WriteLine("Mosue button: " + e.Mouse.Button);
+                    OnMouseDown((MouseButton)e.Mouse.Button);
                     break;
                 }
                 case EventType.MouseButtonUp: {
-                    OnMouseUp(e.Mouse.Button);
+                    OnMouseUp((MouseButton)e.Mouse.Button);
                     break;
                 }
                 case EventType.DisplayClose: {
@@ -250,26 +259,42 @@ public abstract class AllegroWindow {
     [DllImport("allegro-5.2.dll")]
     private static extern int al_get_display_adapter(IntPtr display);
 
+    /// <inheritdoc cref="IRenderObject.Initialize"/>
     protected abstract void Initialize();
 
+    /// <inheritdoc cref="IRenderObject.Update"/>
     protected abstract void Update(double delta);
 
+    /// <inheritdoc cref="IRenderObject.Render"/>
     protected abstract void Render();
     
-    protected abstract void OnKeyDown(KeyCode key, uint modifiers);
+    /// <inheritdoc cref="IKeyboardInteractable.OnKeyDown"/>
+    protected abstract void OnKeyDown(KeyCode key, KeyModifiers modifiers);
 
+    /// <inheritdoc cref="IKeyboardInteractable.OnCharDown"/>
     protected abstract void OnCharDown(char character);
 
-    protected abstract void OnKeyUp(KeyCode key, uint modifiers);
+    /// <inheritdoc cref="IKeyboardInteractable.OnKeyUp"/>
+    protected abstract void OnKeyUp(KeyCode key, KeyModifiers modifiers);
 
+    /// <inheritdoc cref="IMouseInteractable.OnMouseMove"/>
     protected abstract void OnMouseMove(int x, int y, int dx, int dy);
 
-    protected abstract void OnMouseDown(uint button);
+    /// <inheritdoc cref="IMouseInteractable.OnMouseDown"/>
+    protected abstract void OnMouseDown(MouseButton button);
     
-    protected abstract void OnMouseUp(uint button);
+    /// <inheritdoc cref="IMouseInteractable.OnMouseUp"/>
+    protected abstract void OnMouseUp(MouseButton button);
 
+    /// <summary>
+    /// Event fired when the window starts to close. This is executed before any deallocation or stopping of
+    /// graphics systems.
+    /// </summary>
     public event Action? WindowClosing = null;
 
+    /// <summary>
+    /// Closes the window.
+    /// </summary>
     public void Close() {
         running = false;
     }

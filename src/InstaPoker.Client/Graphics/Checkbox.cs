@@ -93,8 +93,8 @@ public class Checkbox : IRenderObject, IMouseInteractable{
         }
     }
 
-    public void OnMouseDown(uint button) {
-        if (button != 1) {
+    public void OnMouseDown(MouseButton button) {
+        if (button != MouseButton.Left) {
             return;
         }
         if (isHovering) {
@@ -103,8 +103,8 @@ public class Checkbox : IRenderObject, IMouseInteractable{
         
     }
 
-    public void OnMouseUp(uint button) {
-        if (button != 1) {
+    public void OnMouseUp(MouseButton button) {
+        if (button != MouseButton.Left) {
             return;
         }
         if (isPressed && isHovering) {

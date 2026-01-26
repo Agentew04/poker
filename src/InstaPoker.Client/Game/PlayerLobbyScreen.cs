@@ -11,6 +11,9 @@ using SubC.AllegroDotNet.Models;
 
 namespace InstaPoker.Client.Game;
 
+/// <summary>
+/// Screen that shows a lobby where the current user is <b>not</b> the owner/admin.
+/// </summary>
 public class PlayerLobbyScreen : IRenderObject, IMouseInteractable {
 
     private string code;
@@ -254,19 +257,27 @@ public class PlayerLobbyScreen : IRenderObject, IMouseInteractable {
         }
     }
 
-    public void OnMouseDown(uint button) {
+    public void OnMouseDown(MouseButton button) {
         foreach (LobbyUser user in users) {
             user.Button?.OnMouseDown(button);
         }
     }
 
-    public void OnMouseUp(uint button) {
+    public void OnMouseUp(MouseButton button) {
         foreach (LobbyUser user in users) {
             user.Button?.OnMouseUp(button);
         }
     }
 
+    /// <summary>
+    /// Event fired when the user leaves or is kicked from the room.
+    /// </summary>
     public event Action? UserLeft;
 
+    /// <summary>
+    /// Event fired when the user is upgraded to an admin role. The current room state is
+    /// passed as parameters to <see cref="AdminLobbyScreen"/> consume in the <see cref="AdminLobbyScreen.OnUpgrade"/>
+    /// method.
+    /// </summary>
     public event Action<List<LobbyUser>, RoomSettings,string>? UpgradedToAdmin;
 }

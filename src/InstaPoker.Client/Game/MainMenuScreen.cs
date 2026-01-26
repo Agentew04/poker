@@ -7,6 +7,9 @@ using SubC.AllegroDotNet.Models;
 
 namespace InstaPoker.Client.Game;
 
+/// <summary>
+/// Represents the Main menu screen of the game. Is a general hub for other screens. 
+/// </summary>
 public class MainMenuScreen : IRenderObject, IKeyboardInteractable, IMouseInteractable {
 
     private readonly Button createRoomButton = new();
@@ -108,11 +111,11 @@ public class MainMenuScreen : IRenderObject, IKeyboardInteractable, IMouseIntera
     public Vector2 Size { get; set; }
     public Matrix4x4 Translation { get; set; }
 
-    public void OnKeyDown(KeyCode key, uint modifiers) {
+    public void OnKeyDown(KeyCode key, KeyModifiers modifiers) {
         codeTextBox.OnKeyDown(key,modifiers);
     }
 
-    public void OnKeyUp(KeyCode key, uint modifiers) {
+    public void OnKeyUp(KeyCode key, KeyModifiers modifiers) {
         codeTextBox.OnKeyUp(key,modifiers);
     }
 
@@ -128,18 +131,26 @@ public class MainMenuScreen : IRenderObject, IKeyboardInteractable, IMouseIntera
         codeTextBox.OnMouseMove(pos, delta);
     }
 
-    public void OnMouseDown(uint button) {
+    public void OnMouseDown(MouseButton button) {
         createRoomButton.OnMouseDown(button);
         joinRoomButton.OnMouseDown(button);
         codeTextBox.OnMouseDown(button);
     }
 
-    public void OnMouseUp(uint button) {
+    public void OnMouseUp(MouseButton button) {
         createRoomButton.OnMouseUp(button);
         joinRoomButton.OnMouseUp(button);
         codeTextBox.OnMouseUp(button);
     }
 
+    /// <summary>
+    /// Event fired when the user clicks on the 'Create Room' button.
+    /// </summary>
     public event Action? CreateRoomClicked;
+    
+    /// <summary>
+    /// Event fired when the user clicks to join an existing room. The code that the user typed
+    /// is passed as the sole parameter.
+    /// </summary>
     public event Action<string>? JoinRoomClicked;
 }
