@@ -2,10 +2,13 @@
 _layout: landing
 ---
 
-# This is the **HOMEPAGE**.
+# Poker Documentation
 
-Refer to [Markdown](http://daringfireball.net/projects/markdown/) for how to write markdown files.
+This is the documentation page for the Open Poker project. 
+Source code for the project is available [here](https://github.com/Agentew04/poker).
 
-## Quick Start Notes:
+The **Docs** page contains manuals, explanations and design documents for some aspects
+of the game, including server and client applications.
 
-1. Add images to the *images* folder if the file is referencing an image.
+The **API** page contains information about the source code, such as which classes exist and
+what properties are available. It is updated automatically from the source code.
