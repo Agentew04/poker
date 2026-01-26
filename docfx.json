@@ -6,14 +6,17 @@
         {
           "src": "src/",
           "files": [
-            "**/*.csproj"
+            "InstaPoker.Client/*.csproj",
+			"InstaPoker.Server/*.csproj",
+			"InstaPoker.Client/bin/Debug/net10.0/SubC.AllegroDotNet.dll"
           ]
         }
       ],
 	  "namespaceLayout": "nested",
 	  "memberLayout": "samePage",
-      "dest": "api",
-	  "outputFormat": "apiPage"
+	  "categoryLayout": "flattened",
+	  "outputFormat": "markdown",
+      "dest": "api"
     }
   ],
   "build": {
@@ -21,8 +24,12 @@
       {
         "files": [
 		  "toc.yml",
-          "**/*.{md,yml}"
-        ]
+          "**/*.{md,yml}",
+		  "api/toc.yml"
+        ],
+		"exclude": [
+		  "_site/"
+		]
       }
     ],
     "resource": [
@@ -46,6 +53,9 @@
       "_appTitle": "Poker Docs",
       "_enableSearch": true,
       "pdf": false
-    }
+    },
+    "xref": [
+      "https://learn.microsoft.com/en-us/dotnet/.xrefmap.json"
+    ]
   }
 }

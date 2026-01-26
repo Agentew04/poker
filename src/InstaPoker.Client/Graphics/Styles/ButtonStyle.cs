@@ -2,8 +2,19 @@
 
 namespace InstaPoker.Client.Graphics.Styles;
 
+/// <summary>
+/// Structure that holds colors and visual configuration for different aspects of a <see cref="Button"/>. 
+/// </summary>
 public struct ButtonStyle {
+    
+    /// <summary>
+    /// The size of the font of the <see cref="Button.Label"/>.
+    /// </summary>
     public int FontSize { get; set; }
+    
+    /// <summary>
+    /// Color of the <see cref="Button.Label"/>.
+    /// </summary>
     public AllegroColor Foreground { get; set; }
     public AllegroColor Background { get; set; }
     public AllegroColor BorderColor { get; set; }
@@ -11,6 +22,9 @@ public struct ButtonStyle {
     public AllegroColor BackgroundHover { get; set; }
     public AllegroColor BackgroundPressed { get; set; }
 
+    /// <summary>
+    /// Default style for buttons.
+    /// </summary>
     public static readonly ButtonStyle Default = new() {
         FontSize = 16,
         Foreground = Colors.WhiteSmoke,
@@ -36,6 +50,9 @@ public struct ButtonStyle {
         BorderColor = Colors.Black
     };
 
+    /// <summary>
+    /// Style for a negative button. Normally used to execute a 'dangerous', aggressive or negative action.
+    /// </summary>
     public static readonly ButtonStyle RedButton = new() {
         FontSize = 16,
         Foreground = Colors.WhiteSmoke,
