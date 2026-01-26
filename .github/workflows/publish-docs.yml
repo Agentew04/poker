@@ -27,9 +27,11 @@ jobs:
     - name: Dotnet Setup
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: 8.x
+        dotnet-version: 10.x
 
     - run: dotnet tool update -g docfx
+    - name: Get Allegro DLL
+      run: dotnet build ./src/InstaPoker.Client/InstaPoker.Client.csproj -c Debug
     - run: docfx ./docfx.json
 
     - name: Upload artifact
