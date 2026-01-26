@@ -14,8 +14,7 @@
       ],
 	  "namespaceLayout": "nested",
 	  "memberLayout": "samePage",
-	  "categoryLayout": "flattened",
-	  "outputFormat": "markdown",
+	  "outputFormat": "mref",
       "dest": "api"
     }
   ],
@@ -24,8 +23,9 @@
       {
         "files": [
 		  "toc.yml",
-          "**/*.{md,yml}",
-		  "api/toc.yml"
+          "docs/**/*.{md,yml}",
+		  "api/toc.yml",
+		  "api/**/*.yml"
         ],
 		"exclude": [
 		  "_site/"
