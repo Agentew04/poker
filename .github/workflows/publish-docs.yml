@@ -31,7 +31,7 @@ jobs:
 
     - run: dotnet tool update -g docfx
     - name: Get Allegro DLL
-      run: dotnet build .\src\InstaPoker.Client\InstaPoker.Client.csproj -c Debug
+      run: dotnet build ./src/InstaPoker.Client/InstaPoker.Client.csproj -c Debug
     - run: docfx ./docfx.json
 
     - name: Upload artifact
