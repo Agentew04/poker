@@ -72,10 +72,19 @@ public class PokerGame : AllegroWindow {
         };
         Al.ClearToColor(color);
         renderContext.UpdateTransform();
-        
+
+        int matrixStackBefore = renderContext.Stack.Count;
+        int alphaStackBefore = renderContext.AlphaStack.Count;
         renderScreen.Position = Vector2.Zero;
         renderScreen.Size = new Vector2(Width, Height);
         renderScreen.Render(renderContext);
+        if (matrixStackBefore != renderContext.Stack.Count) {
+            throw new Exception("Unbalanced Matrix Stack at end of frame. Aborting.");
+        }
+
+        if (alphaStackBefore != renderContext.AlphaStack.Count) {
+            throw new Exception("Unbalanced Alpha Stack at end of frame. Aborting.");
+        }
     }
 
     protected override void OnKeyDown(KeyCode key, KeyModifiers modifiers) {

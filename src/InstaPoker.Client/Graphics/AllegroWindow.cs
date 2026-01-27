@@ -45,19 +45,25 @@ public abstract class AllegroWindow {
         Al.InstallMouse();
         Al.InstallAudio();
         Al.InitACodecAddon();
+        Al.InitImageAddon();
 
         return true;
     }
 
     private void DeinitializeAllegro() {
-        fontManager.Dispose(); // destroy fonts
+        Al.ShutdownImageAddon();
+        
         audioManager.Dispose(); // destroy audio samples
-        Al.ShutdownTtfAddon();
-        Al.ShutdownPrimitivesAddon();
-        Al.UninstallKeyboard();
-        Al.UninstallMouse();
-        Al.UninstallSystem();
         Al.UninstallAudio();
+        
+        Al.UninstallMouse();
+        Al.UninstallKeyboard();
+        Al.ShutdownPrimitivesAddon();
+        
+        fontManager.Dispose(); // destroy fonts
+        Al.ShutdownTtfAddon();
+        
+        Al.UninstallSystem();
     }
 
     public void Run() {
@@ -170,7 +176,6 @@ public abstract class AllegroWindow {
                     break;
                 }
                 case EventType.MouseButtonDown: {
-                    Console.WriteLine("Mosue button: " + e.Mouse.Button);
                     OnMouseDown((MouseButton)e.Mouse.Button);
                     break;
                 }

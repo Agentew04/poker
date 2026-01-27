@@ -7,6 +7,8 @@ public class MatrixStack {
 
     private readonly Stack<Matrix4x4> matrices = [];
 
+    public int Count => matrices.Count;
+
     public MatrixStack() {
         matrices.Push(Matrix4x4.Identity);
     }

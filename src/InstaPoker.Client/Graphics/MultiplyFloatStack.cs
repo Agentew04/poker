@@ -3,6 +3,8 @@
 public class MultiplyFloatStack {
     private readonly Stack<float> values = new();
 
+    public int Count => values.Count;
+
     public MultiplyFloatStack() => values.Push(1.0f);
 
     public void Pop() => values.Pop();

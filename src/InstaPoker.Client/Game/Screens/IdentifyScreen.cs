@@ -125,7 +125,14 @@ public class IdentifyScreen : IRenderObject, IMouseInteractable, IKeyboardIntera
         AllegroFont font = FontManager.GetFont("ShareTech-Regular", 32);
         Al.DrawText(font, Colors.Black, (int)(Size.X*0.5f), (int)(Size.Y*0.25f),
             FontAlignFlags.Center, "Hello! What's your name?");
+        
+        renderer.Style = CardStyle.Default;
+        renderer.CardSize = new Vector2(63.5f,88.9f)*4;
+        renderer.RenderContext = ctx;
+        renderer.RenderAt(new GameCard(1, Suit.Clubs), new Vector2(500,500),false);
     }
+
+    private CardRenderer renderer = new();
 
     public void Update(double delta) {
         emptyNameFader.Update(delta);
