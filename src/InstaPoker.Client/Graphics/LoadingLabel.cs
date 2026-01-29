@@ -49,6 +49,7 @@ public class LoadingLabel : IRenderObject {
 
         Al.DrawText(font, Foreground, (int)(Size.X*0.5f - w*0.5f), (int)(Size.Y*0.5f - Al.GetFontLineHeight(font)),
             FontAlignFlags.Left, dottedText);
+        ctx.Stack.Pop();
     }
 
     public void Update(double delta) {

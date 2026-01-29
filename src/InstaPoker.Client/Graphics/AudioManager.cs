@@ -80,5 +80,6 @@ public sealed class AudioManager : IDisposable{
         }
         Groups.Clear();
         Samples.Clear();
+        _instance = null;
     }
 }

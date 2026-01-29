@@ -8,6 +8,7 @@
           "files": [
             "InstaPoker.Client/*.csproj",
 			"InstaPoker.Server/*.csproj",
+			"InstaPoker.Core/*.csproj",
 			"InstaPoker.Client/bin/Debug/net10.0/SubC.AllegroDotNet.dll"
           ]
         }

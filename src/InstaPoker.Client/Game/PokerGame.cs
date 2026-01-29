@@ -12,6 +12,9 @@ namespace InstaPoker.Client.Game;
 /// </summary>
 public class PokerGame : AllegroWindow {
 
+    /// <summary>
+    /// Creates a new instance of the game.
+    /// </summary>
     public PokerGame() {
         Title = "Poker";
     }
@@ -23,16 +26,13 @@ public class PokerGame : AllegroWindow {
     private readonly AdminLobbyScreen adminLobbyScreen = new();
     private readonly PlayerLobbyScreen playerLobbyScreen = new();
 
-    private IRenderObject renderScreen;
-
-    public readonly string AppDirectory = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "instapoker"
-    );
-
+    private IRenderObject renderScreen = null!;
+    
+    /// <inheritdoc cref="AllegroWindow.Initialize"/>
     protected override void Initialize() {
         FontManager.RegisterFont("ShareTech-Regular");
         RegisterAudio();
+        RegisterImages();
         identifyScreen.Initialize();
         renderScreen = identifyScreen;
         identifyScreen.OkClicked += () => renderScreen = mainMenuScreen;
@@ -59,10 +59,12 @@ public class PokerGame : AllegroWindow {
         };
     }
 
+    /// <inheritdoc cref="AllegroWindow.Update"/>
     protected override void Update(double delta) {
         renderScreen.Update(delta);
     }
 
+    /// <inheritdoc cref="AllegroWindow.Render"/>
     protected override void Render() {
         AllegroColor color = new() {
             R = 0.647058823f,
@@ -87,43 +89,49 @@ public class PokerGame : AllegroWindow {
         }
     }
 
+    /// <inheritdoc cref="AllegroWindow.OnKeyDown"/>
     protected override void OnKeyDown(KeyCode key, KeyModifiers modifiers) {
         if (renderScreen is IKeyboardInteractable keyb) {
             keyb.OnKeyDown(key,modifiers);
         }
     }
 
+    /// <inheritdoc cref="AllegroWindow.OnCharDown"/>
     protected override void OnCharDown(char character) {
         if (renderScreen is IKeyboardInteractable keyb) {
             keyb.OnCharDown(character);
         }
     }
 
+    /// <inheritdoc cref="AllegroWindow.OnKeyUp"/>
     protected override void OnKeyUp(KeyCode key, KeyModifiers modifiers) {
         if (renderScreen is IKeyboardInteractable keyb) {
             keyb.OnKeyUp(key,modifiers);
         }
     }
 
-    protected override void OnMouseMove(int x, int y, int dx, int dy) {
+    /// <inheritdoc cref="AllegroWindow.OnMouseMove"/>
+    protected override void OnMouseMove(Vector2 pos, Vector2 delta) {
         if (renderScreen is IMouseInteractable mouse) {
-            mouse.OnMouseMove(new Vector2(x,y), new Vector2(dx,dy));
+            mouse.OnMouseMove(pos, delta);
         }
     }
 
+    /// <inheritdoc cref="AllegroWindow.OnMouseDown"/>
     protected override void OnMouseDown(MouseButton button) {
         if (renderScreen is IMouseInteractable mouse) {
             mouse.OnMouseDown(button);
         }
     }
 
+    /// <inheritdoc cref="AllegroWindow.OnMouseUp"/>
     protected override void OnMouseUp(MouseButton button) {
         if (renderScreen is IMouseInteractable mouse) {
             mouse.OnMouseUp(button);
         }
     }
 
-    private void RegisterAudio() {
+    private static void RegisterAudio() {
         // bap
         AudioManager.RegisterAudio("bap1.ogg", "bap1");
         AudioManager.RegisterAudio("bap2.ogg", "bap2");
@@ -146,5 +154,12 @@ public class PokerGame : AllegroWindow {
         AudioManager.RegisterAudio("bop7.ogg", "bop7");
         AudioManager.RegisterAudio("bop8.ogg", "bop8");
         AudioManager.CreateGroup("bop", "bop1", "bop2", "bop3", "bop4", "bop5", "bop6", "bop7", "bop8");
+    }
+
+    private static void RegisterImages() {
+        ImageManager.RegisterImage("suit-clubs-512.png", "suit-clubs");
+        ImageManager.RegisterImage("suit-diamonds-512.png", "suit-diamonds");
+        ImageManager.RegisterImage("suit-hearts-512.png", "suit-hearts");
+        ImageManager.RegisterImage("suit-spades-512.png", "suit-spades");
     }
 }

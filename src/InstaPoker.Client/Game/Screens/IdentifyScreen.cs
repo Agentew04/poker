@@ -129,11 +129,25 @@ public class IdentifyScreen : IRenderObject, IMouseInteractable, IKeyboardIntera
         renderer.Style = CardStyle.Default;
         renderer.CardSize = new Vector2(63.5f,88.9f)*4;
         renderer.RenderContext = ctx;
-        renderer.RenderAt(new GameCard(1, Suit.Clubs), new Vector2(500,500),false);
+        if (Al.GetTime() > turnStart + turnTime && isTurning) {
+            Console.WriteLine("End anim");
+            isTurning = false;
+            isDown = !isDown;
+        }else if(isTurning && Al.GetTime() <= turnStart + turnTime) Console.WriteLine((float)((Al.GetTime() - turnStart)/turnTime));
+        renderer.RenderAt(new GameCard(7, Suit.Clubs), new Vector2(250,250),isDown, !isTurning 
+                ? 0
+                : (float)((Al.GetTime() - turnStart)/turnTime)
+            , isHover ? MathF.PI*0.25f : 0);
     }
 
     private CardRenderer renderer = new();
-
+    
+    private bool isTurning = false;
+    private double turnTime = 0.5f;
+    private double turnStart = 0;
+    private bool isDown = true;
+    private bool isHover;
+    
     public void Update(double delta) {
         emptyNameFader.Update(delta);
     }
@@ -144,11 +158,20 @@ public class IdentifyScreen : IRenderObject, IMouseInteractable, IKeyboardIntera
 
     public void OnMouseMove(Vector2 pos, Vector2 delta) {
         pos = pos - new Vector2(Translation.Translation.X, Translation.Translation.Y);
+        isHover = pos.X >= 250 - renderer.CardSize.X * 0.5f
+                  && pos.X <= 250 + renderer.CardSize.X * 0.5f
+                  && pos.Y >= 250 - renderer.CardSize.Y * 0.5f
+                  && pos.Y <= 250 + renderer.CardSize.Y * 0.5f;
+            
         nameTextBox.OnMouseMove(pos,delta);
         okButton.OnMouseMove(pos,delta);
     }
 
     public void OnMouseDown(MouseButton button) {
+        if (button == MouseButton.Left) {
+            isTurning = true;
+            turnStart = Al.GetTime();
+        }
         nameTextBox.OnMouseDown(button);
         okButton.OnMouseDown(button);
     }

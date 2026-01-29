@@ -1,5 +1,6 @@
 ﻿using System.Drawing;
 using System.Numerics;
+using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Models;
 
 namespace InstaPoker.Client.Graphics;
@@ -55,5 +56,38 @@ public static class Extensions {
             x: (leftComponent * (x3 - x4) - (x1 - x2) * rightComponent) / denominator,
             y: (leftComponent * (y3 - y4) - (y1 - y2) * rightComponent) / denominator
         );
+    }
+
+    /// <summary>
+    /// Clears a bitmap.
+    /// </summary>
+    /// <param name="bitmap">The bitmap to be cleared</param>
+    public static void Clear(this AllegroBitmap bitmap) {
+        AllegroBitmap prev = Al.GetTargetBitmap()!;
+        Al.SetTargetBitmap(bitmap);
+        Al.DrawFilledRectangle(0,0,Al.GetBitmapWidth(bitmap), Al.GetBitmapHeight(bitmap), 
+            new AllegroColor {
+                A = 0
+            });
+        Al.SetTargetBitmap(prev);
+    }
+
+    /// <summary>
+    /// Maps a value from one range to another
+    /// </summary>
+    /// <param name="value">The value to convert</param>
+    /// <param name="sourceMin">The minimum value in the incoming range. Input equals to this returns
+    /// <c>destMin</c></param>
+    /// <param name="sourceMax">The maximum value in the incoming range. Input equalts to this returns
+    /// <c>destMax</c></param>
+    /// <param name="destMin">The minimum value in the outgoing range. Input equals to <c>sourceMin</c>
+    /// returns this value</param>
+    /// <param name="destMax">The maximum value in the outgoing range. Input equals to <c>sourceMax</c>
+    /// returns this value</param>
+    /// <returns></returns>
+    public static float Map(this float value, float sourceMin, float sourceMax, float destMin, float destMax) {
+        if (MathF.Abs(sourceMax - sourceMin) < 1e-6f) return destMin;
+        float t = (value - sourceMin) / (sourceMax - sourceMin);
+        return destMin + t * (destMax - destMin);
     }
 }

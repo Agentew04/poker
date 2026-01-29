@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Numerics;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using InstaPoker.Client.Network;
 using SubC.AllegroDotNet;
@@ -8,24 +9,43 @@ using SubC.AllegroDotNet.Models;
 
 namespace InstaPoker.Client.Graphics;
 
-public abstract class AllegroWindow {
+/// <summary>
+/// Base window class for game windows that uses Allegro as the framework. Handle translation of allegro events to
+/// function calls.
+/// </summary>
+/// <remarks>
+/// Initializes instances of <see cref="AudioManager"/>, <see cref="FontManager"/> and <see cref="ImageManager"/>.
+/// </remarks>
+public abstract partial class AllegroWindow {
 
-    private bool running = false;
-    protected AllegroDisplay? Display = null;
+    private bool running;
+    /// <summary>
+    /// A handle to the current window.
+    /// </summary>
+    protected AllegroDisplay? Display;
     private IntPtr displayPtr;
-    private string? windowTitle = null;
+    private string? windowTitle;
     private readonly List<KeyGesture> gestures = [];
     private readonly FontManager fontManager = new();
     private readonly AudioManager audioManager = new();
+    private readonly ImageManager imageManager = new();
     
     private bool isFullscreen;
-    private bool fromFullscreen = false;
+    private bool fromFullscreen;
     private int windowedPositionX;
     private int windowedPositionY;
     private int windowedWidth;
     private int windowedHeight;
     
+    /// <summary>
+    /// Returns the current width of the screen. Automatically updated when the window resizes
+    /// or becomes fullscreen.
+    /// </summary>
     public int Width { get; private set; }
+    
+    /// <summary>
+    /// Returns the current heigth of the screen. Same updates as <see cref="Width"/>.
+    /// </summary>
     public int Height { get; private set; }
 
     public string Title {
@@ -33,7 +53,7 @@ public abstract class AllegroWindow {
         set => SetWindowTitle(value);
     }
 
-    private bool InitializeAllegro() {
+    private static bool InitializeAllegro() {
         if (!Al.InstallSystem(LibraryVersion.V526)) {
             Console.WriteLine("Cant install system;");
             return false;
@@ -51,6 +71,7 @@ public abstract class AllegroWindow {
     }
 
     private void DeinitializeAllegro() {
+        imageManager.Dispose(); // destroy images
         Al.ShutdownImageAddon();
         
         audioManager.Dispose(); // destroy audio samples
@@ -66,6 +87,9 @@ public abstract class AllegroWindow {
         Al.UninstallSystem();
     }
 
+    /// <summary>
+    /// Starts the main loop of the window. It is blocking. Function only exits after the window closes.
+    /// </summary>
     public void Run() {
         if (!InitializeAllegro()) {
             return;
@@ -172,7 +196,7 @@ public abstract class AllegroWindow {
                     break;
                 }
                 case EventType.MouseAxes: {
-                    OnMouseMove(e.Mouse.X, e.Mouse.Y, e.Mouse.DX, e.Mouse.DY);
+                    OnMouseMove(new Vector2(e.Mouse.X, e.Mouse.Y), new Vector2(e.Mouse.DX, e.Mouse.DY));
                     break;
                 }
                 case EventType.MouseButtonDown: {
@@ -221,7 +245,7 @@ public abstract class AllegroWindow {
         }
     }
 
-    protected void RegisterGesture(KeyGesture gesture) {
+    private void RegisterGesture(KeyGesture gesture) {
         gestures.Add(gesture);
     }
     
@@ -256,13 +280,13 @@ public abstract class AllegroWindow {
         }
     }
 
-    private IntPtr GetPointer(NativePointer ptr) {
+    private static IntPtr GetPointer(NativePointer ptr) {
         FieldInfo? field = typeof(NativePointer).GetField("Pointer", BindingFlags.NonPublic | BindingFlags.Instance);
         return (IntPtr)field!.GetValue(ptr)!;
     }
 
-    [DllImport("allegro-5.2.dll")]
-    private static extern int al_get_display_adapter(IntPtr display);
+    [LibraryImport("allegro-5.2.dll")]
+    private static partial int al_get_display_adapter(IntPtr display);
 
     /// <inheritdoc cref="IRenderObject.Initialize"/>
     protected abstract void Initialize();
@@ -283,7 +307,7 @@ public abstract class AllegroWindow {
     protected abstract void OnKeyUp(KeyCode key, KeyModifiers modifiers);
 
     /// <inheritdoc cref="IMouseInteractable.OnMouseMove"/>
-    protected abstract void OnMouseMove(int x, int y, int dx, int dy);
+    protected abstract void OnMouseMove(Vector2 pos, Vector2 delta);
 
     /// <inheritdoc cref="IMouseInteractable.OnMouseDown"/>
     protected abstract void OnMouseDown(MouseButton button);
@@ -295,7 +319,7 @@ public abstract class AllegroWindow {
     /// Event fired when the window starts to close. This is executed before any deallocation or stopping of
     /// graphics systems.
     /// </summary>
-    public event Action? WindowClosing = null;
+    public event Action? WindowClosing;
 
     /// <summary>
     /// Closes the window.

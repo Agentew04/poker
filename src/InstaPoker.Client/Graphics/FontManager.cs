@@ -75,5 +75,7 @@ public sealed class FontManager : IDisposable {
                 Al.DestroyFont(kvp.Value);
             }
         }
+
+        _instance = null;
     }
 }

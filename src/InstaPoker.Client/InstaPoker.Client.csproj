@@ -30,6 +30,9 @@
     <None Update="Assets\Audio\*.ogg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Assets\Textures\*.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup><!--      <None Update="Lib\*.dll">-->
