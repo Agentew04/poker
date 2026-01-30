@@ -29,6 +29,9 @@ public class CardRenderer {
     /// <param name="theta">Rotation of the card in radians</param>
     public void RenderAt(GameCard card, Vector2 pos, bool faceDown, float t, float theta) {
         t = Math.Clamp(t, 0, 1);
+        // The flip animation is split into two phases around t = 0.5:
+        // - First half (t in [0, 0.5]): scale the current face from full width down to zero.
+        // - Second half (t in (0.5, 1]): flip the face, then scale the new face from zero up to full width.
         if (t > 0.5f) {
             // invert and rotate
             t = t.Map(0.5f, 1, 0, 1);
@@ -72,11 +75,11 @@ public class CardRenderer {
     private void DrawBackFace() {
         Al.DrawFilledRectangle(0, 0, CardSize.X, CardSize.Y, Style.BacksideBackground);
 
-        Vector2 P3 = CardSize with { X = -CardSize.X };
+        Vector2 diagonalEndPoint = CardSize with { X = -CardSize.X };
         const float angle = MathF.PI / 4; // 45 degrees
         Vector2 r = new(-MathF.Cos(-angle), -MathF.Sin(-angle)); // (-1,0) rotated by 'angle' degrees
-        Vector2 P4 = P3.ProjectOnto(r);
-        float distance = P4.Length(); // distance between P4 and (0,0)
+        Vector2 projectedPoint = diagonalEndPoint.ProjectOnto(r);
+        float distance = projectedPoint.Length(); // distance between projectedPoint and (0,0)
         int bandCount = 2 * Style.StripCount + 1;
         float stripThickness = distance / bandCount;
         float halfThick = stripThickness * 0.5f;
@@ -86,23 +89,23 @@ public class CardRenderer {
                 continue;
             }
 
-            Vector2 P5 = r * (i * stripThickness) + r * halfThick;
+            Vector2 stripCenterPoint = r * (i * stripThickness) + r * halfThick;
             Vector2 rightSideIntersection =
-                Extensions.LineLineIntersection(P5, P5 + r90, new Vector2(halfThick, 0), new Vector2(halfThick, 1));
+                Extensions.LineLineIntersection(stripCenterPoint, stripCenterPoint + r90, new Vector2(halfThick, 0), new Vector2(halfThick, 1));
             Vector2 bottomSideIntersection =
-                Extensions.LineLineIntersection(P5, P5 + r90, new Vector2(0, -halfThick),
+                Extensions.LineLineIntersection(stripCenterPoint, stripCenterPoint + r90, new Vector2(0, -halfThick),
                     new Vector2(-CardSize.X, -halfThick));
             Vector2 topSideIntersection =
-                Extensions.LineLineIntersection(P5, P5 + r90, new Vector2(0, CardSize.Y + halfThick),
+                Extensions.LineLineIntersection(stripCenterPoint, stripCenterPoint + r90, new Vector2(0, CardSize.Y + halfThick),
                     new Vector2(-CardSize.X, CardSize.Y + halfThick));
             Vector2 leftSideIntersection =
-                Extensions.LineLineIntersection(P5, P5 + r90, new Vector2(-CardSize.X - halfThick, 0),
+                Extensions.LineLineIntersection(stripCenterPoint, stripCenterPoint + r90, new Vector2(-CardSize.X - halfThick, 0),
                     new Vector2(-CardSize.X - halfThick, CardSize.Y));
 
-            Vector2 left = Vector2.Distance(P5, leftSideIntersection) < Vector2.Distance(P5, bottomSideIntersection)
+            Vector2 left = Vector2.Distance(stripCenterPoint, leftSideIntersection) < Vector2.Distance(stripCenterPoint, bottomSideIntersection)
                 ? leftSideIntersection
                 : bottomSideIntersection;
-            Vector2 right = Vector2.Distance(P5, rightSideIntersection) < Vector2.Distance(P5, topSideIntersection)
+            Vector2 right = Vector2.Distance(stripCenterPoint, rightSideIntersection) < Vector2.Distance(stripCenterPoint, topSideIntersection)
                 ? rightSideIntersection
                 : topSideIntersection;
 

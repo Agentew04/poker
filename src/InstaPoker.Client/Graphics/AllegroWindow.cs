@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using InstaPoker.Client.Graphics.Styles;
 using InstaPoker.Client.Network;
 using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
@@ -29,6 +30,7 @@ public abstract partial class AllegroWindow {
     private readonly FontManager fontManager = new();
     private readonly AudioManager audioManager = new();
     private readonly ImageManager imageManager = new();
+    private ImGuiController? imguiController;
     
     private bool isFullscreen;
     private bool fromFullscreen;
@@ -96,10 +98,13 @@ public abstract partial class AllegroWindow {
         }
         Initialize();
 
+        
         RegisterGesture(new KeyGesture([KeyCode.KeyEnter], KeyModifiers.LeftAlt, ToggleFullscreen));
         RegisterGesture(new KeyGesture([KeyCode.KeyF11], 0, ToggleFullscreen));
+        RegisterGesture(new KeyGesture([KeyCode.KeyF3], 0, ToggleDebugMenu));
         
         CreateDisplay();
+        imguiController = new ImGuiController();
         AllegroEventQueue queue = Al.CreateEventQueue() ?? throw new Exception("Could not create event queue");
         RegisterEventSources(queue);
 
@@ -108,6 +113,9 @@ public abstract partial class AllegroWindow {
 
         running = true;
         double lastTime = Al.GetTime();
+
+        AllegroTransform transform = new();
+        Al.IdentityTransform(ref transform);
         
         double targetFps = Al.GetDisplayRefreshRate(Display);
         double targetFpsDelta = 1.0 / targetFps;
@@ -117,12 +125,15 @@ public abstract partial class AllegroWindow {
             lastTime = time;
 
             ProcessEvents(queue);
+            UpdateImGui(delta);
             NetworkManager.Handler?.CheckForNewMessages();
             Update(delta);
             Render();
+            Al.UseTransform(ref transform);
+            imguiController.Render();
             
             Al.FlipDisplay();
-            
+
             // wait for new frame
             double endTime = Al.GetTime();
             double frameDelta = endTime - lastTime;
@@ -133,6 +144,7 @@ public abstract partial class AllegroWindow {
         }
 
         WindowClosing?.Invoke();
+        imguiController.Dispose();
         UnregisterEventSources(queue);
         Al.DestroyEventQueue(queue);
         Al.DestroyDisplay(Display);
@@ -152,8 +164,9 @@ public abstract partial class AllegroWindow {
         Display = Al.CreateDisplay(windowedWidth, windowedHeight) ?? throw new Exception("Could not create display");
         Width = Al.GetDisplayWidth(Display);
         Height = Al.GetDisplayHeight(Display);
-        displayPtr = GetPointer(Display);
+        displayPtr = Display.GetPointer();
         Al.SetWindowTitle(Display, windowTitle);
+        Al.SetBlender(BlendOperation.Add, BlendMode.Alpha, BlendMode.InverseAlpha);
     }
 
     private void RegisterEventSources(AllegroEventQueue queue) {
@@ -173,6 +186,10 @@ public abstract partial class AllegroWindow {
         AllegroEvent e = new();
         while (!queue.IsEventQueueEmpty()) {
             if (!queue.GetNextEvent(ref e)) {
+                continue;
+            }
+
+            if (imguiController!.IsEnabled && imguiController.ProcessEvent(ref e)) {
                 continue;
             }
 
@@ -235,6 +252,12 @@ public abstract partial class AllegroWindow {
         }
     }
 
+    private void UpdateImGui(double delta) {
+        imguiController!.Width = Width;
+        imguiController!.Height = Height;
+        imguiController!.Update((float)delta);
+    }
+    
     private void SetWindowTitle(string title) {
         if (title == windowTitle) {
             return;
@@ -280,9 +303,8 @@ public abstract partial class AllegroWindow {
         }
     }
 
-    private static IntPtr GetPointer(NativePointer ptr) {
-        FieldInfo? field = typeof(NativePointer).GetField("Pointer", BindingFlags.NonPublic | BindingFlags.Instance);
-        return (IntPtr)field!.GetValue(ptr)!;
+    private void ToggleDebugMenu() {
+        imguiController?.IsEnabled = !imguiController.IsEnabled;
     }
 
     [LibraryImport("allegro-5.2.dll")]

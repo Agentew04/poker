@@ -1,5 +1,6 @@
 ﻿using System.Drawing;
 using System.Numerics;
+using System.Reflection;
 using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Models;
 
@@ -89,5 +90,17 @@ public static class Extensions {
         if (MathF.Abs(sourceMax - sourceMin) < 1e-6f) return destMin;
         float t = (value - sourceMin) / (sourceMax - sourceMin);
         return destMin + t * (destMax - destMin);
+    }
+
+    private static FieldInfo? _nativePointerFieldInfo;
+    
+    /// <summary>
+    /// Returns the internal pointer from Allegro objects.
+    /// </summary>
+    /// <param name="nativePointer"></param>
+    /// <returns></returns>
+    public static IntPtr GetPointer(this NativePointer nativePointer) {
+        _nativePointerFieldInfo ??= typeof(NativePointer).GetField("Pointer", BindingFlags.NonPublic | BindingFlags.Instance);
+        return (IntPtr)_nativePointerFieldInfo!.GetValue(nativePointer)!;
     }
 }

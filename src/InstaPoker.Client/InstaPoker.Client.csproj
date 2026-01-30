@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="ImGui.NET" Version="1.91.6.1" />
     <PackageReference Include="StbImageSharp" Version="2.30.15"/>
     <PackageReference Include="SubC.AllegroDotNet" Version="0.12.0"/>
     <PackageReference Include="SubC.AllegroDotNet.Win64" Version="5.2.11.2"/>

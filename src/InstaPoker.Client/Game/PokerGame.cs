@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using ImGuiNET;
 using InstaPoker.Client.Graphics;
 using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
@@ -74,6 +75,10 @@ public class PokerGame : AllegroWindow {
         };
         Al.ClearToColor(color);
         renderContext.UpdateTransform();
+        
+        ImGui.Text("Oi");
+        if(ImGui.Button("botao")) Console.WriteLine("botao");
+        ImGui.InputText("Texto:", new byte[10], 10);
 
         int matrixStackBefore = renderContext.Stack.Count;
         int alphaStackBefore = renderContext.AlphaStack.Count;

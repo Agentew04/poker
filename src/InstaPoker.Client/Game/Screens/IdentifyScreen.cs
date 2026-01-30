@@ -133,7 +133,9 @@ public class IdentifyScreen : IRenderObject, IMouseInteractable, IKeyboardIntera
             Console.WriteLine("End anim");
             isTurning = false;
             isDown = !isDown;
-        }else if(isTurning && Al.GetTime() <= turnStart + turnTime) Console.WriteLine((float)((Al.GetTime() - turnStart)/turnTime));
+        }
+
+        // }else if(isTurning && Al.GetTime() <= turnStart + turnTime) Console.WriteLine((float)((Al.GetTime() - turnStart)/turnTime));
         renderer.RenderAt(new GameCard(7, Suit.Clubs), new Vector2(250,250),isDown, !isTurning 
                 ? 0
                 : (float)((Al.GetTime() - turnStart)/turnTime)
@@ -169,8 +171,8 @@ public class IdentifyScreen : IRenderObject, IMouseInteractable, IKeyboardIntera
 
     public void OnMouseDown(MouseButton button) {
         if (button == MouseButton.Left) {
-            isTurning = true;
-            turnStart = Al.GetTime();
+            // isTurning = true;
+            // turnStart = Al.GetTime();
         }
         nameTextBox.OnMouseDown(button);
         okButton.OnMouseDown(button);
