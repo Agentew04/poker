@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using ImGuiNET;
+using InstaPoker.Client.Graphics;
 using InstaPoker.Client.Network;
 using InstaPoker.Core.Messages;
 using InstaPoker.Core.Messages.Requests;
@@ -54,8 +55,51 @@ public class DebugWindow {
 
     private void GraphicsTab() {
         if (ImGui.BeginTabItem("Graphics")) {
+            
             ImGui.Text($"Fps: {Game.Fps:F2}");
+            
+            ImGui.Text("Scene Graph: ");
+            SceneObject root = Game.RenderScreen;
+            sceneGraphOcurrences.Clear();
+            TraverseSceneGraph(root);
+            
             ImGui.EndTabItem();
+        }
+    }
+
+    private Dictionary<string, int> sceneGraphOcurrences = [];
+
+    private void TraverseSceneGraph(SceneObject obj) {
+        if (ImGui.TreeNode(obj.GetType().Name)) {
+            // debug data about a UI item
+            switch (obj) {
+                case Button button:
+                    ImGui.Text("Label: " + button.Label);
+                    break;
+                case LoadingLabel loading:
+                    ImGui.Text("Text: " + loading.Text);
+                    ImGui.Text("Show dots: " + loading.ShowDots);
+                    break;
+                case TextBox textbox:
+                    ImGui.Text("Text: " + textbox.GetString());
+                    ImGui.Text("Placeholder: " + textbox.Placeholder);
+                    break;
+                case Toast board:
+                    ImGui.Text("Text: " + board.Text);
+                    break;
+            }
+            
+            foreach (SceneObject child in obj.GetChildren()) {
+                if (!sceneGraphOcurrences.TryGetValue(child.GetType().Name, out int value)) {
+                    value = 0;
+                    sceneGraphOcurrences[child.GetType().Name] = value;
+                }
+                sceneGraphOcurrences[child.GetType().Name] = ++value;
+                ImGui.PushID(value);
+                TraverseSceneGraph(child);
+                ImGui.PopID();
+            }
+            ImGui.TreePop();
         }
     }
 }

@@ -30,49 +30,49 @@ public class PokerGame : AllegroWindow {
     private readonly PlayerLobbyScreen playerLobbyScreen = new();
     private readonly GameScreen gameScreen = new();
 
-    private SceneObject renderScreen = null!;
-    
+    public SceneObject RenderScreen { get; private set; } = null!;
+
     /// <inheritdoc cref="AllegroWindow.Initialize"/>
     protected override void Initialize() {
         FontManager.RegisterFont("ShareTech-Regular");
         RegisterAudio();
         RegisterImages();
         identifyScreen.Initialize();
-        renderScreen = identifyScreen;
-        identifyScreen.OkClicked += () => renderScreen = mainMenuScreen;
+        RenderScreen = identifyScreen;
+        identifyScreen.OkClicked += () => RenderScreen = mainMenuScreen;
         mainMenuScreen.Initialize();
         adminLobbyScreen.Initialize();
         playerLobbyScreen.Initialize();
         gameScreen.Initialize();
         
         mainMenuScreen.CreateRoomClicked += () => {
-            renderScreen = adminLobbyScreen;
+            RenderScreen = adminLobbyScreen;
             adminLobbyScreen.OnShow();
         };
         mainMenuScreen.JoinRoomClicked += code => {
-            renderScreen = playerLobbyScreen;
+            RenderScreen = playerLobbyScreen;
             playerLobbyScreen.OnShow(code);
         };
         adminLobbyScreen.UserLeft += () => {
-            renderScreen = mainMenuScreen;
+            RenderScreen = mainMenuScreen;
         };
         playerLobbyScreen.UserLeft += () => {
-            renderScreen = mainMenuScreen;
+            RenderScreen = mainMenuScreen;
         };
         playerLobbyScreen.UpgradedToAdmin += (users, settings, code) => {
-            renderScreen = adminLobbyScreen;
+            RenderScreen = adminLobbyScreen;
             adminLobbyScreen.OnUpgrade(users, settings, code);
         };
         adminLobbyScreen.GameStarted += () => {
-            renderScreen = gameScreen;
+            RenderScreen = gameScreen;
             gameScreen.OnShow();
         };
         playerLobbyScreen.GameStarted += () => {
-            renderScreen = gameScreen;
+            RenderScreen = gameScreen;
             gameScreen.OnShow();
         };
         gameScreen.UserLeft += () => {
-            renderScreen = mainMenuScreen;
+            RenderScreen = mainMenuScreen;
         };
 
         debugWindow.Game = this;
@@ -80,7 +80,7 @@ public class PokerGame : AllegroWindow {
 
     /// <inheritdoc cref="AllegroWindow.Update"/>
     protected override void Update(double delta) {
-        renderScreen.Update(delta);
+        RenderScreen.Update(delta);
     }
 
     /// <inheritdoc cref="AllegroWindow.Render"/>
@@ -96,11 +96,11 @@ public class PokerGame : AllegroWindow {
 
         int matrixStackBefore = renderContext.Stack.Count;
         int alphaStackBefore = renderContext.AlphaStack.Count;
-        renderScreen.Position = Vector2.Zero;
-        renderScreen.Size = new Vector2(Width, Height);
+        RenderScreen.Position = Vector2.Zero;
+        RenderScreen.Size = new Vector2(Width, Height);
         
-        renderScreen.PositionElements();
-        renderScreen.Render(renderContext);
+        RenderScreen.PositionElements();
+        RenderScreen.Render(renderContext);
         
         debugWindow.Render();
         if (matrixStackBefore != renderContext.Stack.Count) {
@@ -114,32 +114,32 @@ public class PokerGame : AllegroWindow {
 
     /// <inheritdoc cref="AllegroWindow.OnKeyDown"/>
     protected override void OnKeyDown(KeyCode key, KeyModifiers modifiers) {
-        renderScreen.OnKeyDown(key,modifiers);
+        RenderScreen.OnKeyDown(key,modifiers);
     }
 
     /// <inheritdoc cref="AllegroWindow.OnCharDown"/>
     protected override void OnCharDown(char character) {
-        renderScreen.OnCharDown(character);
+        RenderScreen.OnCharDown(character);
     }
 
     /// <inheritdoc cref="AllegroWindow.OnKeyUp"/>
     protected override void OnKeyUp(KeyCode key, KeyModifiers modifiers) {
-        renderScreen.OnKeyUp(key,modifiers);
+        RenderScreen.OnKeyUp(key,modifiers);
     }
 
     /// <inheritdoc cref="AllegroWindow.OnMouseMove"/>
     protected override void OnMouseMove(Vector2 pos, Vector2 delta) {
-        renderScreen.OnMouseMove(pos,delta);
+        RenderScreen.OnMouseMove(pos,delta);
     }
 
     /// <inheritdoc cref="AllegroWindow.OnMouseDown"/>
     protected override void OnMouseDown(MouseButton button) {
-        renderScreen.OnMouseDown(button);
+        RenderScreen.OnMouseDown(button);
     }
 
     /// <inheritdoc cref="AllegroWindow.OnMouseUp"/>
     protected override void OnMouseUp(MouseButton button) {
-        renderScreen.OnMouseUp(button);
+        RenderScreen.OnMouseUp(button);
     }
 
     private static void RegisterAudio() {

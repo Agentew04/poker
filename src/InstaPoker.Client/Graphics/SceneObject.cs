@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using InstaPoker.Client.Graphics.Styles;
 using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
 
@@ -6,7 +7,7 @@ namespace InstaPoker.Client.Graphics;
 
 public abstract class SceneObject {
     private readonly List<SceneObject> children = [];
-
+    
     /// <summary>
     /// If the object must receive mouse events.
     /// </summary>
@@ -32,6 +33,16 @@ public abstract class SceneObject {
     /// </summary>
     public bool Clip { get; set; } = false;
 
+    /// <summary>
+    /// The horizontal alignment of the <see cref="Position"/> in relation to the <see cref="Size"/>. 
+    /// </summary>
+    public HorizontalAlign HorizontalAlign { get; set; } = HorizontalAlign.Left;
+
+    /// <summary>
+    /// The vertical alignment of the <see cref="Position"/> in relation to the <see cref="Size"/>.
+    /// </summary>
+    public VerticalAlign VerticalAlign { get; set; } = VerticalAlign.Top;
+
     private bool isInitialized = false;
     
     /// <summary>
@@ -45,7 +56,44 @@ public abstract class SceneObject {
             child.isInitialized = true;
         }
     }
+    
+    /// <summary>
+    /// Updates all internal components of the object that are related with time and networking.
+    /// </summary>
+    /// <param name="delta">How much time has passed since the last frame in seconds</param>
+    public virtual void Update(double delta) {
+        foreach (SceneObject child in children) {
+            if (child.IsEnabled) {
+                child.Update(delta);
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Measures and positions all children inside itself.
+    /// </summary>
+    public virtual void PositionElements() {
+        // realign position
+        Vector2 pos = Position;
+        if (HorizontalAlign == HorizontalAlign.Center) {
+            pos.X -= Size.X * 0.5f;
+        }else if (HorizontalAlign == HorizontalAlign.Right) {
+            pos.X -= Size.X;
+        }
 
+        if (VerticalAlign == VerticalAlign.Center) {
+            pos.Y -= Size.Y * 0.5f;
+        }else if (VerticalAlign == VerticalAlign.Bottom) {
+            pos.Y -= Size.Y;
+        }
+
+        Position = pos;
+        
+        foreach (SceneObject child in children) {
+            child.PositionElements();
+        }
+    }
+    
     /// <summary>
     /// Render the current object to the screen.
     /// </summary>
@@ -66,8 +114,10 @@ public abstract class SceneObject {
 
                 ctx.Stack.Multiply(Matrix4x4.CreateTranslation(child.Position.X, child.Position.Y, 0));
                 Matrix4x4 absolutePosition = ctx.Stack.Peek();
-                Al.SetClippingRectangle((int)absolutePosition.Translation.X, (int)absolutePosition.Translation.Y,
+                if (Clip) {
+                    Al.SetClippingRectangle((int)absolutePosition.Translation.X, (int)absolutePosition.Translation.Y,
                     (int)child.Size.X, (int)child.Size.Y);
+                }
                 child.PositionElements();
                 child.Render(ctx);
                 Al.ResetClippingRectangle();
@@ -75,26 +125,7 @@ public abstract class SceneObject {
             }
         }
     }
-
-    /// <summary>
-    /// Measures and positions all children inside itself.
-    /// </summary>
-    public virtual void PositionElements() {
-        // empty
-    }
-
-    /// <summary>
-    /// Updates all internal components of the object that are related with time and networking.
-    /// </summary>
-    /// <param name="delta">How much time has passed since the last frame in seconds</param>
-    public virtual void Update(double delta) {
-        foreach (SceneObject child in children) {
-            if (child.IsEnabled) {
-                child.Update(delta);
-            }
-        }
-    }
-
+    
     /// <summary>
     /// Relative position of this object in relation of the parent object.
     /// </summary>
@@ -192,11 +223,11 @@ public abstract class SceneObject {
         children.Add(child);
     }
 
-    protected bool HasChild(SceneObject child) {
+    public bool HasChild(SceneObject child) {
         return children.Contains(child);
     }
 
-    protected IReadOnlyList<SceneObject> GetChildren() => children;
+    public IReadOnlyList<SceneObject> GetChildren() => children;
 
     protected void RemoveChild(SceneObject child) {
         children.Remove(child);

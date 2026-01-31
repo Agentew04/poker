@@ -24,7 +24,7 @@ public class IdentifyScreen : SceneObject {
     private readonly TextBox nameTextBox = new();
     private readonly Button okButton = new();
     private readonly Fader emptyNameFader = new();
-    private readonly TextBoard emptyNameBoard = new();
+    private readonly Toast emptyNameBoard = new();
     private readonly LoadingLabel loading = new();
 
     private Task<bool>? connectionTask;

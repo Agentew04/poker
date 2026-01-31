@@ -19,7 +19,7 @@ public class MainMenuScreen : SceneObject {
     private readonly Button joinRoomButton = new();
     private readonly TextBox codeTextBox = new();
     private readonly Fader emptyCodeFader = new();
-    private readonly TextBoard emptyCodeBoard = new();
+    private readonly Toast emptyCodeBoard = new();
 
     public override void Initialize() {
         AddChild(createRoomButton);
