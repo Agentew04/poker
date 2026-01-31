@@ -6,7 +6,10 @@ using SubC.AllegroDotNet.Models;
 
 namespace InstaPoker.Client.Graphics;
 
-public class Checkbox : IRenderObject, IMouseInteractable{
+public class Checkbox : SceneObject {
+    
+    public override bool UseMouse => true;
+    public override bool UseKeyboard => false;
     
     public CheckboxStyle Style { get; set; }
 
@@ -15,17 +18,13 @@ public class Checkbox : IRenderObject, IMouseInteractable{
     private bool isHovering;
     private bool isPressed;
 
-    public event Action<bool>? OnValueChanged; 
-
+    public event Action<bool>? OnValueChanged;
     
-    public void Initialize() {
+    public override void Initialize() {
         checkVertices = new float[6];
     }
 
-    public void Render(RenderContext ctx) {
-        ctx.Stack.Push();
-        ctx.Stack.Multiply(Matrix4x4.CreateTranslation(Position.X, Position.Y,0));
-        Translation = ctx.Stack.Peek();
+    public override void Render(RenderContext ctx) {
         ctx.UpdateTransform();
         
         // draw background
@@ -47,6 +46,10 @@ public class Checkbox : IRenderObject, IMouseInteractable{
 
         // draw check
         if (Value) {
+            if (checkVertices is null) {
+                throw new Exception("checkVertices not initialized in Checkbox.Render()");
+            }
+            
             if (cachedSize == -1 || cachedSize != (int)((Size.X + Size.Y) * 0.5f)) {
                 Vector2 p0 = new(0.13129942f, 0.46729942f);
                 Vector2 p1 = new(0.4f,0.736f);
@@ -62,28 +65,17 @@ public class Checkbox : IRenderObject, IMouseInteractable{
             }
             
             const float thickRatio = 0.112244897959184f;
-            float thickness = thickRatio * ((Size.X + Size.Y) * 0.5f); 
+            float thickness = thickRatio * ((Size.X + Size.Y) * 0.5f);
 
+            
             Al.DrawPolyline(checkVertices, 2*sizeof(float), 3,LineJoin.Round, LineCap.Round, Style.Foreground, thickness, 8);
         }
-        
-        ctx.Stack.Pop();
     }
 
-    private float[] checkVertices;
+    private float[]? checkVertices;
     private int cachedSize = -1;
 
-    public void Update(double delta) {
-        // empty
-    }
-
-    public Vector2 Position { get; set; }
-    public Vector2 Size { get; set; }
-    public Matrix4x4 Translation { get; set; }
-    
-    public void OnMouseMove(Vector2 pos, Vector2 delta) {
-        pos = pos - new Vector2(Translation.Translation.X, Translation.Translation.Y);
-
+    public override void OnMouseMove(Vector2 pos, Vector2 delta) {
         isHovering = pos.X >= 0
                      && pos.X <= Size.X
                      && pos.Y >= 0
@@ -93,17 +85,16 @@ public class Checkbox : IRenderObject, IMouseInteractable{
         }
     }
 
-    public void OnMouseDown(MouseButton button) {
+    public override void OnMouseDown(MouseButton button) {
         if (button != MouseButton.Left) {
             return;
         }
         if (isHovering) {
             isPressed = true;
         }
-        
     }
 
-    public void OnMouseUp(MouseButton button) {
+    public override void OnMouseUp(MouseButton button) {
         if (button != MouseButton.Left) {
             return;
         }

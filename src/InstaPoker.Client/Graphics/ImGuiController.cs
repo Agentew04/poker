@@ -281,7 +281,7 @@ public sealed partial class ImGuiController : IDisposable {
             return;
         }
 
-        AllegroTransform lastTransform = Al.GetCurrentTransform().Value;
+        AllegroTransform lastTransform = Al.GetCurrentTransform()!.Value;
         AllegroTransform lastProjectionTransform = Al.GetCurrentProjectionTransform();
 
         int lastClipX, lastClipY, lastClipW, lastClipH;

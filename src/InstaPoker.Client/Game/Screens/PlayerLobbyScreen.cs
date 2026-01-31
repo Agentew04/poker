@@ -9,28 +9,33 @@ using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
 using SubC.AllegroDotNet.Models;
 
-namespace InstaPoker.Client.Game;
+namespace InstaPoker.Client.Game.Screens;
 
 /// <summary>
 /// Screen that shows a lobby where the current user is <b>not</b> the owner/admin.
 /// </summary>
-public class PlayerLobbyScreen : IRenderObject, IMouseInteractable {
+public class PlayerLobbyScreen : SceneObject {
 
-    private string code;
-    private string title;
+    public override bool UseMouse => true;
+    public override bool UseKeyboard => false;
+    
+    private string code = string.Empty;
+    private string title = string.Empty;
     private readonly LoadingLabel loading = new();
     private RoomSettings roomSettings = new();
     private List<LobbyUser> users = [];
 
     private Task<JoinRoomResponse>? joinTask;
-    
-    public void Initialize() {
-        loading.Initialize();
-        loading.Size = Size;
-        loading.Position = Vector2.Zero;
+
+    public override void Initialize() {
+        AddChild(loading);
         loading.FontSize = 28;
     }
 
+    /// <summary>
+    /// Code executed when the users click on the button to join a room using a code.
+    /// </summary>
+    /// <param name="code">The code the user entered</param>
     public void OnShow(string code) {
         this.code = code;
         loading.ShowDots = true;
@@ -73,18 +78,20 @@ public class PlayerLobbyScreen : IRenderObject, IMouseInteractable {
         });
     }
 
-    public void Render(RenderContext ctx) {
+    public override void PositionElements() {
         loading.Size = Size;
         loading.Position = Vector2.Zero;
+        base.PositionElements();
+    }
+
+    public override void Render(RenderContext ctx) {
         loading.Render(ctx);
         if (loading.IsEnabled)
         {
             return;
         }
         
-        Translation = Matrix4x4.Identity;
         ctx.UpdateTransform();
-        
         // title
         AllegroFont titleFont = FontManager.GetFont("ShareTech-Regular", 36);
         Al.DrawText(titleFont, Colors.Black,
@@ -101,6 +108,8 @@ public class PlayerLobbyScreen : IRenderObject, IMouseInteractable {
         
         RenderPlayerList(ctx);
         RenderConfiguration(ctx);
+        
+        base.Render(ctx);
     }
 
     private void RenderPlayerList(RenderContext ctx) {
@@ -149,6 +158,7 @@ public class PlayerLobbyScreen : IRenderObject, IMouseInteractable {
                     {
                         FontSize = 24
                     };
+                    AddChild(user.Button);
                 }
 
                 user.Button.Size = new Vector2(100, Al.GetFontLineHeight(font));
@@ -159,10 +169,7 @@ public class PlayerLobbyScreen : IRenderObject, IMouseInteractable {
         }
 
         ctx.Stack.Pop();
-        
-        foreach (LobbyUser user in users) {
-            user.Button?.Render(ctx);
-        }
+
         Al.ResetClippingRectangle();
     }
     
@@ -202,7 +209,8 @@ public class PlayerLobbyScreen : IRenderObject, IMouseInteractable {
         UserLeft?.Invoke();
     }
 
-    public void Update(double delta) {
+    /// <inheritdoc/>
+    public override void Update(double delta) {
         loading.Update(delta);
         if (loading.IsEnabled) {
             return;
@@ -210,7 +218,14 @@ public class PlayerLobbyScreen : IRenderObject, IMouseInteractable {
         
         if (NetworkManager.Handler!.TryGetPendingMessage(out RoomListUpdatedNotification? listUpdate)) {
             if (listUpdate.UpdateType is LobbyListUpdateType.UserLeft or LobbyListUpdateType.UserKicked) {
-                users.RemoveAll(x => x.Name == listUpdate.Username);
+                LobbyUser? removed = users.Find(x => x.Name == listUpdate.Username);
+                if (removed is not null) {
+                    users.Remove(removed);
+                    if (removed.Button is not null) {
+                        RemoveChild(removed.Button);
+                    }
+                }
+                
                 if (listUpdate.UpdateType == LobbyListUpdateType.UserKicked && listUpdate.Username == LocalSettings.Username) {
                     // user was kicked. show kick screen and return to main menu
                     loading.ShowDots = false;
@@ -242,33 +257,9 @@ public class PlayerLobbyScreen : IRenderObject, IMouseInteractable {
             if (owner.IsLocal) {
                 UpgradedToAdmin?.Invoke(users, roomSettings, code);
             }
-        }
-        
+        }   
     }
-
-    public Vector2 Position { get; set; }
-    public Vector2 Size { get; set; }
-    public Matrix4x4 Translation { get; set; }
-
-    public void OnMouseMove(Vector2 pos, Vector2 delta) {
-        pos = pos - new Vector2(Translation.Translation.X, Translation.Translation.Y);
-        foreach (LobbyUser user in users) {
-            user.Button?.OnMouseMove(pos, delta);
-        }
-    }
-
-    public void OnMouseDown(MouseButton button) {
-        foreach (LobbyUser user in users) {
-            user.Button?.OnMouseDown(button);
-        }
-    }
-
-    public void OnMouseUp(MouseButton button) {
-        foreach (LobbyUser user in users) {
-            user.Button?.OnMouseUp(button);
-        }
-    }
-
+    
     /// <summary>
     /// Event fired when the user leaves or is kicked from the room.
     /// </summary>
@@ -280,4 +271,6 @@ public class PlayerLobbyScreen : IRenderObject, IMouseInteractable {
     /// method.
     /// </summary>
     public event Action<List<LobbyUser>, RoomSettings,string>? UpgradedToAdmin;
+
+    public event Action? GameStarted;
 }

@@ -6,7 +6,7 @@ using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
 using SubC.AllegroDotNet.Models;
 
-namespace InstaPoker.Client.Game;
+namespace InstaPoker.Client.Game.Screens;
 
 /// <summary>
 /// First screen the user sees when the game launches. Prompts the user to enter their username
@@ -16,7 +16,10 @@ namespace InstaPoker.Client.Game;
 /// If for some reason the connection to the remote server fails, the client automatically tries again.
 /// There is no limit of retries.
 /// </remarks>
-public class IdentifyScreen : IRenderObject, IMouseInteractable, IKeyboardInteractable {
+public class IdentifyScreen : SceneObject {
+    
+    public override bool UseMouse => true;
+    public override bool UseKeyboard => true;
 
     private readonly TextBox nameTextBox = new();
     private readonly Button okButton = new();
@@ -25,13 +28,13 @@ public class IdentifyScreen : IRenderObject, IMouseInteractable, IKeyboardIntera
     private readonly LoadingLabel loading = new();
 
     private Task<bool>? connectionTask;
-    
-    public void Initialize() {
-        loading.Initialize();
+
+    public override void Initialize() {
+        AddChild(loading);
         loading.FontSize = 28;
         loading.Hide();
         
-        nameTextBox.Initialize();
+        AddChild(nameTextBox);
         nameTextBox.Style = TextBoxStyle.Default with {
             FontSize = 28
         };
@@ -41,19 +44,20 @@ public class IdentifyScreen : IRenderObject, IMouseInteractable, IKeyboardIntera
         nameTextBox.MaxCharacters = 20;
         nameTextBox.Keyboard = TextboxKeyboard.AlphaNumeric;
         
-        okButton.Initialize();
+        AddChild(okButton);
         okButton.Style = ButtonStyle.Default with {
             FontSize = 28
         };
         okButton.Label = "OK";
         okButton.Pressed += OnOkClick;
         
-        emptyNameFader.Initialize();
+        AddChild(emptyNameFader);
         emptyNameFader.Content = emptyNameBoard;
-        emptyNameBoard.Initialize();
         emptyNameBoard.Text = "Nickname cannot be empty!";
         emptyNameBoard.FontSize = 24;
         emptyNameBoard.Type = TextBoardType.Error;
+        
+        base.Initialize();
     }
 
     private void OnOkClick() {
@@ -91,19 +95,14 @@ public class IdentifyScreen : IRenderObject, IMouseInteractable, IKeyboardIntera
         }
     }
 
-    public void Render(RenderContext ctx) {
+    public override void PositionElements() {
         loading.Size = Size;
         loading.Position = Vector2.Zero;
-        loading.Render(ctx);
-        if (loading.IsEnabled) {
-            return;
-        }
         
-        Translation = Matrix4x4.Identity;
         nameTextBox.Size = new Vector2(500, 40);
         okButton.Size = new Vector2(300, 60);
         emptyNameFader.Size = new Vector2(300, 50);
-
+        
         const float margin = 15;
         nameTextBox.Position = new Vector2(
             Size.X*0.5f - nameTextBox.Size.X * 0.5f,
@@ -116,85 +115,46 @@ public class IdentifyScreen : IRenderObject, IMouseInteractable, IKeyboardIntera
             Size.X*0.5f - emptyNameFader.Size.X * 0.5f,
             Size.Y*0.5f + okButton.Size.Y + 3*margin
         );
-        
-        nameTextBox.Render(ctx);
-        okButton.Render(ctx);
-        emptyNameFader.Render(ctx);
+    }
 
+    public override void Render(RenderContext ctx) {
+        loading.Render(ctx);
+        if (loading.IsEnabled) {
+            return;
+        }
+        
         ctx.UpdateTransform();
         AllegroFont font = FontManager.GetFont("ShareTech-Regular", 32);
         Al.DrawText(font, Colors.Black, (int)(Size.X*0.5f), (int)(Size.Y*0.25f),
             FontAlignFlags.Center, "Hello! What's your name?");
         
-        renderer.Style = CardStyle.Default;
-        renderer.CardSize = new Vector2(63.5f,88.9f)*4;
-        renderer.RenderContext = ctx;
-        if (Al.GetTime() > turnStart + turnTime && isTurning) {
-            Console.WriteLine("End anim");
-            isTurning = false;
-            isDown = !isDown;
-        }
-
-        // }else if(isTurning && Al.GetTime() <= turnStart + turnTime) Console.WriteLine((float)((Al.GetTime() - turnStart)/turnTime));
-        renderer.RenderAt(new GameCard(7, Suit.Clubs), new Vector2(250,250),isDown, !isTurning 
-                ? 0
-                : (float)((Al.GetTime() - turnStart)/turnTime)
-            , isHover ? MathF.PI*0.25f : 0);
+        base.Render(ctx);
+        
+        // renderer.Style = CardStyle.Default;
+        // renderer.CardSize = new Vector2(63.5f,88.9f)*4;
+        // renderer.RenderContext = ctx;
+        // if (Al.GetTime() > turnStart + turnTime && isTurning) {
+        //     Console.WriteLine("End anim");
+        //     isTurning = false;
+        //     isDown = !isDown;
+        // }
+        //
+        // // }else if(isTurning && Al.GetTime() <= turnStart + turnTime) Console.WriteLine((float)((Al.GetTime() - turnStart)/turnTime));
+        // // renderer.RenderAt(new GameCard(7, Suit.Clubs), new Vector2(250,250),isDown, !isTurning 
+        // //         ? 0
+        // //         : (float)((Al.GetTime() - turnStart)/turnTime)
+        // //     , isHover ? MathF.PI*0.25f : 0);
     }
 
-    private CardRenderer renderer = new();
+    // private CardRenderer renderer = new();
+    //
+    // private bool isTurning = false;
+    // private double turnTime = 0.5f;
+    // private double turnStart = 0;
+    // private bool isDown = true;
     
-    private bool isTurning = false;
-    private double turnTime = 0.5f;
-    private double turnStart = 0;
-    private bool isDown = true;
-    private bool isHover;
+    // private bool isHover;
     
-    public void Update(double delta) {
-        emptyNameFader.Update(delta);
-    }
-
-    public Vector2 Position { get; set; }
-    public Vector2 Size { get; set; }
-    public Matrix4x4 Translation { get; set; }
-
-    public void OnMouseMove(Vector2 pos, Vector2 delta) {
-        pos = pos - new Vector2(Translation.Translation.X, Translation.Translation.Y);
-        isHover = pos.X >= 250 - renderer.CardSize.X * 0.5f
-                  && pos.X <= 250 + renderer.CardSize.X * 0.5f
-                  && pos.Y >= 250 - renderer.CardSize.Y * 0.5f
-                  && pos.Y <= 250 + renderer.CardSize.Y * 0.5f;
-            
-        nameTextBox.OnMouseMove(pos,delta);
-        okButton.OnMouseMove(pos,delta);
-    }
-
-    public void OnMouseDown(MouseButton button) {
-        if (button == MouseButton.Left) {
-            // isTurning = true;
-            // turnStart = Al.GetTime();
-        }
-        nameTextBox.OnMouseDown(button);
-        okButton.OnMouseDown(button);
-    }
-
-    public void OnMouseUp(MouseButton button) {
-        nameTextBox.OnMouseUp(button);
-        okButton.OnMouseUp(button);
-    }
-
-    public void OnKeyDown(KeyCode key, KeyModifiers modifiers) {
-        nameTextBox.OnKeyDown(key,modifiers);
-    }
-
-    public void OnKeyUp(KeyCode key, KeyModifiers modifiers) {
-        nameTextBox.OnKeyUp(key,modifiers);
-    }
-
-    public void OnCharDown(char character) {
-        nameTextBox.OnCharDown(character);
-    }
-
     /// <summary>
     /// Event fired when the user clicks on the Ok button. <see cref="IdentifyScreen"/> performs internal validation
     /// and only fires this event when the username is valid.

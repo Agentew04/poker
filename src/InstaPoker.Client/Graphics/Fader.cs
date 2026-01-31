@@ -2,20 +2,39 @@
 
 namespace InstaPoker.Client.Graphics;
 
-public class Fader : IRenderObject {
+/// <summary>
+/// A simple component that controls the alpha value of an inner object. 
+/// </summary>
+public class Fader : SceneObject {
+    
+    public override bool UseMouse => Content?.UseMouse ?? false;
 
-    public IRenderObject? Content { get; set; } = null;
+    public override bool UseKeyboard => Content?.UseKeyboard ?? false;
+
+    /// <summary>
+    /// The inner object that will be rendered.
+    /// </summary>
+    public SceneObject? Content {
+        get;
+        set {
+            if (GetChildren().Count > 0) {
+                RemoveChild(GetChildren()[0]);
+            }
+
+            field = value;
+            if (value is not null) {
+                AddChild(value);
+            }
+        }
+    }
 
     private double startTime;
     private double showDuration;
     private double delay;
     private bool active;
     private double lifetime;
-    
-    public void Initialize() {
-    }
 
-    public void Render(RenderContext ctx) {
+    public override void Render(RenderContext ctx) {
         if (!active || Content == null) {
             return;
         }
@@ -43,21 +62,25 @@ public class Fader : IRenderObject {
 
         ctx.AlphaStack.Push();
         ctx.AlphaStack.Multiply(alpha);
-        Content.Render(ctx);
+        base.Render(ctx);
         ctx.AlphaStack.Pop();
     }
 
-    public void Update(double delta) {
+    public override void Update(double delta) {
         if (!active) return;
 
         lifetime += delta;
 
-        Content?.Update(delta);
-
+        base.Update(delta);
+        
         if (lifetime > delay + showDuration)
             active = false;
     }
 
+    /// <summary>
+    /// Shows the content for a specified amount of time.
+    /// </summary>
+    /// <param name="duration">How long the content appears on-screen</param>
     public void ShowFor(double duration) {
         delay = 0;
         showDuration = duration;
@@ -65,14 +88,15 @@ public class Fader : IRenderObject {
         active = true;
     }
 
+    /// <summary>
+    /// Shows the content after a delay, for a duration of time.
+    /// </summary>
+    /// <param name="delay">How long to wait before showing the content</param>
+    /// <param name="duration">How long the content shows on the screen</param>
     public void ShowAfter(double delay, double duration) {
         this.delay = delay;
         showDuration = duration;
         lifetime = 0;
         active = true;
     }
-
-    public Vector2 Position { get; set; }
-    public Vector2 Size { get; set; }
-    public Matrix4x4 Translation { get; set; }
 }

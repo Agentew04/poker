@@ -6,13 +6,13 @@ using InstaPoker.Core.Messages.Responses;
 
 namespace InstaPoker.Server;
 
-public class RoomManager {
+public static class RoomManager {
 
-    private readonly List<Room> rooms = [];
+    private static readonly List<Room> rooms = [];
 
-    private readonly Dictionary<ClientConnection, Room?> userRoom = [];
+    private static readonly Dictionary<ClientConnection, Room?> userRoom = [];
 
-    public async Task CreateNewRoom(ClientConnection owner) {
+    public static async Task CreateNewRoom(ClientConnection owner) {
         Room r = new() {
             Code = GenerateRandomCode(),
             ConnectedUsers = [owner],
@@ -28,7 +28,7 @@ public class RoomManager {
         userRoom[owner] = r;
     }
 
-    public async Task UpdateRoomSettings(ClientConnection owner, RoomSettings settings) {
+    public static async Task UpdateRoomSettings(ClientConnection owner, RoomSettings settings) {
         Room? r = userRoom[owner];
         if (r is null || r.Owner != owner) {
             Console.WriteLine("Non owner tried to update room settings");
@@ -45,9 +45,10 @@ public class RoomManager {
         });
     }
 
-    public async Task UserLeaveRoom(ClientConnection conn) {
+    public static async Task UserLeaveRoom(ClientConnection conn) {
         Room? room = userRoom[conn];
         if (room is null) {
+            Console.WriteLine("user was not in room");
             return;
         }
         userRoom[conn] = null;
@@ -60,6 +61,11 @@ public class RoomManager {
                 UpdateType = LobbyListUpdateType.UserLeft
             });
         });
+        
+        if (room.ConnectedUsers.Count == 0) {
+            Console.WriteLine($"Room {room.Code} is empty. removing");
+            rooms.Remove(room);
+        }
 
         // if user was owner decide new owner
         if (room.Owner == conn) {
@@ -73,13 +79,10 @@ public class RoomManager {
             });
         }
 
-        if (room.ConnectedUsers.Count == 0) {
-            Console.WriteLine($"Room {room.Code} is empty. removing");
-            rooms.Remove(room);
-        }
+        
     }
 
-    public async Task UserKick(ClientConnection conn, string kickedUser) {
+    public static async Task UserKick(ClientConnection conn, string kickedUser) {
         Room? room = userRoom[conn];
         if (room is null || room.Owner != conn) {
             return;
@@ -102,7 +105,7 @@ public class RoomManager {
         room.ConnectedUsers.Remove(kicked);
     }
 
-    public async Task UserJoinRoom(ClientConnection conn, JoinRoomRequest req) {
+    public static async Task UserJoinRoom(ClientConnection conn, JoinRoomRequest req) {
         userRoom.TryAdd(conn, null);
         if (userRoom[conn] != null) {
             Console.WriteLine("User");
@@ -155,8 +158,15 @@ public class RoomManager {
         });
         r.ConnectedUsers.Add(conn);
     }
+
+    public static void UnexpectedDisconnect(ClientConnection conn) {
+        // conn has already been disconnected
+        if (userRoom.TryGetValue(conn, out Room? room)) {
+            _ = UserLeaveRoom(conn);
+        }
+    }
     
-    private string GenerateRandomCode() {
+    private static string GenerateRandomCode() {
         StringBuilder sb = new();
         const int count = 6;
         for (int i = 0; i < count; i++) {
@@ -166,7 +176,7 @@ public class RoomManager {
         return sb.ToString();
     }
 
-    private RoomSettings GetDefaultRoomSettings() {
+    private static RoomSettings GetDefaultRoomSettings() {
         return new RoomSettings() {
             MaxPlayers = 8,
             SmallBlind = 10,

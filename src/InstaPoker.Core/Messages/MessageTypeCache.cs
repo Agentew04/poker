@@ -7,7 +7,7 @@ namespace InstaPoker.Core.Messages;
 /// <summary>
 /// Static class that holds mappings of <see cref="Guid"/> and its respective <see cref="Message"/>.
 /// </summary>
-internal static class MessageTypeCache {
+public static class MessageTypeCache {
     private static readonly Dictionary<Guid, Type> MessageTypes;
 
     static MessageTypeCache() {

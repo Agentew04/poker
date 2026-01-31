@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using ImGuiNET;
 using InstaPoker.Client.Game;
 using InstaPoker.Client.Graphics.Styles;
 using SubC.AllegroDotNet;
@@ -18,6 +19,23 @@ public class CardRenderer {
 
     public RenderContext RenderContext { get; set; } = null!;
 
+    public void Render(CardElement element) {
+        bool isScaling = element.ScaleAnimationProgress >= 0 && element.ScaleAnimationProgress <= 1; 
+        if (isScaling) {
+            Console.WriteLine("scale");
+            var translate = RenderContext.Stack.Peek().Translation;
+            RenderContext.Stack.Push();
+            RenderContext.Stack.Multiply(Matrix4x4.CreateTranslation(-translate));
+            RenderContext.Stack.Multiply(Matrix4x4.CreateScale(((float)element.ScaleAnimationProgress).Map(0,1,1,1.1f)));
+            RenderContext.Stack.Multiply(Matrix4x4.CreateTranslation(translate));
+        }  
+        RenderAt(element.Value, element.Position, element.IsFacingDown,
+            element.FlipAnimationProgress > 1 ? 0 : (float)element.FlipAnimationProgress);
+        if (isScaling) {
+            RenderContext.Stack.Pop();
+        }  
+    }
+    
     /// <summary>
     /// Draws a playing card centralized at <paramref name="pos"/> with size <see cref="CardSize"/>.
     /// </summary>
@@ -27,7 +45,7 @@ public class CardRenderer {
     /// <param name="t">How far in the flip animation the card is. 0 is equals to <c>!faceDown</c>
     /// and values &gt;= 1 result in <c>faceDown</c> </param>
     /// <param name="theta">Rotation of the card in radians</param>
-    public void RenderAt(GameCard card, Vector2 pos, bool faceDown, float t, float theta) {
+    public void RenderAt(GameCard card, Vector2 pos, bool faceDown, float t) {
         t = Math.Clamp(t, 0, 1);
         // The flip animation is split into two phases around t = 0.5:
         // - First half (t in [0, 0.5]): scale the current face from full width down to zero.
@@ -65,10 +83,7 @@ public class CardRenderer {
         RenderContext.Stack.Multiply(Matrix4x4.CreateTranslation(new Vector3(pos,0)));
         RenderContext.Stack.Multiply(Matrix4x4.CreateTranslation(before));
         RenderContext.UpdateTransform();
-        Al.DrawRotatedBitmap(cardBitmap, CardSize.X*0.5f, CardSize.Y*0.5f,
-                      pos.X, pos.Y,
-                      theta, FlipFlags.None
-        );
+        Al.DrawBitmap(cardBitmap, pos.X - CardSize.X*0.5f, pos.Y-CardSize.Y*0.5f, FlipFlags.None);
         RenderContext.Stack.Pop();
     }
 
@@ -147,6 +162,7 @@ public class CardRenderer {
             Suit.Clubs => "clubs",
             Suit.Hearts => "hearts",
             Suit.Spades => "spades",
+            _ => throw new Exception("Unknown Card Suit")
         };
         AllegroBitmap suitBitmap = ImageManager.GetImage(bitmapAlias);
 

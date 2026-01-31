@@ -30,6 +30,11 @@ public class MatrixStack {
         matrices.Push(last);
     }
 
+    public void Replace(in Matrix4x4 matrix) {
+        matrices.Pop();
+        matrices.Push(matrix);
+    }
+
     public Matrix4x4 Peek()
     {
         return matrices.Peek();

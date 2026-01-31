@@ -6,21 +6,17 @@ using SubC.AllegroDotNet.Models;
 
 namespace InstaPoker.Client.Graphics;
 
-public class TextBoard : IRenderObject {
+public class TextBoard : SceneObject {
 
+    public override bool UseMouse => false;
+    public override bool UseKeyboard => false;
+    
     public string Text { get; set; } = string.Empty;
     public int FontSize = 16;
     
     public TextBoardType Type { get; set; }
-    
-    public void Initialize() {
-        // empty
-    }
 
-    public void Render(RenderContext ctx) {
-        ctx.Stack.Push();
-        ctx.Stack.Multiply(Matrix4x4.CreateTranslation(Position.X, Position.Y, 0));
-        Translation = ctx.Stack.Peek();
+    public override void Render(RenderContext ctx) {
         ctx.UpdateTransform();
 
         AllegroColor backgroundColor = Type switch {
@@ -57,17 +53,7 @@ public class TextBoard : IRenderObject {
             (int)(Size.X*0.5f),
             (int)(Size.Y*0.5f - Al.GetFontLineHeight(font)*0.5f), Size.X,
             Al.GetFontLineHeight(font), FontAlignFlags.Center, Text);
-        
-        ctx.Stack.Pop();
     }
-
-    public void Update(double delta) {
-        // empty
-    }
-
-    public Vector2 Position { get; set; }
-    public Vector2 Size { get; set; }
-    public Matrix4x4 Translation { get; set; }
 }
 
 public enum TextBoardType {

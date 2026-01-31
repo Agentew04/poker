@@ -2,7 +2,7 @@
 
 namespace InstaPoker.Client.Graphics;
 
-public class KeyGesture : IKeyboardInteractable{
+public class KeyGesture {
     private readonly Dictionary<KeyCode,bool> keys;
     private readonly KeyModifiers modifiers;
     private readonly Action action;
@@ -34,6 +34,4 @@ public class KeyGesture : IKeyboardInteractable{
     public void OnCharDown(char character) {
         // empty
     }
-
-    public event Action? Performed = null;
 }

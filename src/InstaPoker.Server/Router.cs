@@ -6,9 +6,6 @@ namespace InstaPoker.Server;
 
 public class Router {
     
-    public UserManager UserManager { get; set; }
-    public RoomManager RoomManager { get; set; }
-    
     public async Task RouteMessagesLoop(CancellationToken token) {
         while (!token.IsCancellationRequested) {
             foreach (ClientConnection conn in UserManager.Connections) {

@@ -28,14 +28,14 @@ public class MessageReader : IDisposable {
     /// <returns></returns>
     /// <exception cref="InvalidOperationException"></exception>
     /// <exception cref="Exception"></exception>
-    public async Task<Message> ReadNextMessageAsync() {
+    public async Task<Message> ReadNextMessageAsync(CancellationToken cancellationToken) {
         byte[] guidBytes = ArrayPool<byte>.Shared.Rent(16);
-        await ns.ReadExactlyAsync(guidBytes, 0, 16);
+        await ns.ReadExactlyAsync(guidBytes, 0, 16, cancellationToken);
         Guid messageId = new(guidBytes);
         ArrayPool<byte>.Shared.Return(guidBytes);
 
         byte[] sizeBytes = ArrayPool<byte>.Shared.Rent(4);
-        await ns.ReadExactlyAsync(sizeBytes, 0, 4);
+        await ns.ReadExactlyAsync(sizeBytes, 0, 4, cancellationToken);
         int payloadSize = BitConverter.ToInt32(sizeBytes);
         ArrayPool<byte>.Shared.Return(sizeBytes);
         if (payloadSize is < 0 or > 10_000_000) {
@@ -43,7 +43,7 @@ public class MessageReader : IDisposable {
         }
 
         byte[] payloadBuffer = ArrayPool<byte>.Shared.Rent(payloadSize);
-        await ns.ReadExactlyAsync(payloadBuffer, 0, payloadSize);
+        await ns.ReadExactlyAsync(payloadBuffer, 0, payloadSize, cancellationToken);
 
         using MemoryStream ms = new(payloadBuffer);
         using BinaryReader payloadReader = new(ms);

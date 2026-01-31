@@ -11,15 +11,8 @@ public class Server {
 
     private const int Port = 12512;
     
-    private readonly UserManager userManager = new();
     private readonly Router messageRouter = new();
-    private readonly RoomManager roomManager = new();
 
-    public Server() {
-        messageRouter.UserManager = userManager;
-        messageRouter.RoomManager = roomManager;
-    }
-    
     public async Task Run() {
         Console.WriteLine("Starting Server");
         Console.WriteLine($"Listening for incoming TCP connections @ {Port}");
@@ -70,7 +63,7 @@ public class Server {
             NetworkStream = client.GetStream(),
             MessageWriter = new MessageWriter(client.GetStream(), true)
         };
-        userManager.AddNewConnection(conn);
+        UserManager.AddNewConnection(conn);
         await conn.StartReceivingAsync();
     }
 }

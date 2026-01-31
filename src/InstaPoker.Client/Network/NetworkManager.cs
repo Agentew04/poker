@@ -9,18 +9,36 @@ using InstaPoker.Core.Messages.Responses;
 
 namespace InstaPoker.Client.Network;
 
+/// <summary>
+/// Static class that handles connecting to the remote game server and has methods that
+/// send and received messages from the server. 
+/// </summary>
 public static class NetworkManager {
 
-    private static TcpClient client;
+    private static TcpClient? _client;
     private const int Port = 12512;
+    
+    /// <summary>
+    /// The handler responsible for reading messages from and sending messages to the remote server.
+    /// </summary>
     public static MessageHandler? Handler { get; private set; }
     
+    /// <summary>
+    /// If the game is currently connected to the server. Ideally this is false when the user is authenticating
+    /// and for the rest of the game, true.
+    /// </summary>
+    public static bool IsConnected { get; private set; }
+
+    internal static ServerInfo ServerInfo { get; private set; } = new();
+    
     public static async Task<bool> ConnectToServer(string username) {
-        client = new TcpClient();
+        _client = new TcpClient();
         Console.WriteLine("Connecting to remote server");
         using CancellationTokenSource connectionCts = new(TimeSpan.FromSeconds(20));
+        ServerInfo.HostName = "localhost";
+        ServerInfo.Port = Port;
         try {
-            await client.ConnectAsync("localhost", Port, connectionCts.Token);
+            await _client.ConnectAsync(ServerInfo.HostName, Port, connectionCts.Token);
         }
         catch (OperationCanceledException e) {
             Console.WriteLine("timeout. could not connect to remote server: " + e.Message + " " + e.GetType().Name);
@@ -31,14 +49,14 @@ public static class NetworkManager {
             return false;
         }
 
-        if (!client.Connected) {
+        if (!_client.Connected) {
             Console.WriteLine("unknown error. could not connect to remote server");
             return false;
         }
 
-        Console.WriteLine("connected");
+        IsConnected = true;
 
-        NetworkStream ns = client.GetStream();
+        NetworkStream ns = _client.GetStream();
         await using BinaryWriter bw = new (ns, Encoding.UTF8, true);
         using BinaryReader br = new(ns, Encoding.UTF8, true);
         
@@ -49,7 +67,7 @@ public static class NetworkManager {
         string serverId = br.ReadString(); 
         if (serverId != "InstaPoker.Server") {
             Console.WriteLine($"Could not recognize server id. Received \"{serverId}\". Expected: \"InstaPoker.Server\"");
-            client.Close();
+            _client.Close();
             return false;
         }
 
@@ -89,4 +107,10 @@ public static class NetworkManager {
     public static Task LeaveRoom() {
         return Handler!.SendNotification(new LeaveRoomNotification());
     }
+}
+
+internal class ServerInfo {
+    public Version Version { get; set; } = new (0, 0, 0, 0);
+    public string HostName { get; set; } = string.Empty;
+    public int Port {get;set;}
 }

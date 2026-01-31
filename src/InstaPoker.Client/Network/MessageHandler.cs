@@ -48,7 +48,7 @@ public class MessageHandler(NetworkStream ns, MessageWriter writer, MessageReade
         PendingMessages.Clear();
         
         while (ns.DataAvailable) {
-            Message m = reader.ReadNextMessageAsync().GetAwaiter().GetResult();
+            Message m = reader.ReadNextMessageAsync(CancellationToken.None).GetAwaiter().GetResult();
             Type type = m.GetType();
             if (pendingRequests.ContainsKey(type)) {
                 pendingRequests[type].SetResult(m);

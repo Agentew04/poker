@@ -24,13 +24,16 @@ public class ClientConnection {
         
         while (!cts!.IsCancellationRequested && Client.Connected) {
             // wait for new packet
-            Message m = await mr.ReadNextMessageAsync();
+            Message m = await mr.ReadNextMessageAsync(cts.Token);
             Console.WriteLine("Got message with type: " + m.GetType().Name);
             await IncomingMessages.Writer.WriteAsync(m);
         }
 
         if (!Client.Connected) {
+            Console.WriteLine("User disconnected");
             Client.Close();
+            // let user manager tell other pieces of the application that we have been disconnected
+            UserManager.RemoveConnection(this);
         }
     }
 

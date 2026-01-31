@@ -10,8 +10,10 @@ public abstract class Message : IBinarySerializable {
     /// </summary>
     public abstract Guid UniqueId { get; }
 
+    /// <inheritdoc cref="IBinarySerializable.Write"/>
     public abstract void Write(BinaryWriter bw);
 
+    /// <inheritdoc cref="IBinarySerializable.Read"/>
     public abstract void Read(BinaryReader br);
     
 }

@@ -31,6 +31,10 @@ public abstract partial class AllegroWindow {
     private readonly AudioManager audioManager = new();
     private readonly ImageManager imageManager = new();
     private ImGuiController? imguiController;
+    private readonly Queue<double> fpsSampleBuffer = new();
+    private const int FpsSamplesCount = 32;
+    private const int FpsUpdateFrames = 8;
+    private int fpsFrame;
     
     private bool isFullscreen;
     private bool fromFullscreen;
@@ -49,6 +53,11 @@ public abstract partial class AllegroWindow {
     /// Returns the current heigth of the screen. Same updates as <see cref="Width"/>.
     /// </summary>
     public int Height { get; private set; }
+    
+    /// <summary>
+    /// Last reading of how many fps the game is running.
+    /// </summary>
+    public double Fps { get; private set; }
 
     public string Title {
         get => windowTitle!;
@@ -123,6 +132,8 @@ public abstract partial class AllegroWindow {
             double time = Al.GetTime();
             double delta = time - lastTime;
             lastTime = time;
+
+            CalculateFps(delta);
 
             ProcessEvents(queue);
             UpdateImGui(delta);
@@ -307,34 +318,49 @@ public abstract partial class AllegroWindow {
         imguiController?.IsEnabled = !imguiController.IsEnabled;
     }
 
+    private void CalculateFps(double delta) {
+        fpsSampleBuffer.EnsureCapacity(FpsSamplesCount);
+        if (fpsSampleBuffer.Count >= FpsSamplesCount) {
+            _ = fpsSampleBuffer.Dequeue();
+        }
+        fpsSampleBuffer.Enqueue(delta);
+        fpsFrame++;
+        if (fpsFrame >= FpsUpdateFrames) {
+            fpsFrame = 0;
+            double deltaSum = fpsSampleBuffer.Sum();
+            deltaSum /= fpsSampleBuffer.Count;
+            Fps = 1 / deltaSum;
+        }
+    }
+
     [LibraryImport("allegro-5.2.dll")]
     private static partial int al_get_display_adapter(IntPtr display);
 
-    /// <inheritdoc cref="IRenderObject.Initialize"/>
+    /// <inheritdoc cref="SceneObject.Initialize"/>
     protected abstract void Initialize();
 
-    /// <inheritdoc cref="IRenderObject.Update"/>
+    /// <inheritdoc cref="SceneObject.Update"/>
     protected abstract void Update(double delta);
 
-    /// <inheritdoc cref="IRenderObject.Render"/>
+    /// <inheritdoc cref="SceneObject.Render"/>
     protected abstract void Render();
     
-    /// <inheritdoc cref="IKeyboardInteractable.OnKeyDown"/>
+    /// <inheritdoc cref="SceneObject.OnKeyDown"/>
     protected abstract void OnKeyDown(KeyCode key, KeyModifiers modifiers);
 
-    /// <inheritdoc cref="IKeyboardInteractable.OnCharDown"/>
+    /// <inheritdoc cref="SceneObject.OnCharDown"/>
     protected abstract void OnCharDown(char character);
 
-    /// <inheritdoc cref="IKeyboardInteractable.OnKeyUp"/>
+    /// <inheritdoc cref="SceneObject.OnKeyUp"/>
     protected abstract void OnKeyUp(KeyCode key, KeyModifiers modifiers);
 
-    /// <inheritdoc cref="IMouseInteractable.OnMouseMove"/>
+    /// <inheritdoc cref="SceneObject.OnMouseMove"/>
     protected abstract void OnMouseMove(Vector2 pos, Vector2 delta);
 
-    /// <inheritdoc cref="IMouseInteractable.OnMouseDown"/>
+    /// <inheritdoc cref="SceneObject.OnMouseDown"/>
     protected abstract void OnMouseDown(MouseButton button);
     
-    /// <inheritdoc cref="IMouseInteractable.OnMouseUp"/>
+    /// <inheritdoc cref="SceneObject.OnMouseUp"/>
     protected abstract void OnMouseUp(MouseButton button);
 
     /// <summary>

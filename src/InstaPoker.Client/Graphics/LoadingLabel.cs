@@ -7,8 +7,11 @@ using SubC.AllegroDotNet.Models;
 
 namespace InstaPoker.Client.Graphics;
 
-public class LoadingLabel : IRenderObject {
-
+public class LoadingLabel : SceneObject {
+    
+    public override bool UseMouse => false;
+    public override bool UseKeyboard => false;
+    
     public string Text { get; set; } = string.Empty;
     public int FontSize { get; set; } = 26;
     public AllegroColor Foreground { get; set; } = Colors.Black;
@@ -18,21 +21,13 @@ public class LoadingLabel : IRenderObject {
     private int dots = 0;
     private StringBuilder sb = new();
 
-    public bool IsEnabled { get; private set; }
-
     public bool ShowDots { get; set; } = true;
 
-    public void Initialize() {
-    }
-
-    public void Render(RenderContext ctx) {
+    public override void Render(RenderContext ctx) {
         if (!IsEnabled) {
             return;
         }
         
-        ctx.Stack.Push();
-        ctx.Stack.Multiply(Matrix4x4.CreateTranslation(Position.X, Position.Y, 0));
-        Translation = ctx.Stack.Peek();
         ctx.UpdateTransform();
 
         AllegroFont font = FontManager.GetFont("ShareTech-Regular", FontSize);
@@ -49,10 +44,9 @@ public class LoadingLabel : IRenderObject {
 
         Al.DrawText(font, Foreground, (int)(Size.X*0.5f - w*0.5f), (int)(Size.Y*0.5f - Al.GetFontLineHeight(font)),
             FontAlignFlags.Left, dottedText);
-        ctx.Stack.Pop();
     }
 
-    public void Update(double delta) {
+    public override void Update(double delta) {
         if (!IsEnabled) {
             return;
         }
@@ -73,9 +67,4 @@ public class LoadingLabel : IRenderObject {
     public void Hide() {
         IsEnabled = false;
     }
-
-
-    public Vector2 Position { get; set; }
-    public Vector2 Size { get; set; }
-    public Matrix4x4 Translation { get; set; }
 }

@@ -6,8 +6,10 @@ using SubC.AllegroDotNet.Models;
 
 namespace InstaPoker.Client.Graphics;
 
-public class Button : IRenderObject, IMouseInteractable {
-
+public class Button : SceneObject {
+    public override bool UseMouse => true;
+    public override bool UseKeyboard => false;
+    
     public string Label { get; set; } = string.Empty;
 
     public ButtonStyle Style { get; set; }
@@ -16,18 +18,13 @@ public class Button : IRenderObject, IMouseInteractable {
 
     private bool isHovering;
     private bool isPressed;
-    
-    public void Initialize() {
-        
+
+    public override void Initialize() {
+        Clip = true;
+        base.Initialize();
     }
 
-    public void Render(RenderContext ctx) {
-        
-        ctx.Stack.Push();
-        ctx.Stack.Multiply(Matrix4x4.CreateTranslation(Position.X, Position.Y, 0));
-        Translation = ctx.Stack.Peek();
-        ctx.UpdateTransform();
-
+    public override void Render(RenderContext ctx) {
         AllegroColor effectiveBackground = Style.Background;
         if (isHovering) {
             effectiveBackground = Style.BackgroundHover;
@@ -37,27 +34,25 @@ public class Button : IRenderObject, IMouseInteractable {
             effectiveBackground = Style.BackgroundPressed;
         }
         
+        ctx.UpdateTransform();
+        
+        // draw background
         Al.DrawFilledRectangle(0,0, Size.X, Size.Y, effectiveBackground);
+
+        // draw label
+        AllegroFont font = FontManager.GetFont("ShareTech-Regular", Style.FontSize);
+        Al.DrawText(font, Style.Foreground, (int)(Size.X*0.5f),(int)(Size.Y*0.5f - Al.GetFontLineHeight(font)*0.5f),
+            FontAlignFlags.Center, Label);
+        
+        // draw border
         if (Style.BorderSize > 0) {
             float borderhalf = Style.BorderSize * 0.5f;
             Al.DrawRectangle(borderhalf,borderhalf, Size.X-borderhalf, Size.Y-borderhalf, 
                 Style.BorderColor, Style.BorderSize);
         }
-
-        AllegroFont font = FontManager.GetFont("ShareTech-Regular", Style.FontSize);
-        Al.SetClippingRectangle((int)Position.X, (int)Position.Y, (int)Size.X, (int)Size.Y);
-        Al.DrawText(font, Style.Foreground, (int)(Size.X*0.5f),(int)(Size.Y*0.5f - Al.GetFontLineHeight(font)*0.5f),
-            FontAlignFlags.Center, Label);
-        Al.ResetClippingRectangle();
-        ctx.Stack.Pop();
     }
 
-    public void Update(double delta) {
-        // empty
-    }
-
-    public void OnMouseMove(Vector2 pos, Vector2 delta) {
-        pos = pos - new Vector2(Translation.Translation.X, Translation.Translation.Y);
+    public override void OnMouseMove(Vector2 pos, Vector2 delta) {
         isHovering = pos.X >= 0 
                      && pos.X <= Size.X
                      && pos.Y >= 0 
@@ -67,7 +62,7 @@ public class Button : IRenderObject, IMouseInteractable {
         }
     }
 
-    public void OnMouseDown(MouseButton button) {
+    public override void OnMouseDown(MouseButton button) {
         if (button != MouseButton.Left) {
             return;
         }
@@ -76,7 +71,7 @@ public class Button : IRenderObject, IMouseInteractable {
         }
     }
 
-    public void OnMouseUp(MouseButton button) {
+    public override void OnMouseUp(MouseButton button) {
         if (button != MouseButton.Left) {
             return;
         }
@@ -89,8 +84,4 @@ public class Button : IRenderObject, IMouseInteractable {
         }
         isPressed = false;
     }
-
-    public Vector2 Position { get; set; }
-    public Vector2 Size { get; set; }
-    public Matrix4x4 Translation { get; set; }
 }

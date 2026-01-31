@@ -103,4 +103,13 @@ public static class Extensions {
         _nativePointerFieldInfo ??= typeof(NativePointer).GetField("Pointer", BindingFlags.NonPublic | BindingFlags.Instance);
         return (IntPtr)_nativePointerFieldInfo!.GetValue(nativePointer)!;
     }
+
+    /// <summary>
+    /// Discards the Z component of a <see cref="Vector3"/> and creates a <see cref="Vector2"/>.
+    /// </summary>
+    /// <param name="vec3">The vector to be converted</param>
+    /// <returns>The new vector with 2 components</returns>
+    public static Vector2 ToVec2(this Vector3 vec3) {
+        return new Vector2(vec3.X, vec3.Y);
+    }
 }

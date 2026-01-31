@@ -1,12 +1,17 @@
 ﻿namespace InstaPoker.Server;
 
-public class UserManager {
+public static class UserManager {
 
-    public List<ClientConnection> Connections { get; init; } = [];
+    public static List<ClientConnection> Connections { get; set; } = [];
     
-    public void AddNewConnection(ClientConnection conn) {
+    public static void AddNewConnection(ClientConnection conn) {
         lock (Connections) {
             Connections.Add(conn);
         }
+    }
+
+    public static void RemoveConnection(ClientConnection conn) {
+        Connections.Remove(conn);
+        RoomManager.UnexpectedDisconnect(conn);
     }
 }

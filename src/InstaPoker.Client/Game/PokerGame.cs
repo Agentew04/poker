@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using ImGuiNET;
+using InstaPoker.Client.Game.Screens;
 using InstaPoker.Client.Graphics;
 using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
@@ -21,13 +22,15 @@ public class PokerGame : AllegroWindow {
     }
     
     private readonly RenderContext renderContext = new();
+    private readonly DebugWindow debugWindow = new();
     
     private readonly IdentifyScreen identifyScreen = new();
     private readonly MainMenuScreen mainMenuScreen = new();
     private readonly AdminLobbyScreen adminLobbyScreen = new();
     private readonly PlayerLobbyScreen playerLobbyScreen = new();
+    private readonly GameScreen gameScreen = new();
 
-    private IRenderObject renderScreen = null!;
+    private SceneObject renderScreen = null!;
     
     /// <inheritdoc cref="AllegroWindow.Initialize"/>
     protected override void Initialize() {
@@ -40,6 +43,8 @@ public class PokerGame : AllegroWindow {
         mainMenuScreen.Initialize();
         adminLobbyScreen.Initialize();
         playerLobbyScreen.Initialize();
+        gameScreen.Initialize();
+        
         mainMenuScreen.CreateRoomClicked += () => {
             renderScreen = adminLobbyScreen;
             adminLobbyScreen.OnShow();
@@ -58,6 +63,19 @@ public class PokerGame : AllegroWindow {
             renderScreen = adminLobbyScreen;
             adminLobbyScreen.OnUpgrade(users, settings, code);
         };
+        adminLobbyScreen.GameStarted += () => {
+            renderScreen = gameScreen;
+            gameScreen.OnShow();
+        };
+        playerLobbyScreen.GameStarted += () => {
+            renderScreen = gameScreen;
+            gameScreen.OnShow();
+        };
+        gameScreen.UserLeft += () => {
+            renderScreen = mainMenuScreen;
+        };
+
+        debugWindow.Game = this;
     }
 
     /// <inheritdoc cref="AllegroWindow.Update"/>
@@ -75,16 +93,16 @@ public class PokerGame : AllegroWindow {
         };
         Al.ClearToColor(color);
         renderContext.UpdateTransform();
-        
-        ImGui.Text("Oi");
-        if(ImGui.Button("botao")) Console.WriteLine("botao");
-        ImGui.InputText("Texto:", new byte[10], 10);
 
         int matrixStackBefore = renderContext.Stack.Count;
         int alphaStackBefore = renderContext.AlphaStack.Count;
         renderScreen.Position = Vector2.Zero;
         renderScreen.Size = new Vector2(Width, Height);
+        
+        renderScreen.PositionElements();
         renderScreen.Render(renderContext);
+        
+        debugWindow.Render();
         if (matrixStackBefore != renderContext.Stack.Count) {
             throw new Exception("Unbalanced Matrix Stack at end of frame. Aborting.");
         }
@@ -96,44 +114,32 @@ public class PokerGame : AllegroWindow {
 
     /// <inheritdoc cref="AllegroWindow.OnKeyDown"/>
     protected override void OnKeyDown(KeyCode key, KeyModifiers modifiers) {
-        if (renderScreen is IKeyboardInteractable keyb) {
-            keyb.OnKeyDown(key,modifiers);
-        }
+        renderScreen.OnKeyDown(key,modifiers);
     }
 
     /// <inheritdoc cref="AllegroWindow.OnCharDown"/>
     protected override void OnCharDown(char character) {
-        if (renderScreen is IKeyboardInteractable keyb) {
-            keyb.OnCharDown(character);
-        }
+        renderScreen.OnCharDown(character);
     }
 
     /// <inheritdoc cref="AllegroWindow.OnKeyUp"/>
     protected override void OnKeyUp(KeyCode key, KeyModifiers modifiers) {
-        if (renderScreen is IKeyboardInteractable keyb) {
-            keyb.OnKeyUp(key,modifiers);
-        }
+        renderScreen.OnKeyUp(key,modifiers);
     }
 
     /// <inheritdoc cref="AllegroWindow.OnMouseMove"/>
     protected override void OnMouseMove(Vector2 pos, Vector2 delta) {
-        if (renderScreen is IMouseInteractable mouse) {
-            mouse.OnMouseMove(pos, delta);
-        }
+        renderScreen.OnMouseMove(pos,delta);
     }
 
     /// <inheritdoc cref="AllegroWindow.OnMouseDown"/>
     protected override void OnMouseDown(MouseButton button) {
-        if (renderScreen is IMouseInteractable mouse) {
-            mouse.OnMouseDown(button);
-        }
+        renderScreen.OnMouseDown(button);
     }
 
     /// <inheritdoc cref="AllegroWindow.OnMouseUp"/>
     protected override void OnMouseUp(MouseButton button) {
-        if (renderScreen is IMouseInteractable mouse) {
-            mouse.OnMouseUp(button);
-        }
+        renderScreen.OnMouseUp(button);
     }
 
     private static void RegisterAudio() {
