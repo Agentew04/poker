@@ -84,4 +84,14 @@ public class Button : SceneObject {
         }
         isPressed = false;
     }
+    
+    /// <summary>
+    /// Simulates a button press by code.
+    /// </summary>
+    public void Press() {
+        AllegroSample bopSample = AudioManager.GetAudio("bap");
+        AllegroSampleID? nil = null;
+        Al.PlaySample(bopSample, 1, 0, 1, PlayMode.Once, ref nil);
+        Pressed?.Invoke();
+    }
 }

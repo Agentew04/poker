@@ -1,16 +1,17 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Sockets;
 using InstaPoker.Core.Messages;
 
 namespace InstaPoker.Client.Network;
 
 public class MessageHandler(NetworkStream ns, MessageWriter writer, MessageReader reader) {
-
-    private readonly NetworkStream ns = ns;
-    private readonly MessageWriter writer = writer;
-    private readonly MessageReader reader = reader;
-
+    
     private readonly Dictionary<Type, TaskCompletionSource<Message>> pendingRequests = [];
+
+    public IReadOnlyList<Type> GetPendingRequests() {
+        return pendingRequests.Keys.ToImmutableList();
+    }
 
     public List<Message> PendingMessages = [];
 
@@ -46,11 +47,17 @@ public class MessageHandler(NetworkStream ns, MessageWriter writer, MessageReade
             }
         }
         PendingMessages.Clear();
+
+        if (pendingRequests.Count > 0) {
+            Console.WriteLine("Pending requests: " + pendingRequests.Count);
+            
+        }
         
         while (ns.DataAvailable) {
             Message m = reader.ReadNextMessageAsync(CancellationToken.None).GetAwaiter().GetResult();
             Type type = m.GetType();
             if (pendingRequests.ContainsKey(type)) {
+                Console.WriteLine("fulfilled request");
                 pendingRequests[type].SetResult(m);
                 pendingRequests.Remove(type);
             }

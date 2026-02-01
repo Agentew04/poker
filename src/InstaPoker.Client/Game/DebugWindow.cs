@@ -42,9 +42,8 @@ public class DebugWindow {
 
             ImGui.Text("Pending Requests");
             if (ImGui.BeginListBox("##pendingrequests")) {
-                foreach (Message pending in NetworkManager.Handler?.PendingMessages ??
-                                            [new CreateRoomRequest(), new CreateRoomResponse()]) {
-                    ImGui.Text(pending.GetType().Name);
+                foreach (Type pending in NetworkManager.Handler?.GetPendingRequests() ?? []) {
+                    ImGui.Text(pending.Name);
                 }
                 ImGui.EndListBox();
             }
@@ -75,6 +74,9 @@ public class DebugWindow {
             switch (obj) {
                 case Button button:
                     ImGui.Text("Label: " + button.Label);
+                    if (ImGui.Button("Press")) {
+                        button.Press();
+                    }
                     break;
                 case LoadingLabel loading:
                     ImGui.Text("Text: " + loading.Text);
