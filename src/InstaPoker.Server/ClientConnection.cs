@@ -21,10 +21,22 @@ public class ClientConnection {
 
     public async Task StartReceivingAsync() {
         using MessageReader mr = new(NetworkStream, false);
-        
+
         while (!cts!.IsCancellationRequested && Client.Connected) {
             // wait for new packet
-            Message m = await mr.ReadNextMessageAsync(cts.Token);
+            Message? m;
+            try {
+                m = await mr.ReadNextMessageAsync(cts.Token);
+            }
+            catch (IOException) {
+                Console.WriteLine($"Lost connection of user {Username}");
+                break;
+            }
+            catch (Exception e) {
+                Console.WriteLine($"Unknown exception in {Username} listen loop, skipping. {e.GetType().Name} {e.Message}");
+                continue;
+            }
+
             Console.WriteLine("Got message with type: " + m.GetType().Name);
             await IncomingMessages.Writer.WriteAsync(m);
         }

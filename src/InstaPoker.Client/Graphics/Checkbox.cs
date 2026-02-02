@@ -6,7 +6,7 @@ using SubC.AllegroDotNet.Models;
 
 namespace InstaPoker.Client.Graphics;
 
-public class Checkbox : SceneObject {
+public class Checkbox(string name) : SceneObject(name) {
     
     public override bool UseMouse => true;
     public override bool UseKeyboard => false;
@@ -19,7 +19,7 @@ public class Checkbox : SceneObject {
     private bool isPressed;
 
     public event Action<bool>? OnValueChanged;
-    
+
     public override void Initialize() {
         checkVertices = new float[6];
     }

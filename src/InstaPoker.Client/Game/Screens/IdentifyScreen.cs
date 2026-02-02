@@ -16,16 +16,17 @@ namespace InstaPoker.Client.Game.Screens;
 /// If for some reason the connection to the remote server fails, the client automatically tries again.
 /// There is no limit of retries.
 /// </remarks>
-public class IdentifyScreen : SceneObject {
+public class IdentifyScreen() : SceneObject("Identify Screen") {
     
     public override bool UseMouse => true;
     public override bool UseKeyboard => true;
 
-    private readonly TextBox nameTextBox = new();
-    private readonly Button okButton = new();
-    private readonly Fader emptyNameFader = new();
-    private readonly Toast emptyNameBoard = new();
-    private readonly LoadingLabel loading = new();
+    private readonly Label whatsyournameLabel = new(nameof(whatsyournameLabel));
+    private readonly TextBox nameTextBox = new(nameof(nameTextBox));
+    private readonly Button okButton = new(nameof(okButton));
+    private readonly Fader emptyNameFader = new(nameof(emptyNameFader));
+    private readonly Toast emptyNameBoard = new(nameof(emptyNameBoard));
+    private readonly LoadingLabel loading = new(nameof(loading));
 
     private Task<bool>? connectionTask;
 
@@ -56,6 +57,10 @@ public class IdentifyScreen : SceneObject {
         emptyNameBoard.Text = "Nickname cannot be empty!";
         emptyNameBoard.FontSize = 24;
         emptyNameBoard.Type = TextBoardType.Error;
+        
+        AddChild(whatsyournameLabel);
+        whatsyournameLabel.FontSize = 32;
+        whatsyournameLabel.Text = "Hello! What's your name?";
         
         base.Initialize();
     }
@@ -115,6 +120,10 @@ public class IdentifyScreen : SceneObject {
             Size.X*0.5f - emptyNameFader.Size.X * 0.5f,
             Size.Y*0.5f + okButton.Size.Y + 3*margin
         );
+
+        whatsyournameLabel.Position = new Vector2(Size.X*0.5f, Size.Y*0.25f);
+        
+        base.PositionElements();
     }
 
     public override void Render(RenderContext ctx) {
@@ -124,9 +133,6 @@ public class IdentifyScreen : SceneObject {
         }
         
         ctx.UpdateTransform();
-        AllegroFont font = FontManager.GetFont("ShareTech-Regular", 32);
-        Al.DrawText(font, Colors.Black, (int)(Size.X*0.5f), (int)(Size.Y*0.25f),
-            FontAlignFlags.Center, "Hello! What's your name?");
         
         base.Render(ctx);
         

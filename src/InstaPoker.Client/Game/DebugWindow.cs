@@ -67,10 +67,12 @@ public class DebugWindow {
     }
 
     private Dictionary<string, int> sceneGraphOcurrences = [];
-
+    
     private void TraverseSceneGraph(SceneObject obj) {
-        if (ImGui.TreeNode(obj.GetType().Name)) {
+        if (ImGui.TreeNode($"{obj.Name} ({obj.GetType().Name})")) {
             // debug data about a UI item
+            ImGui.Text($"Use Mouse: {obj.UseMouse})");
+            ImGui.Text($"Use Keyboard: {obj.UseKeyboard}");
             switch (obj) {
                 case Button button:
                     ImGui.Text("Label: " + button.Label);
@@ -88,6 +90,14 @@ public class DebugWindow {
                     break;
                 case Toast board:
                     ImGui.Text("Text: " + board.Text);
+                    break;
+                case Label label:
+                    ImGui.Text("Text: " + label.Text);
+                    break;
+                case Fader fader:
+                    if (ImGui.Button("Show")) {
+                        fader.ShowFor(5);
+                    }
                     break;
             }
             

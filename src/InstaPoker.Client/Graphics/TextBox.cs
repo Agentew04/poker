@@ -6,7 +6,7 @@ using SubC.AllegroDotNet.Models;
 
 namespace InstaPoker.Client.Graphics;
 
-public class TextBox : SceneObject {
+public class TextBox(string name) : SceneObject(name) {
     
     public override bool UseMouse => true;
     public override bool UseKeyboard => true;
@@ -31,7 +31,6 @@ public class TextBox : SceneObject {
     private bool isHovering;
     private bool isPressed;
     private bool isSelected;
-
 
     public override void Initialize() {
         if (MaxCharacters > 0) {

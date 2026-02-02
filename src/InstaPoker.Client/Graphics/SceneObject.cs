@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using InstaPoker.Client.Game;
 using InstaPoker.Client.Graphics.Styles;
 using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
@@ -12,6 +13,12 @@ public abstract class SceneObject {
     /// If the object must receive mouse events.
     /// </summary>
     public abstract bool UseMouse { get; }
+    
+    /// <summary>
+    /// The name of the object on the scene. Does not need to be unique. Just for identification
+    /// purposes in the <see cref="DebugWindow"/>
+    /// </summary>
+    public string Name {get;set;}
 
     /// <summary>
     /// If the object must receive keyboard events.
@@ -44,6 +51,10 @@ public abstract class SceneObject {
     public VerticalAlign VerticalAlign { get; set; } = VerticalAlign.Top;
 
     private bool isInitialized = false;
+
+    public SceneObject(string name) {
+        Name = name;
+    }
     
     /// <summary>
     /// Method called after the Allegro Engine is initialized, before the first frame is rendered.
@@ -105,18 +116,18 @@ public abstract class SceneObject {
                     throw new Exception("Tried rendering child element that was unitialized. Type: " + child.GetType().Name);
                 }
                 ctx.Stack.Push();
-                if (child.AutoTransform) {
-                    child.Transform = ctx.Stack.Peek();
-                }
-                else {
+                if (!child.AutoTransform) {
                     ctx.Stack.Replace(child.Transform);
                 }
-
                 ctx.Stack.Multiply(Matrix4x4.CreateTranslation(child.Position.X, child.Position.Y, 0));
+                
                 Matrix4x4 absolutePosition = ctx.Stack.Peek();
                 if (Clip) {
                     Al.SetClippingRectangle((int)absolutePosition.Translation.X, (int)absolutePosition.Translation.Y,
                     (int)child.Size.X, (int)child.Size.Y);
+                }
+                if (child.AutoTransform) {
+                    child.Transform = absolutePosition;
                 }
                 child.PositionElements();
                 child.Render(ctx);
@@ -189,7 +200,7 @@ public abstract class SceneObject {
     public virtual void OnMouseMove(Vector2 pos, Vector2 delta) {
         foreach (SceneObject child in children) {
             if (child.UseMouse && child.IsEnabled) {
-                Vector2 localizedPos = pos - (child.Transform.Translation.ToVec2() + child.Position);
+                Vector2 localizedPos = pos - child.Transform.Translation.ToVec2();
                 child.OnMouseMove(localizedPos, delta);
             }
         }

@@ -14,7 +14,7 @@ namespace InstaPoker.Client.Game.Screens;
 /// Screen that renders a lobby with additional controls for admins, like lobby settings edition and the ability
 /// to kick other players from the room. 
 /// </summary>
-public class AdminLobbyScreen : SceneObject {
+public class AdminLobbyScreen() : SceneObject("Admin Lobby Screen") {
     
     public override bool UseMouse => true;
     public override bool UseKeyboard => true;
@@ -23,13 +23,13 @@ public class AdminLobbyScreen : SceneObject {
     private string title = string.Empty;
     private readonly List<LobbyUser> users = [];
     private readonly List<LobbyUser> usersToDelete = [];
-    private readonly LoadingLabel loading = new();
-    private readonly Button startGameButton = new();
+    private readonly LoadingLabel loading = new(nameof(loading));
+    private readonly Button startGameButton = new(nameof(startGameButton));
     private RoomSettings roomSettings = new();
-    private readonly TextBox smallblindTextbox = new();
-    private readonly TextBox maxBetTextbox = new();
-    private readonly TextBox maxPlayersTextbox = new();
-    private readonly Checkbox allinEnabledCheckbox = new();
+    private readonly TextBox smallblindTextbox = new(nameof(smallblindTextbox));
+    private readonly TextBox maxBetTextbox = new(nameof(maxBetTextbox));
+    private readonly TextBox maxPlayersTextbox = new(nameof(maxBetTextbox));
+    private readonly Checkbox allinEnabledCheckbox = new(nameof(allinEnabledCheckbox));
 
 
     public override void Initialize() {
@@ -202,7 +202,7 @@ public class AdminLobbyScreen : SceneObject {
                 x += Al.GetTextWidth(font, " (You)");
                 // leave button
                 if (user.Button is null) {
-                    user.Button = new Button();
+                    user.Button = new Button("leave button");
                     user.Button.Initialize(); // late initialize
                     user.Button.Label = "Leave";
                     user.Button.Pressed += OnUserLeave;
@@ -217,7 +217,7 @@ public class AdminLobbyScreen : SceneObject {
             else {
                 // kick button
                 if (user.Button is null) {
-                    user.Button = new Button();
+                    user.Button = new Button("kick button");
                     user.Button.Initialize(); // late initialize
                     user.Button.Label = "Kick";
                     user.Button.Pressed += () => OnUserKick(user);

@@ -6,7 +6,7 @@ using SubC.AllegroDotNet.Models;
 
 namespace InstaPoker.Client.Graphics;
 
-public class Toast : SceneObject {
+public class Toast(string name) : SceneObject(name) {
 
     public override bool UseMouse => false;
     public override bool UseKeyboard => false;

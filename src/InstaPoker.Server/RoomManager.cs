@@ -8,9 +8,9 @@ namespace InstaPoker.Server;
 
 public static class RoomManager {
 
-    private static readonly List<Room> rooms = [];
+    private static readonly List<Room> Rooms = [];
 
-    private static readonly Dictionary<ClientConnection, Room?> userRoom = [];
+    private static readonly Dictionary<ClientConnection, Room?> UserRoom = [];
 
     public static async Task CreateNewRoom(ClientConnection owner) {
         Room r = new() {
@@ -20,16 +20,16 @@ public static class RoomManager {
             Settings = GetDefaultRoomSettings()
         };
         Console.WriteLine("Create room with code: " + r.Code);
-        rooms.Add(r);
+        Rooms.Add(r);
         await owner.MessageWriter.WriteAsync(new CreateRoomResponse() {
             RoomCode = r.Code,
             Settings = r.Settings
         });
-        userRoom[owner] = r;
+        UserRoom[owner] = r;
     }
 
     public static async Task UpdateRoomSettings(ClientConnection owner, RoomSettings settings) {
-        Room? r = userRoom[owner];
+        Room? r = UserRoom[owner];
         if (r is null || r.Owner != owner) {
             Console.WriteLine("Non owner tried to update room settings");
             return;
@@ -46,12 +46,12 @@ public static class RoomManager {
     }
 
     public static async Task UserLeaveRoom(ClientConnection conn) {
-        Room? room = userRoom[conn];
+        Room? room = UserRoom[conn];
         if (room is null) {
             Console.WriteLine("user was not in room");
             return;
         }
-        userRoom[conn] = null;
+        UserRoom[conn] = null;
 
         room.ConnectedUsers.Remove(conn);
         // notify users that player has left the room
@@ -64,7 +64,7 @@ public static class RoomManager {
         
         if (room.ConnectedUsers.Count == 0) {
             Console.WriteLine($"Room {room.Code} is empty. removing");
-            rooms.Remove(room);
+            Rooms.Remove(room);
         }
 
         // if user was owner decide new owner
@@ -83,7 +83,7 @@ public static class RoomManager {
     }
 
     public static async Task UserKick(ClientConnection conn, string kickedUser) {
-        Room? room = userRoom[conn];
+        Room? room = UserRoom[conn];
         if (room is null || room.Owner != conn) {
             return;
         }
@@ -101,13 +101,13 @@ public static class RoomManager {
                 UpdateType = LobbyListUpdateType.UserKicked
             });
         });
-        userRoom[kicked] = null;
+        UserRoom[kicked] = null;
         room.ConnectedUsers.Remove(kicked);
     }
 
     public static async Task UserJoinRoom(ClientConnection conn, JoinRoomRequest req) {
-        userRoom.TryAdd(conn, null);
-        if (userRoom[conn] != null) {
+        UserRoom.TryAdd(conn, null);
+        if (UserRoom[conn] != null) {
             Console.WriteLine("User");
             await conn.MessageWriter.WriteAsync(new JoinRoomResponse() {
                 Result = JoinRoomResult.AlreadyInOtherRoom
@@ -115,10 +115,10 @@ public static class RoomManager {
             return;
         }
 
-        Room? r = rooms.Find(x => x.Code == req.RoomCode);
+        Room? r = Rooms.Find(x => x.Code == req.RoomCode);
 
         if (r is null) {
-            Console.WriteLine($"User {conn.Username} tried entering non existent room with code: \"{req.RoomCode}\". Rooms Available: {string.Join(", ", rooms.Select(x => $"\"{x.Code}\""))}");
+            Console.WriteLine($"User {conn.Username} tried entering non existent room with code: \"{req.RoomCode}\". Rooms Available: {string.Join(", ", Rooms.Select(x => $"\"{x.Code}\""))}");
             await conn.MessageWriter.WriteAsync(new JoinRoomResponse() {
                 Result = JoinRoomResult.RoomDoesNotExist
             });
@@ -142,7 +142,7 @@ public static class RoomManager {
         }
 
         Console.WriteLine($"User {conn.Username} joined room {r.Code}");
-        userRoom[conn] = r;
+        UserRoom[conn] = r;
         await conn.MessageWriter.WriteAsync(new JoinRoomResponse() {
             Result = JoinRoomResult.Success,
             Settings = r.Settings,
@@ -161,7 +161,7 @@ public static class RoomManager {
 
     public static void UnexpectedDisconnect(ClientConnection conn) {
         // conn has already been disconnected
-        if (userRoom.TryGetValue(conn, out Room? room)) {
+        if (UserRoom.TryGetValue(conn, out Room? room)) {
             _ = UserLeaveRoom(conn);
         }
     }

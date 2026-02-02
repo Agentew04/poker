@@ -14,14 +14,14 @@ namespace InstaPoker.Client.Game.Screens;
 /// <summary>
 /// Screen that shows a lobby where the current user is <b>not</b> the owner/admin.
 /// </summary>
-public class PlayerLobbyScreen : SceneObject {
+public class PlayerLobbyScreen() : SceneObject("Player Lobby Screen") {
 
     public override bool UseMouse => true;
     public override bool UseKeyboard => false;
     
     private string code = string.Empty;
     private string title = string.Empty;
-    private readonly LoadingLabel loading = new();
+    private readonly LoadingLabel loading = new(nameof(loading));
     private RoomSettings roomSettings = new();
     private List<LobbyUser> users = [];
 
@@ -150,7 +150,7 @@ public class PlayerLobbyScreen : SceneObject {
                 // leave button
                 if (user.Button is null)
                 {
-                    user.Button = new Button();
+                    user.Button = new Button("leaveButton");
                     user.Button.Initialize();
                     user.Button.Label = "Leave";
                     user.Button.Pressed += OnUserLeave;

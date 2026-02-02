@@ -5,7 +5,7 @@ namespace InstaPoker.Client.Graphics;
 /// <summary>
 /// A simple component that controls the alpha value of an inner object. 
 /// </summary>
-public class Fader : SceneObject {
+public class Fader(string name) : SceneObject(name) {
     
     public override bool UseMouse => Content?.UseMouse ?? false;
 

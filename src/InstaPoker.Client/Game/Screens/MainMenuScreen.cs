@@ -10,16 +10,17 @@ namespace InstaPoker.Client.Game.Screens;
 /// <summary>
 /// Represents the Main menu screen of the game. Is a general hub for other screens. 
 /// </summary>
-public class MainMenuScreen : SceneObject {
+public class MainMenuScreen() : SceneObject("Main Menu Screen") {
 
     public override bool UseMouse => true;
     public override bool UseKeyboard => true;
-    
-    private readonly Button createRoomButton = new();
-    private readonly Button joinRoomButton = new();
-    private readonly TextBox codeTextBox = new();
-    private readonly Fader emptyCodeFader = new();
-    private readonly Toast emptyCodeBoard = new();
+
+    private readonly Label titleLabel = new(nameof(titleLabel));
+    private readonly Button createRoomButton = new(nameof(createRoomButton));
+    private readonly Button joinRoomButton = new(nameof(joinRoomButton));
+    private readonly TextBox codeTextBox = new(nameof(codeTextBox));
+    private readonly Fader emptyCodeFader = new(nameof(emptyCodeFader));
+    private readonly Toast emptyCodeBoard = new(nameof(emptyCodeBoard));
 
     public override void Initialize() {
         AddChild(createRoomButton);
@@ -49,6 +50,10 @@ public class MainMenuScreen : SceneObject {
         emptyCodeFader.Content = emptyCodeBoard;
         emptyCodeBoard.Type = TextBoardType.Error;
         emptyCodeBoard.FontSize = 24;
+        
+        AddChild(titleLabel);
+        titleLabel.FontSize = 60;
+        titleLabel.Text = "Insta Poker";
         
         base.Initialize();
     }
@@ -90,18 +95,13 @@ public class MainMenuScreen : SceneObject {
             mid.X - emptyCodeFader.Size.X * 0.5f,
             codeTextBox.Position.Y + codeTextBox.Size.Y + buttonMargin
         );
+
+        titleLabel.Position = new Vector2(Size.X * 0.5f, Size.Y * 0.25f);
+        
+        base.PositionElements();
     }
 
     public override void Render(RenderContext ctx) {
-        // title
-        AllegroFont font = FontManager.GetFont("ShareTech-Regular", 60);
-        AllegroColor black = new() {
-            R = 0.0f, G = 0.0f, B = 0.0f, A = 1.0f
-        };
-        ctx.UpdateTransform();
-        Al.DrawText(font, black, (int)(Size.X*0.5f), (int)(Size.Y*0.25f - Al.GetFontLineHeight(font)*0.5f),
-            FontAlignFlags.Center, "Insta Poker");
-        
         base.Render(ctx);
     }
 

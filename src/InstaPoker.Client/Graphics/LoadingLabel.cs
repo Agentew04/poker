@@ -7,7 +7,7 @@ using SubC.AllegroDotNet.Models;
 
 namespace InstaPoker.Client.Graphics;
 
-public class LoadingLabel : SceneObject {
+public class LoadingLabel(string name) : SceneObject(name) {
     
     public override bool UseMouse => false;
     public override bool UseKeyboard => false;
