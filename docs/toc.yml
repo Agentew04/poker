@@ -2,3 +2,5 @@
   href: messages.md
 - name: Protocol
   href: protocol/toc.yml
+- name: Game
+  href: game/toc.yml
