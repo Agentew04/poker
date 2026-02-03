@@ -4,13 +4,13 @@ using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
 using SubC.AllegroDotNet.Models;
 
-namespace InstaPoker.Client.Graphics;
+namespace InstaPoker.Client.Graphics.Objects;
 
 public class Button(string name) : SceneObject(name) {
     public override bool UseMouse => true;
     public override bool UseKeyboard => false;
     
-    public string Label { get; set; } = string.Empty;
+    public string Text { get; set; } = string.Empty;
 
     public ButtonStyle Style { get; set; }
     
@@ -42,7 +42,7 @@ public class Button(string name) : SceneObject(name) {
         // draw label
         AllegroFont font = FontManager.GetFont("ShareTech-Regular", Style.FontSize);
         Al.DrawText(font, Style.Foreground, (int)(Size.X*0.5f),(int)(Size.Y*0.5f - Al.GetFontLineHeight(font)*0.5f),
-            FontAlignFlags.Center, Label);
+            FontAlignFlags.Center, Text);
         
         // draw border
         if (Style.BorderSize > 0) {

@@ -1,4 +1,5 @@
-﻿using SubC.AllegroDotNet.Models;
+﻿using InstaPoker.Client.Graphics.Objects;
+using SubC.AllegroDotNet.Models;
 
 namespace InstaPoker.Client.Graphics.Styles;
 
@@ -8,12 +9,12 @@ namespace InstaPoker.Client.Graphics.Styles;
 public struct ButtonStyle {
     
     /// <summary>
-    /// The size of the font of the <see cref="Button.Label"/>.
+    /// The size of the font of the <see cref="Button.Text"/>.
     /// </summary>
     public int FontSize { get; set; }
     
     /// <summary>
-    /// Color of the <see cref="Button.Label"/>.
+    /// Color of the <see cref="Button.Text"/>.
     /// </summary>
     public AllegroColor Foreground { get; set; }
     public AllegroColor Background { get; set; }

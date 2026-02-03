@@ -9,4 +9,6 @@ public static class LocalSettings {
     /// The username of the current player.
     /// </summary>
     public static string Username { get; set; } = string.Empty;
+
+    public static int Amount { get; set; } = 1000;
 }

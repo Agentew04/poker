@@ -4,7 +4,7 @@ using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
 using SubC.AllegroDotNet.Models;
 
-namespace InstaPoker.Client.Graphics;
+namespace InstaPoker.Client.Graphics.Objects;
 
 public class TextBox(string name) : SceneObject(name) {
     
@@ -15,8 +15,10 @@ public class TextBox(string name) : SceneObject(name) {
     public int MaxCharacters { get; set; }
     public TextboxKeyboard Keyboard { get; set; } = TextboxKeyboard.Any;
     public TextBoxStyle Style { get; set; }
-    public VerticalAlign VerticalFontAlignment { get; set; }
-    public HorizontalAlign HorizontalFontAlignment { get; set; }
+    public VerticalAlign VerticalTextAlignment { get; set; }
+    public HorizontalAlign HorizontalTextAlignment { get; set; }
+    
+    public Button? EnterButton { get; set; }
 
     public event Action<string>? TextChanged;
 
@@ -62,13 +64,13 @@ public class TextBox(string name) : SceneObject(name) {
 
         int textWidth = Al.GetTextWidth(font, text);
         const float margin = 5;
-        float xPosition = HorizontalFontAlignment switch {
+        float xPosition = HorizontalTextAlignment switch {
             HorizontalAlign.Left => margin,
             HorizontalAlign.Center => Size.X * 0.5f - textWidth * 0.5f,
             HorizontalAlign.Right => Size.X - textWidth - margin,
             _ => throw new Exception("Unknown Horizontal Alignment")
         };
-        float yPosition = VerticalFontAlignment switch {
+        float yPosition = VerticalTextAlignment switch {
             VerticalAlign.Top => margin,
             VerticalAlign.Center => Size.Y * 0.5f - Al.GetFontAscent(font) * 0.5f,
             VerticalAlign.Bottom => Size.Y - Al.GetFontAscent(font) - margin,
@@ -76,8 +78,10 @@ public class TextBox(string name) : SceneObject(name) {
         };
 
         if ((charCount == 0 && !isSelected) || charCount > 0) {
-            Al.DrawText(font, color, (int)xPosition, (int)yPosition,
-                FontAlignFlags.Left, text);
+            // check if is ascii
+            int x = (int)xPosition;
+            int y = (int)yPosition;
+            text.DrawUtfString(font, x, y, color);
         }
 
         const double blinkPeriod = 0.75;
@@ -89,7 +93,7 @@ public class TextBox(string name) : SceneObject(name) {
                     Style.Foreground, cursorThickness);
             }
             else {
-                int w = Al.GetTextWidth(font, text[..cursor]);
+                int w = text[..cursor].GetUtfStringWidth(font);
                 float x = xPosition + w;
                 Al.DrawLine(x, yPosition, x, yPosition + Al.GetFontLineHeight(font),
                     Style.Foreground, cursorThickness);
@@ -164,16 +168,20 @@ public class TextBox(string name) : SceneObject(name) {
     }
 
     private bool IsKeyValid(char key) {
-        switch (Keyboard) {
-            case TextboxKeyboard.Numeric:
-                return key is >= '0' and <= '9';
-            case TextboxKeyboard.AlphaNumeric:
-                return key is >= '0' and <= '9' or >= 'a' and <= 'z' or >= 'A' and <= 'Z';
-            case TextboxKeyboard.Any:
-                return true;
-            default:
-                throw new ArgumentOutOfRangeException();
+        // first check if font has key
+        AllegroFont font = FontManager.GetFont("ShareTech-Regular", Style.FontSize);
+        int _ = 0;
+        if (!Al.GetGlyphDimensions(font, key, ref _, ref _, ref _, ref _)) {
+            Console.WriteLine("Char " + key + " not in font");
+            return false;
         }
+
+        return Keyboard switch {
+            TextboxKeyboard.Numeric => key is >= '0' and <= '9',
+            TextboxKeyboard.AlphaNumeric => key is >= '0' and <= '9' or >= 'a' and <= 'z' or >= 'A' and <= 'Z',
+            TextboxKeyboard.Any => true,
+            _ => throw new ArgumentOutOfRangeException()
+        };
     }
 
     public override void OnKeyDown(KeyCode key, KeyModifiers modifiers) {
@@ -189,6 +197,8 @@ public class TextBox(string name) : SceneObject(name) {
         }
         else if (key == KeyCode.KeyHome) {
             cursor = 0;
+        }else if (key == KeyCode.KeyEnter) {
+            EnterButton?.Press();
         }
     }
 
@@ -240,6 +250,10 @@ public class TextBox(string name) : SceneObject(name) {
 
         if ((int)character == 127) {
             Delete();
+            return;
+        }
+
+        if (char.IsControl(character)) {
             return;
         }
 

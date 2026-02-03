@@ -1,4 +1,5 @@
 ﻿using InstaPoker.Client.Graphics;
+using InstaPoker.Client.Graphics.Objects;
 
 namespace InstaPoker.Client.Game;
 

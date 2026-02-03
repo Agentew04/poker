@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using InstaPoker.Client.Graphics;
+using InstaPoker.Client.Graphics.Objects;
 using InstaPoker.Client.Graphics.Styles;
 using InstaPoker.Client.Network;
 using SubC.AllegroDotNet;
@@ -40,8 +41,8 @@ public class IdentifyScreen() : SceneObject("Identify Screen") {
             FontSize = 28
         };
         nameTextBox.Placeholder = "Insert your nickname";
-        nameTextBox.HorizontalFontAlignment = HorizontalAlign.Center;
-        nameTextBox.VerticalFontAlignment = VerticalAlign.Center;
+        nameTextBox.HorizontalTextAlignment = HorizontalAlign.Center;
+        nameTextBox.VerticalTextAlignment = VerticalAlign.Center;
         nameTextBox.MaxCharacters = 20;
         nameTextBox.Keyboard = TextboxKeyboard.AlphaNumeric;
         
@@ -49,7 +50,8 @@ public class IdentifyScreen() : SceneObject("Identify Screen") {
         okButton.Style = ButtonStyle.Default with {
             FontSize = 28
         };
-        okButton.Label = "OK";
+        nameTextBox.EnterButton = okButton;
+        okButton.Text = "OK";
         okButton.Pressed += OnOkClick;
         
         AddChild(emptyNameFader);

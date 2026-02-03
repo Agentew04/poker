@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using InstaPoker.Client.Game;
+using InstaPoker.Core.Games;
 using SubC.AllegroDotNet;
 
 namespace InstaPoker.Client.Graphics;

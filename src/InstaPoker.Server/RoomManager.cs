@@ -68,7 +68,7 @@ public static class RoomManager {
         }
 
         // if user was owner decide new owner
-        if (room.Owner == conn) {
+        if (room.Owner == conn && room.ConnectedUsers.Count > 0) {
             ClientConnection newOwner = room.ConnectedUsers[Random.Shared.Next(room.ConnectedUsers.Count)];
             Console.WriteLine("New room owner: " + newOwner.Username);
             room.Owner = newOwner;
@@ -78,8 +78,6 @@ public static class RoomManager {
                 });
             });
         }
-
-        
     }
 
     public static async Task UserKick(ClientConnection conn, string kickedUser) {

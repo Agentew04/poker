@@ -4,9 +4,9 @@ using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
 using SubC.AllegroDotNet.Models;
 
-namespace InstaPoker.Client.Graphics;
+namespace InstaPoker.Client.Graphics.Objects;
 
-public class Label(string name) : SceneObject(name) {
+public class Label : SceneObject {
     
     public override bool UseMouse => false;
     public override bool UseKeyboard => false;
@@ -26,16 +26,15 @@ public class Label(string name) : SceneObject(name) {
     /// </summary>
     public AllegroColor Foreground { get; set; } = Colors.Black;
 
-    public override void Initialize() {
+    public Label(string name) : base(name) {
         HorizontalAlign = HorizontalAlign.Center;
         VerticalAlign = VerticalAlign.Center;
-        base.Initialize();
     }
 
     public override void PositionElements() {
         Vector2 size = Size;
         AllegroFont font = FontManager.GetFont("ShareTech-Regular", FontSize);
-        size.X = Al.GetTextWidth(font, Text);
+        size.X = Text.GetUtfStringWidth(font);
         size.Y = Al.GetFontAscent(font);
         Size = size;
         base.PositionElements();
@@ -45,9 +44,8 @@ public class Label(string name) : SceneObject(name) {
         ctx.UpdateTransform();
         AllegroFont font = FontManager.GetFont("ShareTech-Regular", FontSize);
         Vector3 translation = Transform.Translation;
-        // Console.WriteLine("Draw at: " + translation);
         float xDiff = MathF.Floor(translation.X) - translation.X;
         float yDiff = MathF.Floor(translation.Y) - translation.Y;
-        Al.DrawText(font, Foreground, xDiff, yDiff, FontAlignFlags.Left, Text);
+        Text.DrawUtfString(font, xDiff, yDiff, Foreground);
     }
 }

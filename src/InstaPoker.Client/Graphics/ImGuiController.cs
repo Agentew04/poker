@@ -296,7 +296,6 @@ public sealed partial class ImGuiController : IDisposable {
             ImDrawListPtr drawList = drawData.CmdLists[n];
             // ensure vertex buffer capacity
             if (vertexBuffer.Length < drawList.VtxBuffer.Size) {
-                Console.WriteLine("resize allegro imgui vertex buffer");
                 vertexBuffer = new AllegroVertex2D[drawList.VtxBuffer.Size];
             }
 
@@ -307,7 +306,6 @@ public sealed partial class ImGuiController : IDisposable {
 
             // ensure index buffer capacity
             if (indexBuffer.Length < drawList.IdxBuffer.Size) {
-                Console.WriteLine("resize allegro imgui index buffer");
                 indexBuffer = new int[drawList.IdxBuffer.Size];
             }
 
@@ -333,18 +331,12 @@ public sealed partial class ImGuiController : IDisposable {
                     Al.SetClippingRectangle((int)clipMin.X, (int)clipMin.Y,
                         (int)(clipMax.X - clipMin.X), (int)(clipMax.Y - clipMin.Y));
 
-                    if (!bitmaps.TryGetValue(pcmd.GetTexID(), out AllegroBitmap? bitmap)) {
-                        // Al.DrawIndexedPrim(vertexBuffer, null, indexBuffer, (int)(pcmd.IdxOffset + pcmd.ElemCount),
-                        //     PrimType.TriangleList);
+                    if (!bitmaps.TryGetValue(pcmd.GetTexID(), out AllegroBitmap? texture)) {
                         Console.WriteLine($"Couldn't find texture bitmap: {pcmd.GetTexID()}");
                         continue;
                     }
-
-                    AllegroBitmap texture = bitmaps[pcmd.GetTexID()];
                     al_draw_indexed_prim(vertexBuffer, vertexDecl.GetPointer(), texture.GetPointer(), indexBuffer,
                         (int)(pcmd.IdxOffset + pcmd.ElemCount), (int)PrimType.TriangleList);
-                    // Al.DrawIndexedPrim(vertexBuffer, null, indexBuffer, (int)(pcmd.IdxOffset + pcmd.ElemCount),
-                    //     PrimType.TriangleList);
                 }
             }
         }

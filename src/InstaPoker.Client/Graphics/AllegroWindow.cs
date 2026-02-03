@@ -1,6 +1,8 @@
 ﻿using System.Numerics;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using InstaPoker.Client.Game;
+using InstaPoker.Client.Graphics.Objects;
 using InstaPoker.Client.Graphics.Styles;
 using InstaPoker.Client.Network;
 using SubC.AllegroDotNet;
@@ -137,6 +139,7 @@ public abstract partial class AllegroWindow {
 
             ProcessEvents(queue);
             UpdateImGui(delta);
+            DebugWindow.Show = imguiController.IsEnabled; // bad! juntou allegrowindow e pokergame
             NetworkManager.Handler?.CheckForNewMessages();
             Update(delta);
             Render();

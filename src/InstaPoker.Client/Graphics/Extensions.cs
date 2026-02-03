@@ -112,4 +112,46 @@ public static class Extensions {
     public static Vector2 ToVec2(this Vector3 vec3) {
         return new Vector2(vec3.X, vec3.Y);
     }
+
+    /// <summary>
+    /// Gets the width of a string using a font. Does not fail on strings containing non-ASCII characters
+    /// like <see cref="Al.GetTextWidth"/> does.
+    /// </summary>
+    /// <param name="text">The text to measure</param>
+    /// <param name="font">The font to use</param>
+    /// <returns>The width of the text in pixels</returns>
+    public static int GetUtfStringWidth(this string text, AllegroFont font) {
+        int w = 0;
+        for (int i = 0; i < text.Length; i++) {
+            if (i != text.Length - 1) {
+                w += Al.GetGlyphAdvance(font, text[i], text[i + 1]);
+            }
+            else {
+                w += Al.GetGlyphAdvance(font, text[i], ' ');
+            }
+        }
+        return w;
+    }
+
+    /// <summary>
+    /// Draws a UTF string to the screen at the given coordinates.
+    /// </summary>
+    /// <param name="text"></param>
+    /// <param name="font"></param>
+    /// <param name="x"></param>
+    /// <param name="y"></param>
+    /// <param name="color"></param>
+    public static void DrawUtfString(this string text, AllegroFont font, float x, float y, AllegroColor color) {
+        float xx = x;
+        for (int i = 0; i < text.Length;i++) {
+            if (text[i] == '\n') {
+                xx = x;
+                y += Al.GetFontLineHeight(font);
+            }
+            Al.DrawGlyph(font, color, xx, y, text[i]);
+            if (i < text.Length - 1) {
+                xx += Al.GetGlyphAdvance(font, text[i], text[i + 1]);
+            }
+        }
+    }
 }

@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace InstaPoker.Client.Graphics;
+namespace InstaPoker.Client.Graphics.Objects;
 
 /// <summary>
 /// A simple component that controls the alpha value of an inner object. 
@@ -11,17 +11,20 @@ public class Fader(string name) : SceneObject(name) {
 
     public override bool UseKeyboard => Content?.UseKeyboard ?? false;
 
+    // WARNING: NAO CONVERTER EM IMPLICIT! DOCFX NAO SUPORTA ESSA FEATURE DO C# 14/.NET 10 AINDA!!!
+    private SceneObject? content;
+    
     /// <summary>
     /// The inner object that will be rendered.
     /// </summary>
     public SceneObject? Content {
-        get;
+        get => content;
         set {
             if (GetChildren().Count > 0) {
                 RemoveChild(GetChildren()[0]);
             }
 
-            field = value;
+            content = value;
             if (value is not null) {
                 AddChild(value);
             }

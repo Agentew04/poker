@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using ImGuiNET;
 using InstaPoker.Client.Graphics;
+using InstaPoker.Client.Graphics.Objects;
 using InstaPoker.Client.Network;
 using InstaPoker.Core.Messages;
 using InstaPoker.Core.Messages.Requests;
@@ -14,12 +15,17 @@ namespace InstaPoker.Client.Game;
 public class DebugWindow {
     
     public PokerGame Game { get; set; } = null!;
+
+    public static bool Show { get; set; } = false; // isso não deveria ser static mas fds
     
     /// <summary>
     /// Creates the interface.
     /// </summary>
     public void Render() {
-        // ImGui.ShowDemoWindow();
+        if (!Show) {
+            return;
+        }
+        
         ImGui.SetNextWindowSize(new Vector2(500,500), ImGuiCond.Always);
         ImGui.Begin("Debug");
         if (ImGui.BeginTabBar("topBar")) {
@@ -70,29 +76,32 @@ public class DebugWindow {
     
     private void TraverseSceneGraph(SceneObject obj) {
         if (ImGui.TreeNode($"{obj.Name} ({obj.GetType().Name})")) {
+            if (ImGui.IsItemHovered()) {
+                Highlighter.HighlightObject(obj);
+            }
             // debug data about a UI item
-            ImGui.Text($"Use Mouse: {obj.UseMouse})");
+            ImGui.Text($"Use Mouse: {obj.UseMouse}");
             ImGui.Text($"Use Keyboard: {obj.UseKeyboard}");
             switch (obj) {
                 case Button button:
-                    ImGui.Text("Label: " + button.Label);
+                    ImGui.Text($"Label: \"{button.Text}\"");
                     if (ImGui.Button("Press")) {
                         button.Press();
                     }
                     break;
                 case LoadingLabel loading:
-                    ImGui.Text("Text: " + loading.Text);
+                    ImGui.Text($"Text: \"{loading.Text}\"");
                     ImGui.Text("Show dots: " + loading.ShowDots);
                     break;
                 case TextBox textbox:
-                    ImGui.Text("Text: " + textbox.GetString());
+                    ImGui.Text($"Text: \"{textbox.GetString()}\"");
                     ImGui.Text("Placeholder: " + textbox.Placeholder);
                     break;
                 case Toast board:
-                    ImGui.Text("Text: " + board.Text);
+                    ImGui.Text($"Text: \"{board.Text}\"");
                     break;
                 case Label label:
-                    ImGui.Text("Text: " + label.Text);
+                    ImGui.Text($"Text: \"{label.Text}\"");
                     break;
                 case Fader fader:
                     if (ImGui.Button("Show")) {
@@ -112,6 +121,11 @@ public class DebugWindow {
                 ImGui.PopID();
             }
             ImGui.TreePop();
+        }
+        else {
+            if (ImGui.IsItemHovered()) {
+                Highlighter.HighlightObject(obj);
+            }
         }
     }
 }

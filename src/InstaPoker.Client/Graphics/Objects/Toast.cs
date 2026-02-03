@@ -1,10 +1,9 @@
-﻿using System.Numerics;
-using InstaPoker.Client.Graphics.Styles;
+﻿using InstaPoker.Client.Graphics.Styles;
 using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
 using SubC.AllegroDotNet.Models;
 
-namespace InstaPoker.Client.Graphics;
+namespace InstaPoker.Client.Graphics.Objects;
 
 public class Toast(string name) : SceneObject(name) {
 

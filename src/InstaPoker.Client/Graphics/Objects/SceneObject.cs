@@ -4,7 +4,7 @@ using InstaPoker.Client.Graphics.Styles;
 using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
 
-namespace InstaPoker.Client.Graphics;
+namespace InstaPoker.Client.Graphics.Objects;
 
 public abstract class SceneObject {
     private readonly List<SceneObject> children = [];
@@ -126,9 +126,9 @@ public abstract class SceneObject {
                     Al.SetClippingRectangle((int)absolutePosition.Translation.X, (int)absolutePosition.Translation.Y,
                     (int)child.Size.X, (int)child.Size.Y);
                 }
-                if (child.AutoTransform) {
-                    child.Transform = absolutePosition;
-                }
+                // if (child.AutoTransform) {
+                child.Transform = absolutePosition;
+                // }
                 child.PositionElements();
                 child.Render(ctx);
                 Al.ResetClippingRectangle();

@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using InstaPoker.Client.Graphics;
+using InstaPoker.Client.Graphics.Objects;
 using InstaPoker.Client.Graphics.Styles;
 using InstaPoker.Client.Network;
 using InstaPoker.Core;
@@ -38,7 +39,7 @@ public class AdminLobbyScreen() : SceneObject("Admin Lobby Screen") {
         loading.FontSize = 28;
         
         AddChild(startGameButton);
-        startGameButton.Label = "Start Game";
+        startGameButton.Text = "Start Game";
         startGameButton.Style = ButtonStyle.Default with {
             FontSize = 30
         };
@@ -53,10 +54,10 @@ public class AdminLobbyScreen() : SceneObject("Admin Lobby Screen") {
             FontSize = 20
         };
         smallblindTextbox.Keyboard = maxPlayersTextbox.Keyboard = maxBetTextbox.Keyboard = TextboxKeyboard.Numeric;
-        smallblindTextbox.HorizontalFontAlignment = maxPlayersTextbox.HorizontalFontAlignment =
-            maxBetTextbox.HorizontalFontAlignment = HorizontalAlign.Left;
-        smallblindTextbox.VerticalFontAlignment = maxPlayersTextbox.VerticalFontAlignment =
-            maxBetTextbox.VerticalFontAlignment = VerticalAlign.Center;
+        smallblindTextbox.HorizontalTextAlignment = maxPlayersTextbox.HorizontalTextAlignment =
+            maxBetTextbox.HorizontalTextAlignment = HorizontalAlign.Left;
+        smallblindTextbox.VerticalTextAlignment = maxPlayersTextbox.VerticalTextAlignment =
+            maxBetTextbox.VerticalTextAlignment = VerticalAlign.Center;
         
         smallblindTextbox.AutoTransform = false;
         maxBetTextbox.AutoTransform = false;
@@ -204,7 +205,7 @@ public class AdminLobbyScreen() : SceneObject("Admin Lobby Screen") {
                 if (user.Button is null) {
                     user.Button = new Button("leave button");
                     user.Button.Initialize(); // late initialize
-                    user.Button.Label = "Leave";
+                    user.Button.Text = "Leave";
                     user.Button.Pressed += OnUserLeave;
                     user.Button.Style = ButtonStyle.RedButton with {
                         FontSize = 24
@@ -219,7 +220,7 @@ public class AdminLobbyScreen() : SceneObject("Admin Lobby Screen") {
                 if (user.Button is null) {
                     user.Button = new Button("kick button");
                     user.Button.Initialize(); // late initialize
-                    user.Button.Label = "Kick";
+                    user.Button.Text = "Kick";
                     user.Button.Pressed += () => OnUserKick(user);
                     user.Button.Style = ButtonStyle.RedButton with {
                         FontSize = 24

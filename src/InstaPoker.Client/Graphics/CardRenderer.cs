@@ -2,6 +2,7 @@
 using ImGuiNET;
 using InstaPoker.Client.Game;
 using InstaPoker.Client.Graphics.Styles;
+using InstaPoker.Core.Games;
 using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
 using SubC.AllegroDotNet.Models;

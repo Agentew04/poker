@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using InstaPoker.Client.Graphics;
+using InstaPoker.Client.Graphics.Objects;
 using InstaPoker.Client.Graphics.Styles;
 using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
@@ -16,6 +17,7 @@ public class MainMenuScreen() : SceneObject("Main Menu Screen") {
     public override bool UseKeyboard => true;
 
     private readonly Label titleLabel = new(nameof(titleLabel));
+    private readonly Image titleImage = new(nameof(titleImage));
     private readonly Button createRoomButton = new(nameof(createRoomButton));
     private readonly Button joinRoomButton = new(nameof(joinRoomButton));
     private readonly TextBox codeTextBox = new(nameof(codeTextBox));
@@ -27,14 +29,14 @@ public class MainMenuScreen() : SceneObject("Main Menu Screen") {
         createRoomButton.Style = ButtonStyle.Default with {
             FontSize = 28
         };
-        createRoomButton.Label = "Create Room";
+        createRoomButton.Text = "Create Room";
         createRoomButton.Pressed += () => CreateRoomClicked?.Invoke();
         
         AddChild(joinRoomButton);
         joinRoomButton.Style = ButtonStyle.Default with {
             FontSize = 28
         };
-        joinRoomButton.Label = "Join Room";
+        joinRoomButton.Text = "Join Room";
         joinRoomButton.Pressed += OnJoinClick;
         
         AddChild(codeTextBox);
@@ -43,8 +45,9 @@ public class MainMenuScreen() : SceneObject("Main Menu Screen") {
         };
         codeTextBox.Placeholder = "Insert room code";
         codeTextBox.Keyboard = TextboxKeyboard.Numeric;
-        codeTextBox.HorizontalFontAlignment = HorizontalAlign.Center;
-        codeTextBox.VerticalFontAlignment = VerticalAlign.Center;
+        codeTextBox.HorizontalTextAlignment = HorizontalAlign.Center;
+        codeTextBox.VerticalTextAlignment = VerticalAlign.Center;
+        codeTextBox.EnterButton = joinRoomButton;
         
         AddChild(emptyCodeFader);
         emptyCodeFader.Content = emptyCodeBoard;
@@ -54,6 +57,11 @@ public class MainMenuScreen() : SceneObject("Main Menu Screen") {
         AddChild(titleLabel);
         titleLabel.FontSize = 60;
         titleLabel.Text = "Insta Poker";
+        
+        AddChild(titleImage);
+        titleImage.ImageName = "logo";
+        titleImage.HorizontalAlign = HorizontalAlign.Right;
+        titleImage.VerticalAlign = VerticalAlign.Center;
         
         base.Initialize();
     }
@@ -97,7 +105,12 @@ public class MainMenuScreen() : SceneObject("Main Menu Screen") {
         );
 
         titleLabel.Position = new Vector2(Size.X * 0.5f, Size.Y * 0.25f);
-        
+
+        titleImage.Size = new Vector2(128, 128);
+        titleImage.Position = new Vector2(
+            Size.X * 0.5f - Al.GetTextWidth(FontManager.GetFont("ShareTech-Regular", titleLabel.FontSize), titleLabel.Text) 
+            * 0.5f - 15,
+            Size.Y * 0.25f);
         base.PositionElements();
     }
 

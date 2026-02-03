@@ -1,4 +1,5 @@
-﻿using SubC.AllegroDotNet.Enums;
+﻿using InstaPoker.Client.Graphics.Objects;
+using SubC.AllegroDotNet.Enums;
 
 namespace InstaPoker.Client.Graphics;
 

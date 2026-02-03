@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using InstaPoker.Client.Graphics;
+using InstaPoker.Client.Graphics.Objects;
 using InstaPoker.Client.Graphics.Styles;
 using InstaPoker.Client.Network;
 using InstaPoker.Core;
@@ -152,7 +153,7 @@ public class PlayerLobbyScreen() : SceneObject("Player Lobby Screen") {
                 {
                     user.Button = new Button("leaveButton");
                     user.Button.Initialize();
-                    user.Button.Label = "Leave";
+                    user.Button.Text = "Leave";
                     user.Button.Pressed += OnUserLeave;
                     user.Button.Style = ButtonStyle.RedButton with
                     {

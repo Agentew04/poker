@@ -32,7 +32,7 @@ public sealed class ImageManager : IDisposable{
     /// <param name="alias">The alias given to the image</param>
     /// <exception cref="FileNotFoundException">Thrown when the file was not found in the correct directory</exception>
     /// <exception cref="FileLoadException">Thrown when the Allegro library can't load the file
-    /// <exception cref="ArgumentException">Thrown when a image with the given alias already exists</exception>
+    /// <exception cref="ArgumentException">Thrown when an image with the given alias already exists</exception>
     /// as a bitmap image</exception>
     public static void RegisterImage(string name, string alias) {
         if (LoadedImages.ContainsKey(alias)) {

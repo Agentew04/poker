@@ -2,6 +2,7 @@
 using ImGuiNET;
 using InstaPoker.Client.Game.Screens;
 using InstaPoker.Client.Graphics;
+using InstaPoker.Client.Graphics.Objects;
 using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
 using SubC.AllegroDotNet.Models;
@@ -102,6 +103,8 @@ public class PokerGame : AllegroWindow {
         RenderScreen.PositionElements();
         RenderScreen.Render(renderContext);
         
+        Highlighter.DrawHighlights();
+        
         debugWindow.Render();
         if (matrixStackBefore != renderContext.Stack.Count) {
             throw new Exception("Unbalanced Matrix Stack at end of frame. Aborting.");
@@ -172,5 +175,6 @@ public class PokerGame : AllegroWindow {
         ImageManager.RegisterImage("suit-diamonds-512.png", "suit-diamonds");
         ImageManager.RegisterImage("suit-hearts-512.png", "suit-hearts");
         ImageManager.RegisterImage("suit-spades-512.png", "suit-spades");
+        ImageManager.RegisterImage("logo-128.png", "logo");
     }
 }

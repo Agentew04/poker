@@ -1,4 +1,4 @@
-﻿namespace InstaPoker.Client.Game;
+﻿namespace InstaPoker.Core.Games;
 
 /// <summary>
 /// Represents a card suit. 
