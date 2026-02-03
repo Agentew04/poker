@@ -23,7 +23,8 @@ been started and telling them who is the dealer, which cards each player has and
 list of players. The server does **not** send data about the cards on the 
 table or other player's cards. Also, the list of players is ordered correctly in the 
 perspective of the receiving party, alongside some metadata about each one. 
-A JSON representation of example data is: (see [Basics](../basics.md) to see how a 
+A JSON representation of example data is: (see [Basics](../protocol/basics.md) to see 
+how a 
 message is actually transmitted)
 ```json5
 {
