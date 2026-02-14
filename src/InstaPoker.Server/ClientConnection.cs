@@ -11,6 +11,8 @@ public class ClientConnection {
     public string Username { get; set; } = string.Empty;
 
     public Channel<Message> IncomingMessages { get; set; } = Channel.CreateUnbounded<Message>();
+
+    public List<(Type,TaskCompletionSource<Message>)> PendingRequests { get; set; } = [];
     
     public required NetworkStream NetworkStream { get; set; }
 
@@ -49,6 +51,14 @@ public class ClientConnection {
         }
     }
 
+    public async Task<TResponse> SendRequest<TRequest, TResponse>(TRequest request) where TRequest : Message where TResponse : Message{
+        TaskCompletionSource<Message> tcs = new();
+        PendingRequests.Add((typeof(TResponse), tcs));
+        await MessageWriter.WriteAsync(request);
+        Message response = await tcs.Task;
+        return (TResponse)response;
+    }
+    
     public Task StopReceiving() {
         return cts!.CancelAsync();
     }

@@ -9,8 +9,16 @@ public class Router {
     public async Task RouteMessagesLoop(CancellationToken token) {
         while (!token.IsCancellationRequested) {
             foreach (ClientConnection conn in UserManager.Connections) {
-                while (conn.IncomingMessages.Reader.TryRead(out Message item)) {
-                    Route(conn, item);
+                while (conn.IncomingMessages.Reader.TryRead(out Message? item)) {
+                    (Type, TaskCompletionSource<Message>)? pending = conn.PendingRequests.Find(x => x.Item1 == item.GetType());
+                    if (!pending.HasValue || pending.Value.Item1 is null || pending.Value.Item2 is null) {
+                        // process messages syncronously. avoid race conditions(?)
+                        await Route(conn, item);
+                    }
+                    else {
+                        Console.WriteLine("complete request");
+                        pending.Value.Item2.SetResult(item);
+                    }
                 }
             }
 
@@ -39,6 +47,10 @@ public class Router {
                 }
                 case JoinRoomRequest joinRoomRequest: {
                     await RoomManager.UserJoinRoom(conn, joinRoomRequest);
+                    break;
+                }
+                case OwnerStartGameNotification: {
+                    await RoomManager.StartGame(conn);
                     break;
                 }
             }

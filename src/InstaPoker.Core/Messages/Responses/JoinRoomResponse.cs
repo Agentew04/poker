@@ -61,5 +61,6 @@ public enum JoinRoomResult {
     RoomDoesNotExist,
     RoomFull,
     UsernameAlreadyExist,
-    AlreadyInOtherRoom
+    AlreadyInOtherRoom,
+    GameAlreadyStarted
 }

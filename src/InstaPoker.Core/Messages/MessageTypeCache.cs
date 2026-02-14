@@ -1,4 +1,5 @@
-﻿using InstaPoker.Core.Messages.Notifications;
+﻿using System.Reflection;
+using InstaPoker.Core.Messages.Notifications;
 using InstaPoker.Core.Messages.Requests;
 using InstaPoker.Core.Messages.Responses;
 
@@ -12,15 +13,17 @@ public static class MessageTypeCache {
 
     static MessageTypeCache() {
         MessageTypes = [];
-        MessageTypes[new KickUserNotification().UniqueId] = typeof(KickUserNotification);
-        MessageTypes[new LeaveRoomNotification().UniqueId] = typeof(LeaveRoomNotification);
-        MessageTypes[new NewRoomOwnerNotification().UniqueId] = typeof(NewRoomOwnerNotification);
-        MessageTypes[new RoomListUpdatedNotification().UniqueId] = typeof(RoomListUpdatedNotification);
-        MessageTypes[new RoomSettingsChangeNotification().UniqueId] = typeof(RoomSettingsChangeNotification);
-        MessageTypes[new CreateRoomRequest().UniqueId] = typeof(CreateRoomRequest);
-        MessageTypes[new JoinRoomRequest().UniqueId] = typeof(JoinRoomRequest);
-        MessageTypes[new CreateRoomResponse().UniqueId] = typeof(CreateRoomResponse);
-        MessageTypes[new JoinRoomResponse().UniqueId] = typeof(JoinRoomResponse);
+        List<Type> types = typeof(Message).Assembly.GetTypes()
+            .Where(x => typeof(Message).IsAssignableFrom(x) && !x.IsAbstract)
+            .ToList();
+        foreach (Type messageType in types) {
+            Message? msg = (Message?)Activator.CreateInstance(messageType);
+            if (msg is null) {
+                Console.WriteLine($"Could not register {messageType.Name} in MessageTypeCache");
+                continue;
+            }
+            MessageTypes[msg.UniqueId] = messageType;
+        }
     }
 
     /// <summary>

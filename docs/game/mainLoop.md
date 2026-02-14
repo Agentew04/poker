@@ -1,32 +1,30 @@
 # Starting a Game
 
-When the owner of a room clicks the button to start a game, it sends a message request to 
-the server and awaits a response.
+When the owner of a room clicks the button to start a game, it sends a 
+@InstaPoker.Core.Messages.Requests.OwnerStartGameNotification to the server.
 
-Before answering the request, the server sends a request to every player on the lobby 
-asking how much balance each one has.
+After that,the server sends a @InstaPoker.Core.Messages.Requests.BalanceQueryRequest 
+to every player on the lobby, asking how much balance each one has. 
 
 > [!NOTE]
 > This will be changed in future versions, as the balance amount of each player will 
 > be server authoritative, instead of client authoritative.
 
-After every player responded the request, the server starts calculating some internal 
-data, such as:
+After every player responded the request with @InstaPoker.Core.Messages.Responses. BalanceQueryResponse, the server starts calculating some internal data, such as:
 
 * Who will be the first "dealer"
 * Creates one deck of cards (or more) and shuffles it.
 * Automatically calculates what cards each player has and which 5 cards will be on the 
   table.
 
-After this, the server sends a message to each player indicating that the game has 
-been started and telling them who is the dealer, which cards each player has and a 
-list of players. The server does **not** send data about the cards on the 
-table or other player's cards. Also, the list of players is ordered correctly in the 
-perspective of the receiving party, alongside some metadata about each one. 
-A JSON representation of example data is: (see [Basics](../protocol/basics.md) to see 
-how a 
-message is actually transmitted)
-```json5
+After this, the server sends @InstaPoker.Core.Messages.Notifications.GameStartNotification
+to each player indicating that the game has been started and telling them who is the 
+dealer, which cards each player has and a list of players. The server does **not** send 
+data about the cards on the table or other player's cards. Also, the list of players 
+is ordered correctly in the perspective of the receiving party, alongside some metadata
+about each one. A JSON representation of example data is: (see 
+[Basics](../protocol/basics.md) to see how a message is actually transmitted)
+```json
 {
   "dealer": "Bob",
   "hand": [
@@ -86,7 +84,7 @@ stray packets in the network from the active user.
 3. The server broadcasts the new game status to everyone.
 
 The message contains the following data:
-```json5
+```json
 {
   "pot": "400",
   "players": [

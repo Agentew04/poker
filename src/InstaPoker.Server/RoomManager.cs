@@ -3,6 +3,7 @@ using InstaPoker.Core;
 using InstaPoker.Core.Messages.Notifications;
 using InstaPoker.Core.Messages.Requests;
 using InstaPoker.Core.Messages.Responses;
+using InstaPoker.Server.Games;
 
 namespace InstaPoker.Server;
 
@@ -139,6 +140,14 @@ public static class RoomManager {
             return;
         }
 
+        if (r.InGame) {
+            Console.WriteLine($"User {conn.Username} tried joining a running game");
+            await conn.MessageWriter.WriteAsync(new JoinRoomResponse() {
+                Result = JoinRoomResult.GameAlreadyStarted
+            });
+            return;
+        }
+
         Console.WriteLine($"User {conn.Username} joined room {r.Code}");
         UserRoom[conn] = r;
         await conn.MessageWriter.WriteAsync(new JoinRoomResponse() {
@@ -162,6 +171,17 @@ public static class RoomManager {
         if (UserRoom.TryGetValue(conn, out Room? room)) {
             _ = UserLeaveRoom(conn);
         }
+    }
+
+    public async static Task StartGame(ClientConnection conn) {
+        if(!UserRoom.TryGetValue(conn, out Room? room)) {
+            return;
+        }
+
+        room!.InGame = true;
+        room.Table = new PokerTable(room);
+
+        _ = room.Table.StartGame();
     }
     
     private static string GenerateRandomCode() {

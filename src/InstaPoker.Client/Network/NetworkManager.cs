@@ -107,6 +107,10 @@ public static class NetworkManager {
     public static Task LeaveRoom() {
         return Handler!.SendNotification(new LeaveRoomNotification());
     }
+
+    public static Task NotifyGameStart() {
+        return Handler!.SendNotification(new OwnerStartGameNotification());
+    }
 }
 
 internal class ServerInfo {

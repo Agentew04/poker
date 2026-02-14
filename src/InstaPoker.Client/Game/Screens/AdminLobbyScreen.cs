@@ -5,6 +5,8 @@ using InstaPoker.Client.Graphics.Styles;
 using InstaPoker.Client.Network;
 using InstaPoker.Core;
 using InstaPoker.Core.Messages.Notifications;
+using InstaPoker.Core.Messages.Requests;
+using InstaPoker.Core.Messages.Responses;
 using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
 using SubC.AllegroDotNet.Models;
@@ -26,11 +28,15 @@ public class AdminLobbyScreen() : SceneObject("Admin Lobby Screen") {
     private readonly List<LobbyUser> usersToDelete = [];
     private readonly LoadingLabel loading = new(nameof(loading));
     private readonly Button startGameButton = new(nameof(startGameButton));
+    private readonly Label waitingPlayersLabel = new(nameof(waitingPlayersLabel));
+    
     private RoomSettings roomSettings = new();
+    
     private readonly TextBox smallblindTextbox = new(nameof(smallblindTextbox));
     private readonly TextBox maxBetTextbox = new(nameof(maxBetTextbox));
     private readonly TextBox maxPlayersTextbox = new(nameof(maxBetTextbox));
     private readonly Checkbox allinEnabledCheckbox = new(nameof(allinEnabledCheckbox));
+    
 
 
     public override void Initialize() {
@@ -43,7 +49,13 @@ public class AdminLobbyScreen() : SceneObject("Admin Lobby Screen") {
         startGameButton.Style = ButtonStyle.Default with {
             FontSize = 30
         };
-        startGameButton.Pressed += () => GameStarted?.Invoke();
+        startGameButton.Pressed += StartGame;
+        startGameButton.IsEnabled = true;
+        
+        AddChild(waitingPlayersLabel);
+        waitingPlayersLabel.IsEnabled = false;
+        waitingPlayersLabel.Text = "Waiting Players";
+        waitingPlayersLabel.FontSize = 30;
         
         AddChild(maxBetTextbox);
         AddChild(maxPlayersTextbox);
@@ -140,7 +152,9 @@ public class AdminLobbyScreen() : SceneObject("Admin Lobby Screen") {
             Size.X * 0.5f - startGameButton.Size.X * 0.5f,
             Size.Y - Size.Y * 0.0625f - startGameButton.Size.Y * 0.5f
         );
-        
+
+        waitingPlayersLabel.Position = new Vector2(Size.X * 0.5f, Size.Y - Size.Y * 0.0625f);
+
         base.PositionElements();
     }
 
@@ -321,6 +335,12 @@ public class AdminLobbyScreen() : SceneObject("Admin Lobby Screen") {
         _ = NetworkManager.SendSettings(roomSettings);
     }
 
+    private void StartGame() {
+        Task notifyTask = NetworkManager.NotifyGameStart();
+        waitingPlayersLabel.IsEnabled = true;
+        startGameButton.IsEnabled = false;
+    }
+
     public override void Update(double delta) {
         loading.Update(delta);
         if (loading.IsEnabled) {
@@ -341,8 +361,14 @@ public class AdminLobbyScreen() : SceneObject("Admin Lobby Screen") {
         }
 
         // ignore updates from the server. we are admin and we are the source of truth (hopefully)
-        NetworkManager.Handler!.TryGetPendingMessage(out RoomSettingsChangeNotification? _);
-        
+        NetworkManager.Handler.TryGetPendingMessage(out RoomSettingsChangeNotification? _);
+
+        if (NetworkManager.Handler.TryGetPendingMessage(out BalanceQueryRequest? balanceQueryRequest)) {
+            _ = NetworkManager.Handler.SendNotification(new BalanceQueryResponse() {
+                Balance = LocalSettings.Amount
+            });
+        }
+
         base.Update(delta);
     }
 
