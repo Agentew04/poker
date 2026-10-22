@@ -2,6 +2,9 @@
 using System.Reflection;
 using InstaPoker.Client.Game;
 using InstaPoker.Client.Graphics.Styles;
+using InstaPoker.Client.Subsystems;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
 
@@ -53,6 +56,16 @@ public abstract class SceneObject {
 
     private bool isInitialized = false;
 
+    protected ILogger Logger {
+        get {
+            if (field == null) {
+                Type loggerType = typeof(ILogger<>).MakeGenericType(GetType());
+                field = (ILogger)Service.Provider.GetRequiredService(loggerType);
+            }
+            return field;
+        }
+    }
+
     public SceneObject(string name) {
         Name = name;
     }
@@ -63,6 +76,8 @@ public abstract class SceneObject {
     /// </summary>
     public virtual void Initialize() {
         isInitialized = true;
+        
+        // como isso vem depois, assumimos que o pai que da fetch nos servicos dos filhos
         
         // children aqui ta vazio. tem que popular
         List<SceneObject> childs = GetType()
@@ -76,6 +91,17 @@ public abstract class SceneObject {
         children.AddRange(childs);
         
         foreach (SceneObject child in children) {
+
+            IEnumerable<FieldInfo> services = child.GetType()
+                .GetMembers(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                .OfType<FieldInfo>()
+                .Where(x => x.GetCustomAttribute<ServiceAttribute>() is not null);
+            foreach (FieldInfo field in services) {
+                object? service = Service.Provider.GetService(field.FieldType);
+                field.SetValue(child, service);
+            }
+            
+            // aqui os servicos ja foram resolvidos
             child.Initialize();
             if (!child.isInitialized) {
                 throw new Exception($"SceneObject {child.Name} did not call base Initialize");
@@ -258,23 +284,6 @@ public abstract class SceneObject {
     protected void RemoveChild(SceneObject child) {
         children.Remove(child);
     }
-
-    protected void Log(string message, LogLevel level = LogLevel.Info) {
-        ConsoleColor originalColor = Console.ForegroundColor;
-        if (level == LogLevel.Warn) {
-            Console.ForegroundColor = ConsoleColor.Yellow;
-        }else if (level == LogLevel.Error) {
-            Console.ForegroundColor = ConsoleColor.Red;
-        }
-        Console.WriteLine($"[{DateTime.Now.TimeOfDay}] <{Name}> [{(level switch {
-            LogLevel.Info => "INFO",
-            LogLevel.Warn => "WARN",
-            LogLevel.Error => "ERROR",
-            _ => "UNKN"
-        })}] {message}");
-        Console.ForegroundColor = originalColor;
-    }
-    
 }
 
 public enum LogLevel {

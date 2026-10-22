@@ -21,6 +21,8 @@ public class WindowFrame : SceneObject {
 
     public override void Initialize() {
         ActiveScreen = IdentifyScreen;
+        
+        // aqui resolve os servicos das diferentes views
         base.Initialize();
     }
 

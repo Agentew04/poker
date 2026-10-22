@@ -6,6 +6,7 @@ using InstaPoker.Client.Graphics.Objects;
 using InstaPoker.Client.Graphics.Styles;
 using InstaPoker.Client.Network;
 using InstaPoker.Client.Subsystems;
+using Microsoft.Extensions.DependencyInjection;
 using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
 using SubC.AllegroDotNet.Extensions;
@@ -131,8 +132,8 @@ public abstract partial class AllegroWindow {
 
         AllegroTransform transform = new();
         Al.IdentityTransform(ref transform);
-        
-        
+
+        NetworkManager networkManager = Service.Provider.GetRequiredService<NetworkManager>();
         
         double targetFps = Al.GetDisplayRefreshRate(Display);
         double targetFpsDelta = 1.0 / targetFps;
@@ -146,7 +147,7 @@ public abstract partial class AllegroWindow {
             ProcessEvents(queue);
             UpdateImGui(delta);
             DebugWindow.Show = imguiController.IsEnabled; // bad! juntou allegrowindow e pokergame
-            NetworkManager.Handler?.CheckForNewMessages();
+            networkManager.Handler?.CheckForNewMessages();
             Update(delta);
             Render();
             Al.UseTransform(ref transform);

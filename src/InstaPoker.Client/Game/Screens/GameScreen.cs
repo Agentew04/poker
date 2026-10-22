@@ -4,6 +4,7 @@ using InstaPoker.Client.Graphics;
 using InstaPoker.Client.Graphics.Objects;
 using InstaPoker.Client.Graphics.Styles;
 using InstaPoker.Client.Network;
+using InstaPoker.Client.Subsystems;
 using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Models;
 
@@ -26,6 +27,8 @@ public class GameScreen() : SceneObject("GameScreen") {
     [ChildObject] private readonly TextBox raiseTextbox = new(nameof(raiseTextbox));
     [ChildObject] private readonly Label balanceTitle = new(nameof(balanceTitle));
     [ChildObject] private readonly Label balanceAmount = new(nameof(balanceAmount));
+
+    [Service] private NetworkManager networkManager = null!; 
 
     public override void Initialize() {
         AddChild(leaveButton);
@@ -166,7 +169,7 @@ public class GameScreen() : SceneObject("GameScreen") {
 
     private void UserLeave() {
         // notify server that we left the table.
-        _ = NetworkManager.LeaveRoom();
+        _ = networkManager.LeaveRoom();
         UserLeft?.Invoke();
     }
 

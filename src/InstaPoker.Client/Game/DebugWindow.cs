@@ -3,9 +3,11 @@ using ImGuiNET;
 using InstaPoker.Client.Graphics;
 using InstaPoker.Client.Graphics.Objects;
 using InstaPoker.Client.Network;
+using InstaPoker.Client.Subsystems;
 using InstaPoker.Core.Messages;
 using InstaPoker.Core.Messages.Requests;
 using InstaPoker.Core.Messages.Responses;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace InstaPoker.Client.Game;
 
@@ -18,6 +20,8 @@ public class DebugWindow {
 
     public static bool Show { get; set; } = false; // isso não deveria ser static mas fds
     
+    private NetworkManager? networkManager;
+    
     /// <summary>
     /// Creates the interface.
     /// </summary>
@@ -25,6 +29,8 @@ public class DebugWindow {
         if (!Show) {
             return;
         }
+
+        networkManager ??= Service.Provider.GetRequiredService<NetworkManager>();
         
         ImGui.SetNextWindowSize(new Vector2(500,500), ImGuiCond.Always);
         ImGui.Begin("Debug");
@@ -41,14 +47,14 @@ public class DebugWindow {
     private void NetworkTab() {
         if (ImGui.BeginTabItem("Network")) {
 
-            ImGui.Text("Connected: " + NetworkManager.IsConnected);
-            ImGui.Text("Server: " + (NetworkManager.IsConnected
-                ? $"{NetworkManager.ServerInfo.HostName}:{NetworkManager.ServerInfo.Port}"
+            ImGui.Text("Connected: " + networkManager.IsConnected);
+            ImGui.Text("Server: " + (networkManager.IsConnected
+                ? $"{networkManager.ServerInfo.HostName}:{networkManager.ServerInfo.Port}"
                 : string.Empty));
 
             ImGui.Text("Pending Requests");
             if (ImGui.BeginListBox("##pendingrequests")) {
-                foreach (Type pending in NetworkManager.Handler?.GetPendingRequests() ?? []) {
+                foreach (Type pending in networkManager.Handler?.GetPendingRequests() ?? []) {
                     ImGui.Text(pending.Name);
                 }
                 ImGui.EndListBox();

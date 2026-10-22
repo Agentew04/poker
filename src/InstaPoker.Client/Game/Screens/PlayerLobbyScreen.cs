@@ -3,6 +3,7 @@ using InstaPoker.Client.Graphics;
 using InstaPoker.Client.Graphics.Objects;
 using InstaPoker.Client.Graphics.Styles;
 using InstaPoker.Client.Network;
+using InstaPoker.Client.Subsystems;
 using InstaPoker.Core;
 using InstaPoker.Core.Messages.Notifications;
 using InstaPoker.Core.Messages.Responses;
@@ -26,6 +27,9 @@ public class PlayerLobbyScreen() : SceneObject("Player Lobby Screen") {
     private RoomSettings roomSettings = new();
     private List<LobbyUser> users = [];
 
+    [Service]
+    private NetworkManager networkManager = null!;
+
     private Task<JoinRoomResponse>? joinTask;
 
     public override void Initialize() {
@@ -43,7 +47,7 @@ public class PlayerLobbyScreen() : SceneObject("Player Lobby Screen") {
         loading.ShowDots = true;
         loading.Text = "Joining room";
         loading.Show();
-        joinTask = NetworkManager.JoinRoom(code);
+        joinTask = networkManager.JoinRoom(code);
         joinTask.ContinueWith(task => {
             if (task.Result.Result != JoinRoomResult.Success) {
                 loading.Text = task.Result.Result switch {
@@ -207,7 +211,7 @@ public class PlayerLobbyScreen() : SceneObject("Player Lobby Screen") {
     }
 
     private void OnUserLeave() {
-        NetworkManager.LeaveRoom();
+        networkManager.LeaveRoom();
         UserLeft?.Invoke();
     }
 
@@ -218,7 +222,7 @@ public class PlayerLobbyScreen() : SceneObject("Player Lobby Screen") {
             return;
         }
         
-        if (NetworkManager.Handler!.TryGetPendingMessage(out RoomListUpdatedNotification? listUpdate)) {
+        if (networkManager.Handler!.TryGetPendingMessage(out RoomListUpdatedNotification? listUpdate)) {
             if (listUpdate.UpdateType is LobbyListUpdateType.UserLeft or LobbyListUpdateType.UserKicked) {
                 LobbyUser? removed = users.Find(x => x.Name == listUpdate.Username);
                 if (removed is not null) {
@@ -244,12 +248,12 @@ public class PlayerLobbyScreen() : SceneObject("Player Lobby Screen") {
             }
         }
 
-        if (NetworkManager.Handler!.TryGetPendingMessage(
+        if (networkManager.Handler!.TryGetPendingMessage(
                 out RoomSettingsChangeNotification? settingsChangeNotification)) {
             roomSettings = settingsChangeNotification.NewSettings;
         }
         
-        if(NetworkManager.Handler!.TryGetPendingMessage(out NewRoomOwnerNotification? newRoomOwnerNotification)) {
+        if(networkManager.Handler!.TryGetPendingMessage(out NewRoomOwnerNotification? newRoomOwnerNotification)) {
             LobbyUser? owner = users.FirstOrDefault(x => x.Name == newRoomOwnerNotification.Owner);
             if (owner is null) {
                 throw new Exception("Unknown user became owner!!");

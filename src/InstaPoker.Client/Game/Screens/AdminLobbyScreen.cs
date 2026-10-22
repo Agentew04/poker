@@ -3,6 +3,7 @@ using InstaPoker.Client.Graphics;
 using InstaPoker.Client.Graphics.Objects;
 using InstaPoker.Client.Graphics.Styles;
 using InstaPoker.Client.Network;
+using InstaPoker.Client.Subsystems;
 using InstaPoker.Core;
 using InstaPoker.Core.Messages.Notifications;
 using InstaPoker.Core.Messages.Requests;
@@ -36,9 +37,9 @@ public class AdminLobbyScreen() : SceneObject("Admin Lobby Screen") {
     [ChildObject] private readonly TextBox maxBetTextbox = new(nameof(maxBetTextbox));
     [ChildObject] private readonly TextBox maxPlayersTextbox = new(nameof(maxBetTextbox));
     [ChildObject] private readonly Checkbox allinEnabledCheckbox = new(nameof(allinEnabledCheckbox));
+
+    [Service] private NetworkManager networkManager = null!;
     
-
-
     public override void Initialize() {
         loading.Text = "Creating room";
         loading.FontSize = 28;
@@ -88,7 +89,7 @@ public class AdminLobbyScreen() : SceneObject("Admin Lobby Screen") {
     /// </summary>
     public void OnShow() {
         loading.Show();
-        Task<(string, RoomSettings)> createRoomTask = NetworkManager.CreateRoom();
+        Task<(string, RoomSettings)> createRoomTask = networkManager.CreateRoom();
         createRoomTask.ContinueWith(task => {
             users.Clear();
             users.Add(new LobbyUser() {
@@ -299,11 +300,11 @@ public class AdminLobbyScreen() : SceneObject("Admin Lobby Screen") {
 
     private void OnUserKick(LobbyUser user) {
         usersToDelete.Add(user);
-        _ = NetworkManager.KickUser(user.Name);
+        _ = networkManager.KickUser(user.Name);
     }
 
     private void OnUserLeave() {
-        NetworkManager.LeaveRoom();
+        networkManager.LeaveRoom();
         UserLeft?.Invoke();
     }
 
@@ -324,11 +325,11 @@ public class AdminLobbyScreen() : SceneObject("Admin Lobby Screen") {
         roomSettings.IsAllInEnabled = allinEnabledCheckbox.Value;
 
         Console.WriteLine("Sending Configuration");
-        _ = NetworkManager.SendSettings(roomSettings);
+        _ = networkManager.SendSettings(roomSettings);
     }
 
     private void StartGame() {
-        Task notifyTask = NetworkManager.NotifyGameStart();
+        Task notifyTask = networkManager.NotifyGameStart();
         waitingPlayersLabel.IsEnabled = true;
         startGameButton.IsEnabled = false;
     }
@@ -343,7 +344,7 @@ public class AdminLobbyScreen() : SceneObject("Admin Lobby Screen") {
             GameStarted?.Invoke();
         }
 
-        if (NetworkManager.Handler!.TryGetPendingMessage(out RoomListUpdatedNotification? listUpdate)) {
+        if (networkManager.Handler!.TryGetPendingMessage(out RoomListUpdatedNotification? listUpdate)) {
             if (listUpdate.UpdateType is LobbyListUpdateType.UserLeft or LobbyListUpdateType.UserKicked) {
                 users.RemoveAll(x => x.Name == listUpdate.Username);
             }
@@ -357,10 +358,10 @@ public class AdminLobbyScreen() : SceneObject("Admin Lobby Screen") {
         }
 
         // ignore updates from the server. we are admin and we are the source of truth (hopefully)
-        NetworkManager.Handler.TryGetPendingMessage(out RoomSettingsChangeNotification? _);
+        networkManager.Handler.TryGetPendingMessage(out RoomSettingsChangeNotification? _);
 
-        if (NetworkManager.Handler.TryGetPendingMessage(out BalanceQueryRequest? balanceQueryRequest)) {
-            _ = NetworkManager.Handler.SendNotification(new BalanceQueryResponse() {
+        if (networkManager.Handler.TryGetPendingMessage(out BalanceQueryRequest? balanceQueryRequest)) {
+            _ = networkManager.Handler.SendNotification(new BalanceQueryResponse() {
                 Balance = LocalSettings.Amount
             });
         }

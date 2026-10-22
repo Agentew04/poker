@@ -6,9 +6,7 @@ using InstaPoker.Client.Network;
 using InstaPoker.Client.Subsystems;
 using InstaPoker.Client.Subsystems.Account;
 using Microsoft.Extensions.DependencyInjection;
-using SubC.AllegroDotNet;
-using SubC.AllegroDotNet.Enums;
-using SubC.AllegroDotNet.Models;
+using Microsoft.Extensions.Logging;
 
 namespace InstaPoker.Client.Game.Screens;
 
@@ -32,12 +30,14 @@ public class IdentifyScreen() : SceneObject("Identify Screen") {
     [ChildObject] private readonly Toast emptyNameBoard = new(nameof(emptyNameBoard));
     [ChildObject] private readonly LoadingLabel loading = new(nameof(loading));
 
-    private AccountStore accountStore;
+    [Service] private AccountStore accountStore = null!;
+    [Service] private NetworkManager networkManager = null!;
 
     private Task<bool>? connectionTask;
 
     public override void Initialize() {
         accountStore = Service.Provider.GetRequiredService<AccountStore>();
+        networkManager = Service.Provider.GetRequiredService<NetworkManager>();
         
         loading.FontSize = 28;
         loading.Hide();
@@ -84,7 +84,8 @@ public class IdentifyScreen() : SceneObject("Identify Screen") {
         loading.ShowDots = true;
         loading.Text = "Connecting to server";
         loading.Show();
-        return NetworkManager.ConnectToServer(LocalSettings.Username);
+        Logger.LogInformation("Trying to connect to remote server");
+        return networkManager.ConnectToServer(LocalSettings.Username);
     }
     
     private void OnConnectEnd(Task<bool> task) {
@@ -133,6 +134,7 @@ public class IdentifyScreen() : SceneObject("Identify Screen") {
         Login? login = accountStore.GetSavedLogin();
         if (login != null && connectionTask == null) {
             // there is a saved account. we can skip
+            Logger.LogInformation("Using saved login data");
             nameTextBox.SetString(login.Username);
             OnOkClick();
         }

@@ -90,7 +90,6 @@ public class SettingsService : IDisposable {
             Key = key;
             filePath = path;
             ReadFile();
-            logger.LogInformation("Count: {c}", settings.Count);
         }
 
         private void ReadFile() {
