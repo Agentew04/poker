@@ -17,4 +17,10 @@
     <ProjectReference Include="..\InstaPoker.Core\InstaPoker.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\instapoker-server.pfx" Link="Certs\server.pfx">
+      <LogicalName>InstaPoker.Server.Certs.server.pfx</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>

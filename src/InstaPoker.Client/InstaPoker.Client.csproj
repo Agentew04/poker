@@ -45,4 +45,10 @@
     <ProjectReference Include="..\InstaPoker.Core\InstaPoker.Core.csproj"/>
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\instapoker-server.crt" Link="Certs\server.crt">
+      <LogicalName>InstaPoker.Client.Certs.server.crt</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>

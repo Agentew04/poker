@@ -2,8 +2,8 @@
 using InstaPoker.Client.Graphics;
 using InstaPoker.Client.Graphics.Objects;
 using InstaPoker.Client.Graphics.Styles;
-using InstaPoker.Client.Network;
 using InstaPoker.Client.Subsystems;
+using InstaPoker.Client.Subsystems.Network;
 using InstaPoker.Core;
 using InstaPoker.Core.Messages.Notifications;
 using InstaPoker.Core.Messages.Responses;
@@ -30,11 +30,13 @@ public class PlayerLobbyScreen() : SceneObject("Player Lobby Screen") {
     [Service]
     private NetworkManager networkManager = null!;
 
-    private Task<JoinRoomResponse>? joinTask;
-
     public override void Initialize() {
         loading.FontSize = 28;
-        
+
+        networkManager.Subscribe<RoomListUpdatedNotification>(OnRoomListUpdated);
+        networkManager.Subscribe<RoomSettingsChangeNotification>(OnRoomSettingsChanged);
+        networkManager.Subscribe<NewRoomOwnerNotification>(OnRoomOwnerChanged);
+
         base.Initialize();
     }
 
@@ -43,45 +45,46 @@ public class PlayerLobbyScreen() : SceneObject("Player Lobby Screen") {
     /// </summary>
     /// <param name="code">The code the user entered</param>
     public void OnShow(string code) {
+        _ = JoinRoomAsync(code);
+    }
+
+    private async Task JoinRoomAsync(string code) {
         this.code = code;
         loading.ShowDots = true;
         loading.Text = "Joining room";
         loading.Show();
-        joinTask = networkManager.JoinRoom(code);
-        joinTask.ContinueWith(task => {
-            if (task.Result.Result != JoinRoomResult.Success) {
-                loading.Text = task.Result.Result switch {
-                    JoinRoomResult.RoomDoesNotExist => "Room does not exist!",
-                    JoinRoomResult.RoomFull => "Room is full!",
-                    JoinRoomResult.UsernameAlreadyExist => "Room already has a player with your name!",
-                    JoinRoomResult.AlreadyInOtherRoom => "You are in another room!",
-                    _ => "Error joining: " + task.Result.Result
-                };
-                loading.Text += " Returning in 5 seconds";
-                loading.ShowDots = false;
-                loading.Show();
-                Task.Delay(5000).ContinueWith(_ => {
-                    UserLeft?.Invoke();
-                });
-                return;
-            }
-            
-            title = "Room " + code;
-            loading.Hide();
-            users.Clear();
-            users.AddRange(task.Result.ConnectedUsers.Select(x => new LobbyUser()
-            {
-                Name = x,
-                IsLocal = false,
-                IsOwner = x == task.Result.OwnerName
-            }));
-            users.Add(new LobbyUser() {
-                IsLocal = true,
-                IsOwner = false,
-                Name = LocalSettings.Username
-            });
-            roomSettings = task.Result.Settings;
+
+        JoinRoomResponse response = await networkManager.JoinRoom(code);
+        if (response.Result != JoinRoomResult.Success) {
+            loading.Text = response.Result switch {
+                JoinRoomResult.RoomDoesNotExist => "Room does not exist!",
+                JoinRoomResult.RoomFull => "Room is full!",
+                JoinRoomResult.UsernameAlreadyExist => "Room already has a player with your name!",
+                JoinRoomResult.AlreadyInOtherRoom => "You are in another room!",
+                _ => "Error joining: " + response.Result
+            };
+            loading.Text += " Returning in 5 seconds";
+            loading.ShowDots = false;
+            loading.Show();
+            await Task.Delay(5000);
+            UserLeft?.Invoke();
+            return;
+        }
+
+        title = "Room " + code;
+        loading.Hide();
+        users.Clear();
+        users.AddRange(response.ConnectedUsers.Select(x => new LobbyUser() {
+            Name = x,
+            IsLocal = false,
+            IsOwner = x == response.OwnerName
+        }));
+        users.Add(new LobbyUser() {
+            IsLocal = true,
+            IsOwner = false,
+            Name = LocalSettings.Username
         });
+        roomSettings = response.Settings;
     }
 
     public override void PositionElements() {
@@ -221,49 +224,68 @@ public class PlayerLobbyScreen() : SceneObject("Player Lobby Screen") {
         if (loading.IsEnabled) {
             return;
         }
-        
-        if (networkManager.Handler!.TryGetPendingMessage(out RoomListUpdatedNotification? listUpdate)) {
-            if (listUpdate.UpdateType is LobbyListUpdateType.UserLeft or LobbyListUpdateType.UserKicked) {
-                LobbyUser? removed = users.Find(x => x.Name == listUpdate.Username);
-                if (removed is not null) {
-                    users.Remove(removed);
-                    if (removed.Button is not null) {
-                        RemoveChild(removed.Button);
-                    }
-                }
-                
-                if (listUpdate.UpdateType == LobbyListUpdateType.UserKicked && listUpdate.Username == LocalSettings.Username) {
-                    // user was kicked. show kick screen and return to main menu
-                    loading.ShowDots = false;
-                    loading.Text = "You were kicked from the room. Returning to Main Menu in 5 seconds";
-                    loading.Show();
-                    Task.Delay(5000).ContinueWith(_ => UserLeft?.Invoke());
-                }
-            }else if (listUpdate.UpdateType == LobbyListUpdateType.UserJoined) {
-                users.Add(new LobbyUser() {
-                    Name = listUpdate.Username,
-                    IsLocal = false,
-                    IsOwner = false,
-                });
-            }
+
+        base.Update(delta);
+    }
+
+    private void OnRoomListUpdated(RoomListUpdatedNotification listUpdate) {
+        if (!IsEnabled) {
+            return;
         }
 
-        if (networkManager.Handler!.TryGetPendingMessage(
-                out RoomSettingsChangeNotification? settingsChangeNotification)) {
-            roomSettings = settingsChangeNotification.NewSettings;
+        if (listUpdate.UpdateType is LobbyListUpdateType.UserLeft or LobbyListUpdateType.UserKicked) {
+            LobbyUser? removed = users.Find(x => x.Name == listUpdate.Username);
+            if (removed is not null) {
+                users.Remove(removed);
+                if (removed.Button is not null) {
+                    RemoveChild(removed.Button);
+                }
+            }
+
+            if (listUpdate.UpdateType == LobbyListUpdateType.UserKicked && listUpdate.Username == LocalSettings.Username) {
+                // user was kicked. show kick screen and return to main menu
+                _ = ShowKickedThenLeaveAsync();
+            }
         }
-        
-        if(networkManager.Handler!.TryGetPendingMessage(out NewRoomOwnerNotification? newRoomOwnerNotification)) {
-            LobbyUser? owner = users.FirstOrDefault(x => x.Name == newRoomOwnerNotification.Owner);
-            if (owner is null) {
-                throw new Exception("Unknown user became owner!!");
-            }
-            users.ForEach(x => x.IsOwner = false);
-            owner.IsOwner = true;
-            if (owner.IsLocal) {
-                UpgradedToAdmin?.Invoke(users, roomSettings, code);
-            }
-        }   
+        else if (listUpdate.UpdateType == LobbyListUpdateType.UserJoined) {
+            users.Add(new LobbyUser() {
+                Name = listUpdate.Username,
+                IsLocal = false,
+                IsOwner = false,
+            });
+        }
+    }
+
+    private async Task ShowKickedThenLeaveAsync() {
+        loading.ShowDots = false;
+        loading.Text = "You were kicked from the room. Returning to Main Menu in 5 seconds";
+        loading.Show();
+        await Task.Delay(5000);
+        UserLeft?.Invoke();
+    }
+
+    private void OnRoomSettingsChanged(RoomSettingsChangeNotification settingsChangeNotification) {
+        if (!IsEnabled) {
+            return;
+        }
+
+        roomSettings = settingsChangeNotification.NewSettings;
+    }
+
+    private void OnRoomOwnerChanged(NewRoomOwnerNotification newRoomOwnerNotification) {
+        if (!IsEnabled) {
+            return;
+        }
+
+        LobbyUser? owner = users.FirstOrDefault(x => x.Name == newRoomOwnerNotification.Owner);
+        if (owner is null) {
+            throw new Exception("Unknown user became owner!!");
+        }
+        users.ForEach(x => x.IsOwner = false);
+        owner.IsOwner = true;
+        if (owner.IsLocal) {
+            UpgradedToAdmin?.Invoke(users, roomSettings, code);
+        }
     }
     
     /// <summary>

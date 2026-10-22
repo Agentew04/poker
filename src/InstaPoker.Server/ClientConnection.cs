@@ -14,7 +14,7 @@ public class ClientConnection {
 
     public List<(Type,TaskCompletionSource<Message>)> PendingRequests { get; set; } = [];
     
-    public required NetworkStream NetworkStream { get; set; }
+    public required Stream Stream { get; set; }
 
     public required MessageWriter MessageWriter { get; set; }
 
@@ -22,7 +22,7 @@ public class ClientConnection {
 
 
     public async Task StartReceivingAsync() {
-        using MessageReader mr = new(NetworkStream, false);
+        using MessageReader mr = new(Stream, false);
 
         while (!cts!.IsCancellationRequested && Client.Connected) {
             // wait for new packet
@@ -43,12 +43,12 @@ public class ClientConnection {
             await IncomingMessages.Writer.WriteAsync(m);
         }
 
-        if (!Client.Connected) {
-            Console.WriteLine("User disconnected");
-            Client.Close();
-            // let user manager tell other pieces of the application that we have been disconnected
-            UserManager.RemoveConnection(this);
-        }
+        // leaving the loop always means the connection is gone: closed by the client, by an IO error,
+        // or because the server is shutting it down
+        Console.WriteLine($"User {Username} disconnected");
+        Client.Close();
+        // let user manager tell other pieces of the application that we have been disconnected
+        UserManager.RemoveConnection(this);
     }
 
     public async Task<TResponse> SendRequest<TRequest, TResponse>(TRequest request) where TRequest : Message where TResponse : Message{

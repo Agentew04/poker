@@ -2,6 +2,8 @@
 using InstaPoker.Client.Graphics;
 using InstaPoker.Client.Graphics.Objects;
 using InstaPoker.Client.Graphics.Styles;
+using InstaPoker.Client.Subsystems;
+using InstaPoker.Client.Subsystems.Account;
 using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
 using SubC.AllegroDotNet.Models;
@@ -22,7 +24,10 @@ public class MainMenuScreen() : SceneObject("Main Menu Screen") {
     [ChildObject] private readonly Button joinRoomButton = new(nameof(joinRoomButton));
     [ChildObject] private readonly TextBox codeTextBox = new(nameof(codeTextBox));
     [ChildObject] private readonly Fader emptyCodeFader = new(nameof(emptyCodeFader));
+    [ChildObject] private readonly Button logoutButton = new(nameof(logoutButton));
     private readonly Toast emptyCodeBoard = new(nameof(emptyCodeBoard));
+
+    [Service] private AccountStore accountStore = null!;
 
     public override void Initialize() {
         createRoomButton.Style = ButtonStyle.Default with {
@@ -56,6 +61,12 @@ public class MainMenuScreen() : SceneObject("Main Menu Screen") {
         titleImage.ImageName = "logo";
         titleImage.HorizontalAlign = HorizontalAlign.Right;
         titleImage.VerticalAlign = VerticalAlign.Center;
+
+        logoutButton.Style = ButtonStyle.RedButton with {
+            FontSize = 22
+        };
+        logoutButton.Text = "Logout";
+        logoutButton.Pressed += Logout;
         
         base.Initialize();
     }
@@ -67,6 +78,11 @@ public class MainMenuScreen() : SceneObject("Main Menu Screen") {
         }
         emptyCodeBoard.Text = "Type room code first!";
         emptyCodeFader.ShowFor(3);
+    }
+
+    private void Logout() {
+        accountStore.ClearLogin();
+        LoggedOut?.Invoke();
     }
 
     private void TryJoinRoom() {
@@ -105,6 +121,11 @@ public class MainMenuScreen() : SceneObject("Main Menu Screen") {
             Size.X * 0.5f - Al.GetTextWidth(FontManager.GetFont("ShareTech-Regular", titleLabel.FontSize), titleLabel.Text) 
             * 0.5f - 15,
             Size.Y * 0.25f);
+        
+        
+        logoutButton.Size = new Vector2(80,40);
+        logoutButton.Position = new Vector2(5, 5);
+        
         base.PositionElements();
     }
     
@@ -118,4 +139,6 @@ public class MainMenuScreen() : SceneObject("Main Menu Screen") {
     /// is passed as the sole parameter.
     /// </summary>
     public event Action<string>? JoinRoomClicked;
+
+    public event Action? LoggedOut;
 }

@@ -2,8 +2,8 @@
 using InstaPoker.Client.Graphics;
 using InstaPoker.Client.Graphics.Objects;
 using InstaPoker.Client.Graphics.Styles;
-using InstaPoker.Client.Network;
 using InstaPoker.Client.Subsystems;
+using InstaPoker.Client.Subsystems.Network;
 using InstaPoker.Core;
 using InstaPoker.Core.Messages.Notifications;
 using InstaPoker.Core.Messages.Requests;
@@ -79,7 +79,10 @@ public class AdminLobbyScreen() : SceneObject("Admin Lobby Screen") {
         smallblindTextbox.TextChanged += _ => SendConfiguration();
         maxPlayersTextbox.TextChanged += _ => SendConfiguration();
         maxBetTextbox.TextChanged += _ => SendConfiguration();
-        
+
+        networkManager.Subscribe<RoomListUpdatedNotification>(OnRoomListUpdated);
+        networkManager.Subscribe<BalanceQueryRequest>(OnBalanceQuery);
+
         base.Initialize();
     }
 
@@ -88,25 +91,28 @@ public class AdminLobbyScreen() : SceneObject("Admin Lobby Screen") {
     /// create a room.
     /// </summary>
     public void OnShow() {
-        loading.Show();
-        Task<(string, RoomSettings)> createRoomTask = networkManager.CreateRoom();
-        createRoomTask.ContinueWith(task => {
-            users.Clear();
-            users.Add(new LobbyUser() {
-                Name = LocalSettings.Username,
-                IsLocal = true,
-                IsOwner = true
-            });
-            code = task.Result.Item1;
-            title = "Room " + code;
-            roomSettings = task.Result.Item2;
-            allinEnabledCheckbox.Value = roomSettings.IsAllInEnabled;
-            maxPlayersTextbox.SetString(roomSettings.MaxPlayers.ToString());
-            smallblindTextbox.SetString(roomSettings.SmallBlind.ToString());
-            maxBetTextbox.SetString(roomSettings.MaxBet.ToString());
+        _ = CreateRoomAsync();
+    }
 
-            loading.Hide();
+    private async Task CreateRoomAsync() {
+        loading.Show();
+        (string roomCode, RoomSettings settings) = await networkManager.CreateRoom();
+
+        users.Clear();
+        users.Add(new LobbyUser() {
+            Name = LocalSettings.Username,
+            IsLocal = true,
+            IsOwner = true
         });
+        code = roomCode;
+        title = "Room " + code;
+        roomSettings = settings;
+        allinEnabledCheckbox.Value = roomSettings.IsAllInEnabled;
+        maxPlayersTextbox.SetString(roomSettings.MaxPlayers.ToString());
+        smallblindTextbox.SetString(roomSettings.SmallBlind.ToString());
+        maxBetTextbox.SetString(roomSettings.MaxBet.ToString());
+
+        loading.Hide();
     }
 
     /// <summary>
@@ -344,29 +350,34 @@ public class AdminLobbyScreen() : SceneObject("Admin Lobby Screen") {
             GameStarted?.Invoke();
         }
 
-        if (networkManager.Handler!.TryGetPendingMessage(out RoomListUpdatedNotification? listUpdate)) {
-            if (listUpdate.UpdateType is LobbyListUpdateType.UserLeft or LobbyListUpdateType.UserKicked) {
-                users.RemoveAll(x => x.Name == listUpdate.Username);
-            }
-            else if (listUpdate.UpdateType == LobbyListUpdateType.UserJoined) {
-                users.Add(new LobbyUser() {
-                    Name = listUpdate.Username,
-                    IsLocal = false,
-                    IsOwner = false,
-                });
-            }
+        base.Update(delta);
+    }
+
+    private void OnRoomListUpdated(RoomListUpdatedNotification listUpdate) {
+        if (!IsEnabled) {
+            return;
         }
 
-        // ignore updates from the server. we are admin and we are the source of truth (hopefully)
-        networkManager.Handler.TryGetPendingMessage(out RoomSettingsChangeNotification? _);
-
-        if (networkManager.Handler.TryGetPendingMessage(out BalanceQueryRequest? balanceQueryRequest)) {
-            _ = networkManager.Handler.SendNotification(new BalanceQueryResponse() {
-                Balance = LocalSettings.Amount
+        if (listUpdate.UpdateType is LobbyListUpdateType.UserLeft or LobbyListUpdateType.UserKicked) {
+            users.RemoveAll(x => x.Name == listUpdate.Username);
+        }
+        else if (listUpdate.UpdateType == LobbyListUpdateType.UserJoined) {
+            users.Add(new LobbyUser() {
+                Name = listUpdate.Username,
+                IsLocal = false,
+                IsOwner = false,
             });
         }
+    }
 
-        base.Update(delta);
+    /// <summary>
+    /// Answers the server balance query. This must work even while the screen is hidden: the server asks
+    /// for every player's balance when a game starts, and the admin screen is not the active screen then.
+    /// </summary>
+    private void OnBalanceQuery(BalanceQueryRequest request) {
+        _ = networkManager.SendNotification(new BalanceQueryResponse() {
+            Balance = LocalSettings.Amount
+        });
     }
 
     public override void OnMouseUp(MouseButton button) {

@@ -2,9 +2,9 @@
 using InstaPoker.Client.Graphics;
 using InstaPoker.Client.Graphics.Objects;
 using InstaPoker.Client.Graphics.Styles;
-using InstaPoker.Client.Network;
 using InstaPoker.Client.Subsystems;
 using InstaPoker.Client.Subsystems.Account;
+using InstaPoker.Client.Subsystems.Network;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -33,7 +33,7 @@ public class IdentifyScreen() : SceneObject("Identify Screen") {
     [Service] private AccountStore accountStore = null!;
     [Service] private NetworkManager networkManager = null!;
 
-    private Task<bool>? connectionTask;
+    private bool connectionStarted;
 
     public override void Initialize() {
         accountStore = Service.Provider.GetRequiredService<AccountStore>();
@@ -72,36 +72,46 @@ public class IdentifyScreen() : SceneObject("Identify Screen") {
     private void OnOkClick() {
         if (!string.IsNullOrWhiteSpace(nameTextBox.GetString())) {
             accountStore.SaveLogin(new Login(nameTextBox.GetString(), string.Empty));
-
-            connectionTask = TryConnection();
-            connectionTask.ContinueWith(OnConnectEnd);
+            connectionStarted = true;
+            _ = ConnectAsync();
             return;
         }
         emptyNameFader.ShowFor(3);
     }
 
-    private Task<bool> TryConnection() {
+    private async Task ConnectAsync() {
+        while (true) {
+            ConnectionResult result = await TryConnection();
+            switch (result) {
+                case ConnectionResult.Success:
+                    loading.Hide();
+                    OkClicked?.Invoke();
+                    return;
+
+                case ConnectionResult.CertificateMismatch:
+                    // retrying cannot help: this client is pinned to a different server key
+                    loading.ShowDots = false;
+                    loading.Text = "This server's certificate has changed. Please update your client to connect.";
+                    loading.Show();
+                    Logger.LogError("Connection aborted: the server certificate does not match this client. Update the client.");
+                    return;
+
+                default:
+                    loading.Text = "Could not connect to remote server. Retrying in 5 seconds";
+                    loading.ShowDots = false;
+                    loading.Show();
+                    await Task.Delay(5000);
+                    break;
+            }
+        }
+    }
+
+    private Task<ConnectionResult> TryConnection() {
         loading.ShowDots = true;
         loading.Text = "Connecting to server";
         loading.Show();
         Logger.LogInformation("Trying to connect to remote server");
         return networkManager.ConnectToServer(LocalSettings.Username);
-    }
-    
-    private void OnConnectEnd(Task<bool> task) {
-        if (task.Result) {
-            loading.Hide();
-            OkClicked?.Invoke();
-        }
-        else {
-            loading.Text = "Could not connect to remote server. Retrying in 5 seconds";
-            loading.ShowDots = false;
-            loading.Show();
-            Task.Delay(5000).ContinueWith(_ => {
-                connectionTask = TryConnection();
-                connectionTask.ContinueWith(OnConnectEnd);
-            });
-        }
     }
 
     public override void PositionElements() {
@@ -132,7 +142,7 @@ public class IdentifyScreen() : SceneObject("Identify Screen") {
 
     public override void Update(double delta) {
         Login? login = accountStore.GetSavedLogin();
-        if (login != null && connectionTask == null) {
+        if (login != null && !connectionStarted) {
             // there is a saved account. we can skip
             Logger.LogInformation("Using saved login data");
             nameTextBox.SetString(login.Username);

@@ -2,8 +2,8 @@
 using ImGuiNET;
 using InstaPoker.Client.Graphics;
 using InstaPoker.Client.Graphics.Objects;
-using InstaPoker.Client.Network;
 using InstaPoker.Client.Subsystems;
+using InstaPoker.Client.Subsystems.Network;
 using InstaPoker.Core.Messages;
 using InstaPoker.Core.Messages.Requests;
 using InstaPoker.Core.Messages.Responses;
@@ -54,7 +54,7 @@ public class DebugWindow {
 
             ImGui.Text("Pending Requests");
             if (ImGui.BeginListBox("##pendingrequests")) {
-                foreach (Type pending in networkManager.Handler?.GetPendingRequests() ?? []) {
+                foreach (Type pending in networkManager.PendingRequests) {
                     ImGui.Text(pending.Name);
                 }
                 ImGui.EndListBox();

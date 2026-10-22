@@ -45,6 +45,11 @@ public class PokerGame : AllegroWindow {
             frame.ActiveScreen = frame.PlayerLobbyScreen;
             frame.PlayerLobbyScreen.OnShow(code);
         };
+        frame.MainMenuScreen.LoggedOut += () => {
+            frame.ActiveScreen = frame.IdentifyScreen;
+            frame.AdminLobbyScreen.OnShow();
+        };
+        
         frame.AdminLobbyScreen.UserLeft += () => {
             frame.ActiveScreen = frame.MainMenuScreen;
         };

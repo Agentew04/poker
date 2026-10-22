@@ -4,8 +4,8 @@ using System.Runtime.InteropServices;
 using InstaPoker.Client.Game;
 using InstaPoker.Client.Graphics.Objects;
 using InstaPoker.Client.Graphics.Styles;
-using InstaPoker.Client.Network;
 using InstaPoker.Client.Subsystems;
+using InstaPoker.Client.Subsystems.Network;
 using Microsoft.Extensions.DependencyInjection;
 using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
@@ -111,7 +111,11 @@ public abstract partial class AllegroWindow {
         }
         // init services before calling init functions on ui components. they may get services from the DI
         Service.Init();
-        
+
+        // from here on, every await started on this thread resumes on this thread, inside the main loop
+        SynchronizationContext.SetSynchronizationContext(
+            Service.Provider.GetRequiredService<MainThreadDispatcher>());
+
         Initialize();
 
         
@@ -149,7 +153,7 @@ public abstract partial class AllegroWindow {
             ProcessEvents(queue);
             UpdateImGui(delta);
             DebugWindow.Show = imguiController.IsEnabled; // bad! juntou allegrowindow e pokergame
-            networkManager.Handler?.CheckForNewMessages();
+            networkManager.Pump();
             Update(delta);
             Render();
             Al.UseTransform(ref transform);
@@ -168,6 +172,8 @@ public abstract partial class AllegroWindow {
         }
 
         WindowClosing?.Invoke();
+        networkManager.Disconnect();
+        SynchronizationContext.SetSynchronizationContext(null);
         imguiController.Dispose();
         UnregisterEventSources(queue);
         Al.DestroyEventQueue(queue);

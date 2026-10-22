@@ -3,8 +3,8 @@ using InstaPoker.Client.Game.Screens.Components;
 using InstaPoker.Client.Graphics;
 using InstaPoker.Client.Graphics.Objects;
 using InstaPoker.Client.Graphics.Styles;
-using InstaPoker.Client.Network;
 using InstaPoker.Client.Subsystems;
+using InstaPoker.Client.Subsystems.Network;
 using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Models;
 

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.Design;
-using InstaPoker.Client.Network;
 using InstaPoker.Client.Subsystems.Account;
+using InstaPoker.Client.Subsystems.Network;
 using InstaPoker.Client.Subsystems.Settings;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -19,6 +19,7 @@ public static class Service {
     private static void Register(ServiceCollection services) {
         services.AddSingleton<SettingsService>();
         services.AddSingleton<AccountStore>();
+        services.AddSingleton<MainThreadDispatcher>();
         services.AddSingleton<NetworkManager>();
         
         services.AddLogging(builder => {
