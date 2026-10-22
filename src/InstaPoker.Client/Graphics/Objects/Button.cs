@@ -1,5 +1,7 @@
 ﻿using System.Numerics;
+using ImGuiNET;
 using InstaPoker.Client.Graphics.Styles;
+using Microsoft.Extensions.Logging;
 using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
 using SubC.AllegroDotNet.Models;
@@ -52,6 +54,14 @@ public class Button(string name) : SceneObject(name) {
         }
     }
 
+    public override void Update(double delta) {
+        if (isHovering) {
+            MouseManager.RequestMouse(SystemMouseCursor.Link);
+        }
+        
+        base.Update(delta);
+    }
+
     public override void OnMouseMove(Vector2 pos, Vector2 delta) {
         isHovering = pos.X >= 0 
                      && pos.X <= Size.X
@@ -93,5 +103,13 @@ public class Button(string name) : SceneObject(name) {
         AllegroSampleID? nil = null;
         Al.PlaySample(bopSample, 1, 0, 1, PlayMode.Once, ref nil);
         Pressed?.Invoke();
+    }
+
+    public override void OnDebugDraw() {
+        ImGui.Text($"Label: \"{Text}\"");
+        if (ImGui.Button("Press")) {
+            Press();
+        }
+        base.OnDebugDraw();
     }
 }

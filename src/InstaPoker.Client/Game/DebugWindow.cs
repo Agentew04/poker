@@ -86,37 +86,10 @@ public class DebugWindow {
                 Highlighter.HighlightObject(obj);
             }
             // debug data about a UI item
-            ImGui.Text($"Use Mouse: {obj.UseMouse}");
-            ImGui.Text($"Use Keyboard: {obj.UseKeyboard}");
+            ImGui.Text($"Input (Mouse={obj.UseMouse};Keyb={obj.UseKeyboard};)");
             ImGui.Text($"Position: {obj.Position}");
             ImGui.Text($"Size: {obj.Size}");
-            switch (obj) {
-                case Button button:
-                    ImGui.Text($"Label: \"{button.Text}\"");
-                    if (ImGui.Button("Press")) {
-                        button.Press();
-                    }
-                    break;
-                case LoadingLabel loading:
-                    ImGui.Text($"Text: \"{loading.Text}\"");
-                    ImGui.Text("Show dots: " + loading.ShowDots);
-                    break;
-                case TextBox textbox:
-                    ImGui.Text($"Text: \"{textbox.GetString()}\"");
-                    ImGui.Text("Placeholder: " + textbox.Placeholder);
-                    break;
-                case Toast board:
-                    ImGui.Text($"Text: \"{board.Text}\"");
-                    break;
-                case Label label:
-                    ImGui.Text($"Text: \"{label.Text}\"");
-                    break;
-                case Fader fader:
-                    if (ImGui.Button("Show")) {
-                        fader.ShowFor(5);
-                    }
-                    break;
-            }
+            obj.OnDebugDraw();
             
             foreach (SceneObject child in obj.GetChildren()) {
                 if (!sceneGraphOcurrences.TryGetValue(child.GetType().Name, out int value)) {

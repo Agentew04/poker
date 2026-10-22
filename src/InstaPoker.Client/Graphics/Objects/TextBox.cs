@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using ImGuiNET;
 using InstaPoker.Client.Graphics.Styles;
 using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
@@ -142,6 +143,12 @@ public class TextBox(string name) : SceneObject(name) {
                      && pos.Y <= Size.Y;
         if (isPressed && !isHovering) {
             isPressed = false;
+        }
+    }
+
+    public override void Update(double delta) {
+        if (isHovering) {
+            MouseManager.RequestMouse(SystemMouseCursor.Edit);
         }
     }
 
@@ -290,6 +297,11 @@ public class TextBox(string name) : SceneObject(name) {
 
     private void BuildString() {
         cachedString = new string(buffer, 0, charCount);
+    }
+
+    public override void OnDebugDraw() {
+        ImGui.Text($"Text: \"{GetString()}\"");
+        ImGui.Text($"Placeholder: {Placeholder}");
     }
 }
 

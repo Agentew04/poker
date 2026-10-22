@@ -1,4 +1,5 @@
-﻿using InstaPoker.Client.Graphics.Styles;
+﻿using ImGuiNET;
+using InstaPoker.Client.Graphics.Styles;
 using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
 using SubC.AllegroDotNet.Models;
@@ -52,6 +53,10 @@ public class Toast(string name) : SceneObject(name) {
             (int)(Size.X*0.5f),
             (int)(Size.Y*0.5f - Al.GetFontLineHeight(font)*0.5f), Size.X,
             Al.GetFontLineHeight(font), FontAlignFlags.Center, Text);
+    }
+
+    public override void OnDebugDraw() {
+        ImGui.Text($"Text: \"{Text}\"");
     }
 }
 

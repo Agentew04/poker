@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using ImGuiNET;
 
 namespace InstaPoker.Client.Graphics.Objects;
 
@@ -101,5 +102,11 @@ public class Fader(string name) : SceneObject(name) {
         showDuration = duration;
         lifetime = 0;
         active = true;
+    }
+
+    public override void OnDebugDraw() {
+        if (ImGui.Button("Show")) {
+            ShowFor(5);
+        }
     }
 }

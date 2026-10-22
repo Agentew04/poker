@@ -27,7 +27,7 @@ public class IdentifyScreen() : SceneObject("Identify Screen") {
     [ChildObject] private readonly TextBox nameTextBox = new(nameof(nameTextBox));
     [ChildObject] private readonly Button okButton = new(nameof(okButton));
     [ChildObject] private readonly Fader emptyNameFader = new(nameof(emptyNameFader));
-    [ChildObject] private readonly Toast emptyNameBoard = new(nameof(emptyNameBoard));
+    private readonly Toast emptyNameBoard = new(nameof(emptyNameBoard));
     [ChildObject] private readonly LoadingLabel loading = new(nameof(loading));
 
     [Service] private AccountStore accountStore = null!;

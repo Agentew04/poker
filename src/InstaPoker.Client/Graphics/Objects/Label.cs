@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using ImGuiNET;
 using InstaPoker.Client.Graphics.Styles;
 using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
@@ -47,5 +48,9 @@ public class Label : SceneObject {
         float xDiff = MathF.Floor(translation.X) - translation.X;
         float yDiff = MathF.Floor(translation.Y) - translation.Y;
         Text.DrawUtfString(font, xDiff, yDiff, Foreground);
+    }
+
+    public override void OnDebugDraw() {
+        ImGui.Text($"Text: \"{Text}\"");
     }
 }

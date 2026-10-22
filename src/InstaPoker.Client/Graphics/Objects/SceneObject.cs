@@ -284,6 +284,10 @@ public abstract class SceneObject {
     protected void RemoveChild(SceneObject child) {
         children.Remove(child);
     }
+
+    public virtual void OnDebugDraw() {
+        // empty
+    }
 }
 
 public enum LogLevel {

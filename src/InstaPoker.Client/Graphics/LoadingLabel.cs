@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using System.Text;
+using ImGuiNET;
 using InstaPoker.Client.Graphics.Objects;
 using InstaPoker.Client.Graphics.Styles;
 using SubC.AllegroDotNet;
@@ -67,5 +68,10 @@ public class LoadingLabel(string name) : SceneObject(name) {
 
     public void Hide() {
         IsEnabled = false;
+    }
+
+    public override void OnDebugDraw() {
+        ImGui.Text($"Text: \"{Text}\"");
+        ImGui.Text($"Show dots: {ShowDots}");
     }
 }

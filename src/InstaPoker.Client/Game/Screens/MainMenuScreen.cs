@@ -22,7 +22,7 @@ public class MainMenuScreen() : SceneObject("Main Menu Screen") {
     [ChildObject] private readonly Button joinRoomButton = new(nameof(joinRoomButton));
     [ChildObject] private readonly TextBox codeTextBox = new(nameof(codeTextBox));
     [ChildObject] private readonly Fader emptyCodeFader = new(nameof(emptyCodeFader));
-    [ChildObject] private readonly Toast emptyCodeBoard = new(nameof(emptyCodeBoard));
+    private readonly Toast emptyCodeBoard = new(nameof(emptyCodeBoard));
 
     public override void Initialize() {
         createRoomButton.Style = ButtonStyle.Default with {

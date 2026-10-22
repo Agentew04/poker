@@ -123,6 +123,7 @@ public abstract partial class AllegroWindow {
         imguiController = new ImGuiController();
         AllegroEventQueue queue = Al.CreateEventQueue() ?? throw new Exception("Could not create event queue");
         RegisterEventSources(queue);
+        MouseManager.Initialize(Display!);
 
         // audio samples
         Al.ReserveSamples(4);
@@ -144,6 +145,7 @@ public abstract partial class AllegroWindow {
 
             CalculateFps(delta);
 
+            MouseManager.NewFrame();
             ProcessEvents(queue);
             UpdateImGui(delta);
             DebugWindow.Show = imguiController.IsEnabled; // bad! juntou allegrowindow e pokergame
@@ -152,6 +154,7 @@ public abstract partial class AllegroWindow {
             Render();
             Al.UseTransform(ref transform);
             imguiController.Render();
+            MouseManager.CommitChanges();
             
             Al.FlipDisplay();
 
