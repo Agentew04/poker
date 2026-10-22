@@ -16,30 +16,27 @@ public class MainMenuScreen() : SceneObject("Main Menu Screen") {
     public override bool UseMouse => true;
     public override bool UseKeyboard => true;
 
-    private readonly Label titleLabel = new(nameof(titleLabel));
-    private readonly Image titleImage = new(nameof(titleImage));
-    private readonly Button createRoomButton = new(nameof(createRoomButton));
-    private readonly Button joinRoomButton = new(nameof(joinRoomButton));
-    private readonly TextBox codeTextBox = new(nameof(codeTextBox));
-    private readonly Fader emptyCodeFader = new(nameof(emptyCodeFader));
-    private readonly Toast emptyCodeBoard = new(nameof(emptyCodeBoard));
+    [ChildObject] private readonly Label titleLabel = new(nameof(titleLabel));
+    [ChildObject] private readonly Image titleImage = new(nameof(titleImage));
+    [ChildObject] private readonly Button createRoomButton = new(nameof(createRoomButton));
+    [ChildObject] private readonly Button joinRoomButton = new(nameof(joinRoomButton));
+    [ChildObject] private readonly TextBox codeTextBox = new(nameof(codeTextBox));
+    [ChildObject] private readonly Fader emptyCodeFader = new(nameof(emptyCodeFader));
+    [ChildObject] private readonly Toast emptyCodeBoard = new(nameof(emptyCodeBoard));
 
     public override void Initialize() {
-        AddChild(createRoomButton);
         createRoomButton.Style = ButtonStyle.Default with {
             FontSize = 28
         };
         createRoomButton.Text = "Create Room";
         createRoomButton.Pressed += () => CreateRoomClicked?.Invoke();
         
-        AddChild(joinRoomButton);
         joinRoomButton.Style = ButtonStyle.Default with {
             FontSize = 28
         };
         joinRoomButton.Text = "Join Room";
         joinRoomButton.Pressed += OnJoinClick;
         
-        AddChild(codeTextBox);
         codeTextBox.Style = TextBoxStyle.Default with {
             FontSize = 24
         };
@@ -49,16 +46,13 @@ public class MainMenuScreen() : SceneObject("Main Menu Screen") {
         codeTextBox.VerticalTextAlignment = VerticalAlign.Center;
         codeTextBox.EnterButton = joinRoomButton;
         
-        AddChild(emptyCodeFader);
         emptyCodeFader.Content = emptyCodeBoard;
         emptyCodeBoard.Type = TextBoardType.Error;
         emptyCodeBoard.FontSize = 24;
         
-        AddChild(titleLabel);
         titleLabel.FontSize = 60;
         titleLabel.Text = "Insta Poker";
         
-        AddChild(titleImage);
         titleImage.ImageName = "logo";
         titleImage.HorizontalAlign = HorizontalAlign.Right;
         titleImage.VerticalAlign = VerticalAlign.Center;
@@ -113,11 +107,7 @@ public class MainMenuScreen() : SceneObject("Main Menu Screen") {
             Size.Y * 0.25f);
         base.PositionElements();
     }
-
-    public override void Render(RenderContext ctx) {
-        base.Render(ctx);
-    }
-
+    
     /// <summary>
     /// Event fired when the user clicks on the 'Create Room' button.
     /// </summary>

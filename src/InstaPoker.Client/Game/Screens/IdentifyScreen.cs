@@ -3,6 +3,9 @@ using InstaPoker.Client.Graphics;
 using InstaPoker.Client.Graphics.Objects;
 using InstaPoker.Client.Graphics.Styles;
 using InstaPoker.Client.Network;
+using InstaPoker.Client.Subsystems;
+using InstaPoker.Client.Subsystems.Account;
+using Microsoft.Extensions.DependencyInjection;
 using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
 using SubC.AllegroDotNet.Models;
@@ -22,21 +25,23 @@ public class IdentifyScreen() : SceneObject("Identify Screen") {
     public override bool UseMouse => true;
     public override bool UseKeyboard => true;
 
-    private readonly Label whatsyournameLabel = new(nameof(whatsyournameLabel));
-    private readonly TextBox nameTextBox = new(nameof(nameTextBox));
-    private readonly Button okButton = new(nameof(okButton));
-    private readonly Fader emptyNameFader = new(nameof(emptyNameFader));
-    private readonly Toast emptyNameBoard = new(nameof(emptyNameBoard));
-    private readonly LoadingLabel loading = new(nameof(loading));
+    [ChildObject] private readonly Label whatsyournameLabel = new(nameof(whatsyournameLabel));
+    [ChildObject] private readonly TextBox nameTextBox = new(nameof(nameTextBox));
+    [ChildObject] private readonly Button okButton = new(nameof(okButton));
+    [ChildObject] private readonly Fader emptyNameFader = new(nameof(emptyNameFader));
+    [ChildObject] private readonly Toast emptyNameBoard = new(nameof(emptyNameBoard));
+    [ChildObject] private readonly LoadingLabel loading = new(nameof(loading));
+
+    private AccountStore accountStore;
 
     private Task<bool>? connectionTask;
 
     public override void Initialize() {
-        AddChild(loading);
+        accountStore = Service.Provider.GetRequiredService<AccountStore>();
+        
         loading.FontSize = 28;
         loading.Hide();
         
-        AddChild(nameTextBox);
         nameTextBox.Style = TextBoxStyle.Default with {
             FontSize = 28
         };
@@ -46,7 +51,6 @@ public class IdentifyScreen() : SceneObject("Identify Screen") {
         nameTextBox.MaxCharacters = 20;
         nameTextBox.Keyboard = TextboxKeyboard.AlphaNumeric;
         
-        AddChild(okButton);
         okButton.Style = ButtonStyle.Default with {
             FontSize = 28
         };
@@ -54,13 +58,11 @@ public class IdentifyScreen() : SceneObject("Identify Screen") {
         okButton.Text = "OK";
         okButton.Pressed += OnOkClick;
         
-        AddChild(emptyNameFader);
         emptyNameFader.Content = emptyNameBoard;
         emptyNameBoard.Text = "Nickname cannot be empty!";
         emptyNameBoard.FontSize = 24;
         emptyNameBoard.Type = TextBoardType.Error;
         
-        AddChild(whatsyournameLabel);
         whatsyournameLabel.FontSize = 32;
         whatsyournameLabel.Text = "Hello! What's your name?";
         
@@ -69,9 +71,8 @@ public class IdentifyScreen() : SceneObject("Identify Screen") {
 
     private void OnOkClick() {
         if (!string.IsNullOrWhiteSpace(nameTextBox.GetString())) {
-            LocalSettings.Username = nameTextBox.GetString();
+            accountStore.SaveLogin(new Login(nameTextBox.GetString(), string.Empty));
 
-            
             connectionTask = TryConnection();
             connectionTask.ContinueWith(OnConnectEnd);
             return;
@@ -128,6 +129,16 @@ public class IdentifyScreen() : SceneObject("Identify Screen") {
         base.PositionElements();
     }
 
+    public override void Update(double delta) {
+        Login? login = accountStore.GetSavedLogin();
+        if (login != null && connectionTask == null) {
+            // there is a saved account. we can skip
+            nameTextBox.SetString(login.Username);
+            OnOkClick();
+        }
+        base.Update(delta);
+    }
+
     public override void Render(RenderContext ctx) {
         loading.Render(ctx);
         if (loading.IsEnabled) {
@@ -137,32 +148,8 @@ public class IdentifyScreen() : SceneObject("Identify Screen") {
         ctx.UpdateTransform();
         
         base.Render(ctx);
-        
-        // renderer.Style = CardStyle.Default;
-        // renderer.CardSize = new Vector2(63.5f,88.9f)*4;
-        // renderer.RenderContext = ctx;
-        // if (Al.GetTime() > turnStart + turnTime && isTurning) {
-        //     Console.WriteLine("End anim");
-        //     isTurning = false;
-        //     isDown = !isDown;
-        // }
-        //
-        // // }else if(isTurning && Al.GetTime() <= turnStart + turnTime) Console.WriteLine((float)((Al.GetTime() - turnStart)/turnTime));
-        // // renderer.RenderAt(new GameCard(7, Suit.Clubs), new Vector2(250,250),isDown, !isTurning 
-        // //         ? 0
-        // //         : (float)((Al.GetTime() - turnStart)/turnTime)
-        // //     , isHover ? MathF.PI*0.25f : 0);
     }
 
-    // private CardRenderer renderer = new();
-    //
-    // private bool isTurning = false;
-    // private double turnTime = 0.5f;
-    // private double turnStart = 0;
-    // private bool isDown = true;
-    
-    // private bool isHover;
-    
     /// <summary>
     /// Event fired when the user clicks on the Ok button. <see cref="IdentifyScreen"/> performs internal validation
     /// and only fires this event when the username is valid.

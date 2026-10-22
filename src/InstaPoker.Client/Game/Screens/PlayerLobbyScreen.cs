@@ -22,15 +22,16 @@ public class PlayerLobbyScreen() : SceneObject("Player Lobby Screen") {
     
     private string code = string.Empty;
     private string title = string.Empty;
-    private readonly LoadingLabel loading = new(nameof(loading));
+    [ChildObject] private readonly LoadingLabel loading = new(nameof(loading));
     private RoomSettings roomSettings = new();
     private List<LobbyUser> users = [];
 
     private Task<JoinRoomResponse>? joinTask;
 
     public override void Initialize() {
-        AddChild(loading);
         loading.FontSize = 28;
+        
+        base.Initialize();
     }
 
     /// <summary>

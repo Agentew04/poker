@@ -2,6 +2,8 @@
 
 namespace InstaPoker.Core.Messages.Notifications;
 
+public enum PokerAction{}
+
 /// <summary>
 /// Sent to ALL players to indicate whose turn it is.
 /// The player whose turn it is uses this to know they must act.

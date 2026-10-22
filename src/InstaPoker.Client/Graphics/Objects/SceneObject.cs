@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using System.Reflection;
 using InstaPoker.Client.Game;
 using InstaPoker.Client.Graphics.Styles;
 using SubC.AllegroDotNet;
@@ -62,9 +63,23 @@ public abstract class SceneObject {
     /// </summary>
     public virtual void Initialize() {
         isInitialized = true;
+        
+        // children aqui ta vazio. tem que popular
+        List<SceneObject> childs = GetType()
+            .GetMembers(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+            .OfType<FieldInfo>()
+            .Where(x => x.GetCustomAttribute<ChildObjectAttribute>() is not null &&
+                        typeof(SceneObject).IsAssignableFrom(x.FieldType))
+            .Select(x => x.GetValue(this) as SceneObject)
+            .Where(x => x is not null)
+            .ToList()!;
+        children.AddRange(childs);
+        
         foreach (SceneObject child in children) {
             child.Initialize();
-            child.isInitialized = true;
+            if (!child.isInitialized) {
+                throw new Exception($"SceneObject {child.Name} did not call base Initialize");
+            }
         }
     }
     
@@ -243,6 +258,29 @@ public abstract class SceneObject {
     protected void RemoveChild(SceneObject child) {
         children.Remove(child);
     }
+
+    protected void Log(string message, LogLevel level = LogLevel.Info) {
+        ConsoleColor originalColor = Console.ForegroundColor;
+        if (level == LogLevel.Warn) {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+        }else if (level == LogLevel.Error) {
+            Console.ForegroundColor = ConsoleColor.Red;
+        }
+        Console.WriteLine($"[{DateTime.Now.TimeOfDay}] <{Name}> [{(level switch {
+            LogLevel.Info => "INFO",
+            LogLevel.Warn => "WARN",
+            LogLevel.Error => "ERROR",
+            _ => "UNKN"
+        })}] {message}");
+        Console.ForegroundColor = originalColor;
+    }
+    
+}
+
+public enum LogLevel {
+    Info,
+    Warn,
+    Error
 }
 
 /// <summary>

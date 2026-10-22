@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using InstaPoker.Client.Game.Screens.Components;
 using InstaPoker.Client.Graphics;
 using InstaPoker.Client.Graphics.Objects;
 using InstaPoker.Client.Graphics.Styles;
@@ -15,17 +16,16 @@ public class GameScreen() : SceneObject("GameScreen") {
     private readonly Button leaveButton = new(nameof(leaveButton));
     
     // pot
-    private readonly Label potTitleLabel = new(nameof(potTitleLabel));
-    private readonly Label potAmountLabel = new(nameof(potAmountLabel));
+    [ChildObject] private readonly Pot pot = new(nameof(pot));
 
     // bottom player
-    private readonly Label yourTurnLabel = new(nameof(yourTurnLabel));
-    private readonly Button checkButton = new(nameof(checkButton));
-    private readonly Button callButton = new(nameof(callButton));
-    private readonly Button raiseButton = new(nameof(raiseButton));
-    private readonly TextBox raiseTextbox = new(nameof(raiseTextbox));
-    private readonly Label balanceTitle = new(nameof(balanceTitle));
-    private readonly Label balanceAmount = new(nameof(balanceAmount));
+    [ChildObject] private readonly Label yourTurnLabel = new(nameof(yourTurnLabel));
+    [ChildObject] private readonly Button checkButton = new(nameof(checkButton));
+    [ChildObject] private readonly Button callButton = new(nameof(callButton));
+    [ChildObject] private readonly Button raiseButton = new(nameof(raiseButton));
+    [ChildObject] private readonly TextBox raiseTextbox = new(nameof(raiseTextbox));
+    [ChildObject] private readonly Label balanceTitle = new(nameof(balanceTitle));
+    [ChildObject] private readonly Label balanceAmount = new(nameof(balanceAmount));
 
     public override void Initialize() {
         AddChild(leaveButton);
@@ -35,17 +35,8 @@ public class GameScreen() : SceneObject("GameScreen") {
         leaveButton.Text = "Leave";
         leaveButton.Pressed += UserLeave;
 
-        AddChild(potTitleLabel);
-        potTitleLabel.Text = "Pot";
-        potTitleLabel.FontSize = 30;
-        potTitleLabel.VerticalAlign = VerticalAlign.Bottom;
+        AddChild(pot);
         
-        AddChild(potAmountLabel);
-        potAmountLabel.Text = "14.000";
-        potAmountLabel.FontSize = 30;
-        potAmountLabel.VerticalAlign = VerticalAlign.Top;
-        
-
         AddChild(yourTurnLabel);
         yourTurnLabel.Text = "Your Turn!";
         yourTurnLabel.FontSize = 30;
@@ -144,8 +135,8 @@ public class GameScreen() : SceneObject("GameScreen") {
         // pot
         float potWidthHalf = Size.X * 0.1f;
         float potHeightHalf = potWidthHalf * 0.5f;
-        potTitleLabel.Position = new Vector2(Size.X * 0.5f, headerSpace + potHeightHalf - 5);
-        potAmountLabel.Position = new Vector2(Size.X * 0.5f, headerSpace + potHeightHalf + 5);
+        // potTitleLabel.Position = new Vector2(Size.X * 0.5f, headerSpace + potHeightHalf - 5);
+        // potAmountLabel.Position = new Vector2(Size.X * 0.5f, headerSpace + potHeightHalf + 5);
 
 
         base.PositionElements();
@@ -166,12 +157,6 @@ public class GameScreen() : SceneObject("GameScreen") {
         Al.DrawRoundedRectangle(balanceAmount.Position.X - 3, balanceAmount.Position.Y - 3,
             balanceAmount.Position.X + balanceAmount.Size.X + 5, balanceAmount.Position.Y + balanceAmount.Size.Y + 5,
             5, 5, Colors.Black, 2);
-        
-        // Pot background
-        float potWidthHalf = Size.X * 0.1f;
-        float potHeightHalf = potWidthHalf * 0.5f;
-        Al.DrawFilledEllipse(Size.X * 0.5f, headerSpace + potHeightHalf, potWidthHalf, potHeightHalf, darkGreen);
-        Al.DrawEllipse(Size.X * 0.5f, headerSpace + potHeightHalf, potWidthHalf, potHeightHalf, Colors.Black, 2);
         
         // debug
         Al.DrawRectangle(0, Size.Y - playerSpace, Size.X, Size.Y, Colors.Red, 1);

@@ -26,25 +26,23 @@ public class AdminLobbyScreen() : SceneObject("Admin Lobby Screen") {
     private string title = string.Empty;
     private readonly List<LobbyUser> users = [];
     private readonly List<LobbyUser> usersToDelete = [];
-    private readonly LoadingLabel loading = new(nameof(loading));
-    private readonly Button startGameButton = new(nameof(startGameButton));
-    private readonly Label waitingPlayersLabel = new(nameof(waitingPlayersLabel));
+    [ChildObject] private readonly LoadingLabel loading = new(nameof(loading));
+    [ChildObject] private readonly Button startGameButton = new(nameof(startGameButton));
+    [ChildObject] private readonly Label waitingPlayersLabel = new(nameof(waitingPlayersLabel));
     
     private RoomSettings roomSettings = new();
     
-    private readonly TextBox smallblindTextbox = new(nameof(smallblindTextbox));
-    private readonly TextBox maxBetTextbox = new(nameof(maxBetTextbox));
-    private readonly TextBox maxPlayersTextbox = new(nameof(maxBetTextbox));
-    private readonly Checkbox allinEnabledCheckbox = new(nameof(allinEnabledCheckbox));
+    [ChildObject] private readonly TextBox smallblindTextbox = new(nameof(smallblindTextbox));
+    [ChildObject] private readonly TextBox maxBetTextbox = new(nameof(maxBetTextbox));
+    [ChildObject] private readonly TextBox maxPlayersTextbox = new(nameof(maxBetTextbox));
+    [ChildObject] private readonly Checkbox allinEnabledCheckbox = new(nameof(allinEnabledCheckbox));
     
 
 
     public override void Initialize() {
-        AddChild(loading);
         loading.Text = "Creating room";
         loading.FontSize = 28;
         
-        AddChild(startGameButton);
         startGameButton.Text = "Start Game";
         startGameButton.Style = ButtonStyle.Default with {
             FontSize = 30
@@ -52,15 +50,9 @@ public class AdminLobbyScreen() : SceneObject("Admin Lobby Screen") {
         startGameButton.Pressed += StartGame;
         startGameButton.IsEnabled = true;
         
-        AddChild(waitingPlayersLabel);
         waitingPlayersLabel.IsEnabled = false;
         waitingPlayersLabel.Text = "Waiting Players";
         waitingPlayersLabel.FontSize = 30;
-        
-        AddChild(maxBetTextbox);
-        AddChild(maxPlayersTextbox);
-        AddChild(smallblindTextbox);
-        AddChild(allinEnabledCheckbox);
         
         smallblindTextbox.Style = maxPlayersTextbox.Style = maxBetTextbox.Style = TextBoxStyle.Default with {
             FontSize = 20
@@ -345,6 +337,10 @@ public class AdminLobbyScreen() : SceneObject("Admin Lobby Screen") {
         loading.Update(delta);
         if (loading.IsEnabled) {
             return;
+        }
+
+        if (!startGameButton.IsEnabled) {
+            GameStarted?.Invoke();
         }
 
         if (NetworkManager.Handler!.TryGetPendingMessage(out RoomListUpdatedNotification? listUpdate)) {

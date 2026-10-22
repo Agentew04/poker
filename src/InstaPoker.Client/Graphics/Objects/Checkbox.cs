@@ -22,6 +22,8 @@ public class Checkbox(string name) : SceneObject(name) {
 
     public override void Initialize() {
         checkVertices = new float[6];
+        
+        base.Initialize();
     }
 
     public override void Render(RenderContext ctx) {

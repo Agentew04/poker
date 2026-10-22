@@ -5,6 +5,7 @@ using InstaPoker.Client.Game;
 using InstaPoker.Client.Graphics.Objects;
 using InstaPoker.Client.Graphics.Styles;
 using InstaPoker.Client.Network;
+using InstaPoker.Client.Subsystems;
 using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
 using SubC.AllegroDotNet.Extensions;
@@ -107,6 +108,9 @@ public abstract partial class AllegroWindow {
         if (!InitializeAllegro()) {
             return;
         }
+        // init services before calling init functions on ui components. they may get services from the DI
+        Service.Init();
+        
         Initialize();
 
         
@@ -127,6 +131,8 @@ public abstract partial class AllegroWindow {
 
         AllegroTransform transform = new();
         Al.IdentityTransform(ref transform);
+        
+        
         
         double targetFps = Al.GetDisplayRefreshRate(Display);
         double targetFpsDelta = 1.0 / targetFps;

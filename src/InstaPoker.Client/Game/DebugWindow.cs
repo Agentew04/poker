@@ -64,7 +64,7 @@ public class DebugWindow {
             ImGui.Text($"Fps: {Game.Fps:F2}");
             
             ImGui.Text("Scene Graph: ");
-            SceneObject root = Game.RenderScreen;
+            SceneObject root = Game.RootObject;
             sceneGraphOcurrences.Clear();
             TraverseSceneGraph(root);
             
@@ -82,6 +82,8 @@ public class DebugWindow {
             // debug data about a UI item
             ImGui.Text($"Use Mouse: {obj.UseMouse}");
             ImGui.Text($"Use Keyboard: {obj.UseKeyboard}");
+            ImGui.Text($"Position: {obj.Position}");
+            ImGui.Text($"Size: {obj.Size}");
             switch (obj) {
                 case Button button:
                     ImGui.Text($"Label: \"{button.Text}\"");
