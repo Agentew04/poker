@@ -4,6 +4,9 @@ obj/
 riderModule.iml
 /_ReSharper.Caches/
 .idea/
+.vs/
 *.sln.DotSettings.user
 _site/
 api/
+*.crt
+*.pfx

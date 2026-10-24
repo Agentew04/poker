@@ -13,8 +13,10 @@ namespace InstaPoker.Client.Game.Screens;
 /// <summary>
 /// Represents the Main menu screen of the game. Is a general hub for other screens. 
 /// </summary>
-public class MainMenuScreen() : SceneObject("Main Menu Screen") {
+public class MainMenuScreen() : SceneObject("Main Menu Screen"), IScreen<Screen> {
 
+    public Screen Key => Screen.MainMenu;
+    
     public override bool UseMouse => true;
     public override bool UseKeyboard => true;
 
@@ -25,6 +27,7 @@ public class MainMenuScreen() : SceneObject("Main Menu Screen") {
     [ChildObject] private readonly TextBox codeTextBox = new(nameof(codeTextBox));
     [ChildObject] private readonly Fader emptyCodeFader = new(nameof(emptyCodeFader));
     [ChildObject] private readonly Button logoutButton = new(nameof(logoutButton));
+    [ChildObject] private readonly Label usernameLabel = new(nameof(usernameLabel));
     private readonly Toast emptyCodeBoard = new(nameof(emptyCodeBoard));
 
     [Service] private AccountStore accountStore = null!;
@@ -67,6 +70,9 @@ public class MainMenuScreen() : SceneObject("Main Menu Screen") {
         };
         logoutButton.Text = "Logout";
         logoutButton.Pressed += Logout;
+
+        usernameLabel.VerticalAlign = VerticalAlign.Top;
+        usernameLabel.HorizontalAlign = HorizontalAlign.Left;
         
         base.Initialize();
     }
@@ -78,6 +84,10 @@ public class MainMenuScreen() : SceneObject("Main Menu Screen") {
         }
         emptyCodeBoard.Text = "Type room code first!";
         emptyCodeFader.ShowFor(3);
+    }
+
+    public void OnShow() {
+        usernameLabel.Text = "Logged in as " + LocalSettings.Username;
     }
 
     private void Logout() {
@@ -125,6 +135,7 @@ public class MainMenuScreen() : SceneObject("Main Menu Screen") {
         
         logoutButton.Size = new Vector2(80,40);
         logoutButton.Position = new Vector2(5, 5);
+        usernameLabel.Position = new Vector2(logoutButton.Position.X + logoutButton.Size.X + 5, 5);
         
         base.PositionElements();
     }

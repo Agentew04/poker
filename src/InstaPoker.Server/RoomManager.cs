@@ -4,55 +4,56 @@ using InstaPoker.Core.Messages.Notifications;
 using InstaPoker.Core.Messages.Requests;
 using InstaPoker.Core.Messages.Responses;
 using InstaPoker.Server.Games;
+using Microsoft.Extensions.Logging;
 
 namespace InstaPoker.Server;
 
-public static class RoomManager {
+public sealed class RoomManager(ILogger<RoomManager> logger) {
 
-    private static readonly List<Room> Rooms = [];
+    private readonly List<Room> rooms = [];
 
-    private static readonly Dictionary<ClientConnection, Room?> UserRoom = [];
+    private readonly Dictionary<ClientConnection, Room?> userRoom = [];
 
-    public static async Task CreateNewRoom(ClientConnection owner) {
+    public async Task CreateNewRoom(ClientConnection owner) {
         Room r = new() {
             Code = GenerateRandomCode(),
             ConnectedUsers = [owner],
             Owner = owner,
             Settings = GetDefaultRoomSettings()
         };
-        Console.WriteLine("Create room with code: " + r.Code);
-        Rooms.Add(r);
+        logger.LogInformation("Created room {code}", r.Code);
+        rooms.Add(r);
         await owner.MessageWriter.WriteAsync(new CreateRoomResponse() {
             RoomCode = r.Code,
             Settings = r.Settings
         });
-        UserRoom[owner] = r;
+        userRoom[owner] = r;
     }
 
-    public static async Task UpdateRoomSettings(ClientConnection owner, RoomSettings settings) {
-        Room? r = UserRoom[owner];
+    public async Task UpdateRoomSettings(ClientConnection owner, RoomSettings settings) {
+        Room? r = userRoom[owner];
         if (r is null || r.Owner != owner) {
-            Console.WriteLine("Non owner tried to update room settings");
+            logger.LogWarning("Non owner {username} tried to update room settings", owner.Username);
             return;
         }
 
         r.Settings = settings;
         // notify all players, including owner
-        await Parallel.ForEachAsync(r.ConnectedUsers, async (conn,_) => {
-            Console.WriteLine("sending new settings to: " + conn.Username);
+        await Parallel.ForEachAsync(r.ConnectedUsers, async (conn, _) => {
+            logger.LogDebug("Sending new settings to {username}", conn.Username);
             await conn.MessageWriter.WriteAsync(new RoomSettingsChangeNotification() {
                 NewSettings = r.Settings
             });
         });
     }
 
-    public static async Task UserLeaveRoom(ClientConnection conn) {
-        Room? room = UserRoom[conn];
+    public async Task UserLeaveRoom(ClientConnection conn) {
+        Room? room = userRoom[conn];
         if (room is null) {
-            Console.WriteLine("user was not in room");
+            logger.LogDebug("User {username} was not in a room", conn.Username);
             return;
         }
-        UserRoom[conn] = null;
+        userRoom[conn] = null;
 
         room.ConnectedUsers.Remove(conn);
         // notify users that player has left the room
@@ -62,16 +63,16 @@ public static class RoomManager {
                 UpdateType = LobbyListUpdateType.UserLeft
             });
         });
-        
+
         if (room.ConnectedUsers.Count == 0) {
-            Console.WriteLine($"Room {room.Code} is empty. removing");
-            Rooms.Remove(room);
+            logger.LogInformation("Room {code} is empty, removing it", room.Code);
+            rooms.Remove(room);
         }
 
         // if user was owner decide new owner
         if (room.Owner == conn && room.ConnectedUsers.Count > 0) {
             ClientConnection newOwner = room.ConnectedUsers[Random.Shared.Next(room.ConnectedUsers.Count)];
-            Console.WriteLine("New room owner: " + newOwner.Username);
+            logger.LogInformation("New room owner: {username}", newOwner.Username);
             room.Owner = newOwner;
             await Parallel.ForEachAsync(room.ConnectedUsers, async (user, _) => {
                 await user.MessageWriter.WriteAsync(new NewRoomOwnerNotification() {
@@ -81,18 +82,18 @@ public static class RoomManager {
         }
     }
 
-    public static async Task UserKick(ClientConnection conn, string kickedUser) {
-        Room? room = UserRoom[conn];
+    public async Task UserKick(ClientConnection conn, string kickedUser) {
+        Room? room = userRoom[conn];
         if (room is null || room.Owner != conn) {
             return;
         }
 
         ClientConnection? kicked = room.ConnectedUsers.Find(x => x.Username == kickedUser);
         if (kicked is null) {
-            Console.WriteLine("Tried kicking non existent user");
+            logger.LogWarning("Tried kicking non existent user {username}", kickedUser);
             return;
         }
-        
+
         // send notification and remove later. need to notify kicked player as well
         await Parallel.ForEachAsync(room.ConnectedUsers, async (user, _) => {
             await user.MessageWriter.WriteAsync(new RoomListUpdatedNotification() {
@@ -100,24 +101,25 @@ public static class RoomManager {
                 UpdateType = LobbyListUpdateType.UserKicked
             });
         });
-        UserRoom[kicked] = null;
+        userRoom[kicked] = null;
         room.ConnectedUsers.Remove(kicked);
     }
 
-    public static async Task UserJoinRoom(ClientConnection conn, JoinRoomRequest req) {
-        UserRoom.TryAdd(conn, null);
-        if (UserRoom[conn] != null) {
-            Console.WriteLine("User");
+    public async Task UserJoinRoom(ClientConnection conn, JoinRoomRequest req) {
+        userRoom.TryAdd(conn, null);
+        if (userRoom[conn] != null) {
+            logger.LogWarning("User {username} tried to join a room while already in one", conn.Username);
             await conn.MessageWriter.WriteAsync(new JoinRoomResponse() {
                 Result = JoinRoomResult.AlreadyInOtherRoom
             });
             return;
         }
 
-        Room? r = Rooms.Find(x => x.Code == req.RoomCode);
+        Room? r = rooms.Find(x => x.Code == req.RoomCode);
 
         if (r is null) {
-            Console.WriteLine($"User {conn.Username} tried entering non existent room with code: \"{req.RoomCode}\". Rooms Available: {string.Join(", ", Rooms.Select(x => $"\"{x.Code}\""))}");
+            logger.LogWarning("User {username} tried entering non existent room with code {code}. Rooms available: {rooms}",
+                conn.Username, req.RoomCode, string.Join(", ", rooms.Select(x => x.Code)));
             await conn.MessageWriter.WriteAsync(new JoinRoomResponse() {
                 Result = JoinRoomResult.RoomDoesNotExist
             });
@@ -125,7 +127,7 @@ public static class RoomManager {
         }
 
         if (r.Settings.MaxPlayers <= r.ConnectedUsers.Count) {
-            Console.WriteLine($"Room {r.Code} full for {conn.Username}");
+            logger.LogWarning("Room {code} is full for {username}", r.Code, conn.Username);
             await conn.MessageWriter.WriteAsync(new JoinRoomResponse() {
                 Result = JoinRoomResult.RoomFull
             });
@@ -133,7 +135,7 @@ public static class RoomManager {
         }
 
         if (r.ConnectedUsers.Any(x => x.Username == conn.Username)) {
-            Console.WriteLine($"Duplicated username {conn.Username} in room {r.Code}");
+            logger.LogWarning("Duplicated username {username} in room {code}", conn.Username, r.Code);
             await conn.MessageWriter.WriteAsync(new JoinRoomResponse() {
                 Result = JoinRoomResult.UsernameAlreadyExist
             });
@@ -141,15 +143,15 @@ public static class RoomManager {
         }
 
         if (r.InGame) {
-            Console.WriteLine($"User {conn.Username} tried joining a running game");
+            logger.LogWarning("User {username} tried joining running game in room {code}", conn.Username, r.Code);
             await conn.MessageWriter.WriteAsync(new JoinRoomResponse() {
                 Result = JoinRoomResult.GameAlreadyStarted
             });
             return;
         }
 
-        Console.WriteLine($"User {conn.Username} joined room {r.Code}");
-        UserRoom[conn] = r;
+        logger.LogInformation("User {username} joined room {code}", conn.Username, r.Code);
+        userRoom[conn] = r;
         await conn.MessageWriter.WriteAsync(new JoinRoomResponse() {
             Result = JoinRoomResult.Success,
             Settings = r.Settings,
@@ -166,24 +168,33 @@ public static class RoomManager {
         r.ConnectedUsers.Add(conn);
     }
 
-    public static void UnexpectedDisconnect(ClientConnection conn) {
+    public void UnexpectedDisconnect(ClientConnection conn) {
         // conn has already been disconnected
-        if (UserRoom.TryGetValue(conn, out Room? room)) {
-            _ = UserLeaveRoom(conn);
+        if (userRoom.TryGetValue(conn, out Room? room) && room is not null) {
+            _ = LeaveRoomSafelyAsync(conn);
         }
     }
 
-    public async static Task StartGame(ClientConnection conn) {
-        if(!UserRoom.TryGetValue(conn, out Room? room)) {
+    private async Task LeaveRoomSafelyAsync(ClientConnection conn) {
+        try {
+            await UserLeaveRoom(conn);
+        }
+        catch (Exception e) {
+            logger.LogWarning(e, "Failed to remove {username} from their room after disconnect", conn.Username);
+        }
+    }
+
+    public async Task StartGame(ClientConnection conn) {
+        if (!userRoom.TryGetValue(conn, out Room? room) || room is null) {
             return;
         }
 
-        room!.InGame = true;
+        room.InGame = true;
         room.Table = new PokerTable(room);
 
         _ = room.Table.StartGame();
     }
-    
+
     private static string GenerateRandomCode() {
         StringBuilder sb = new();
         const int count = 6;

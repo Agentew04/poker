@@ -18,7 +18,9 @@ namespace InstaPoker.Client.Game.Screens;
 /// Screen that renders a lobby with additional controls for admins, like lobby settings edition and the ability
 /// to kick other players from the room. 
 /// </summary>
-public class AdminLobbyScreen() : SceneObject("Admin Lobby Screen") {
+public class AdminLobbyScreen() : SceneObject("Admin Lobby Screen"), IScreen<Screen> {
+
+    public Screen Key => Screen.AdminLobby;
     
     public override bool UseMouse => true;
     public override bool UseKeyboard => true;
@@ -39,6 +41,8 @@ public class AdminLobbyScreen() : SceneObject("Admin Lobby Screen") {
     [ChildObject] private readonly Checkbox allinEnabledCheckbox = new(nameof(allinEnabledCheckbox));
 
     [Service] private NetworkManager networkManager = null!;
+    
+    public bool IsFromUpgrade { get; set; }
     
     public override void Initialize() {
         loading.Text = "Creating room";
@@ -91,7 +95,11 @@ public class AdminLobbyScreen() : SceneObject("Admin Lobby Screen") {
     /// create a room.
     /// </summary>
     public void OnShow() {
-        _ = CreateRoomAsync();
+        if (!IsFromUpgrade) {
+            _ = CreateRoomAsync();
+        }
+
+        IsFromUpgrade = false;
     }
 
     private async Task CreateRoomAsync() {

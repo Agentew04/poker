@@ -12,6 +12,8 @@ using InstaPoker.Core.Messages;
 using InstaPoker.Core.Messages.Requests;
 using InstaPoker.Core.Messages.Responses;
 using InstaPoker.Server;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
@@ -163,40 +165,141 @@ public class TlsTests {
 
     [Fact]
     public async Task Real_server_completes_the_tls_handshake_and_answers_a_request() {
-        _ = Task.Run(() => new InstaPoker.Server.Server().Run());
-        await Task.Delay(500);
+        int port = GetFreePort();
+        using IHost host = ServerHost.Build([$"--Server:Port={port}"]);
+        await host.StartAsync();
+
+        try {
+            using TcpClient client = new();
+            await client.ConnectAsync(IPAddress.Loopback, port);
+
+            await using SslStream ssl = await ServerHandshake.IdentifyAndSecureAsync(
+                client, "localhost", "tls-test-user", new Version(1, 0, 0, 0), NullLogger.Instance);
+
+            Assert.True(ssl.IsAuthenticated);
+            Assert.True(ssl.IsEncrypted);
+
+            MainThreadDispatcher dispatcher = new(NullLogger<MainThreadDispatcher>.Instance);
+            using MessageHandler handler = new(
+                new MessageReader(ssl, true),
+                new MessageWriter(ssl, true),
+                dispatcher,
+                NullLogger<MessageHandler>.Instance);
+
+            CreateRoomResponse response = await handler
+                .SendRequest<CreateRoomRequest, CreateRoomResponse>(new CreateRoomRequest())
+                .WaitAsync(TimeSpan.FromSeconds(10));
+
+            Assert.False(string.IsNullOrWhiteSpace(response.RoomCode));
+
+            handler.Dispose();
+            client.Close();
+
+            // the server should notice the disconnect and drop the connection from its user list
+            UserManager users = host.Services.GetRequiredService<UserManager>();
+            Stopwatch disconnectTimeout = Stopwatch.StartNew();
+            while (HasUser(users, "tls-test-user") && disconnectTimeout.ElapsedMilliseconds < 3000) {
+                await Task.Delay(50);
+            }
+            Assert.False(HasUser(users, "tls-test-user"));
+        }
+        finally {
+            await host.StopAsync(TimeSpan.FromSeconds(10));
+        }
+    }
+
+    [Fact]
+    public async Task Server_shuts_down_gracefully_when_the_host_stops() {
+        int port = GetFreePort();
+        IHost host = ServerHost.Build([$"--Server:Port={port}"]);
+        await host.StartAsync();
 
         using TcpClient client = new();
-        await client.ConnectAsync("127.0.0.1", 12512);
-
+        await client.ConnectAsync(IPAddress.Loopback, port);
         await using SslStream ssl = await ServerHandshake.IdentifyAndSecureAsync(
-            client, "localhost", "tls-test-user", new Version(1, 0, 0, 0), NullLogger.Instance);
+            client, "localhost", "shutdown-test-user", new Version(1, 0, 0, 0), NullLogger.Instance);
 
-        Assert.True(ssl.IsAuthenticated);
-        Assert.True(ssl.IsEncrypted);
+        await host.StopAsync(TimeSpan.FromSeconds(10));
 
-        MainThreadDispatcher dispatcher = new(NullLogger<MainThreadDispatcher>.Instance);
-        using MessageHandler handler = new(
-            new MessageReader(ssl, true),
-            new MessageWriter(ssl, true),
-            dispatcher,
-            NullLogger<MessageHandler>.Instance);
+        // the listener is closed: a new connection cannot be established
+        await Assert.ThrowsAnyAsync<Exception>(async () => {
+            using TcpClient probe = new();
+            await probe.ConnectAsync(IPAddress.Loopback, port).WaitAsync(TimeSpan.FromSeconds(2));
+        });
 
-        CreateRoomResponse response = await handler
-            .SendRequest<CreateRoomRequest, CreateRoomResponse>(new CreateRoomRequest())
-            .WaitAsync(TimeSpan.FromSeconds(10));
-
-        Assert.False(string.IsNullOrWhiteSpace(response.RoomCode));
-
-        handler.Dispose();
-        client.Close();
-
-        // the server should notice the disconnect and drop the connection from its user list
-        Stopwatch disconnectTimeout = Stopwatch.StartNew();
-        while (UserManager.Connections.Any(c => c.Username == "tls-test-user") &&
-               disconnectTimeout.ElapsedMilliseconds < 3000) {
-            await Task.Delay(50);
+        // the active connection was closed by the server
+        bool closed;
+        try {
+            int read = await ssl.ReadAsync(new byte[1]).AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+            closed = read == 0;
         }
-        Assert.DoesNotContain(UserManager.Connections, c => c.Username == "tls-test-user");
+        catch (Exception) {
+            closed = true;
+        }
+        Assert.True(closed, "the active connection should be closed when the host stops");
+
+        host.Dispose();
+    }
+
+    [Fact]
+    public async Task Router_handles_requests_from_multiple_connections() {
+        int port = GetFreePort();
+        using IHost host = ServerHost.Build([$"--Server:Port={port}"]);
+        await host.StartAsync();
+
+        try {
+            using TcpClient clientA = new();
+            using TcpClient clientB = new();
+            await clientA.ConnectAsync(IPAddress.Loopback, port);
+            await clientB.ConnectAsync(IPAddress.Loopback, port);
+
+            await using SslStream sslA = await ServerHandshake.IdentifyAndSecureAsync(
+                clientA, "localhost", "multi-a", new Version(1, 0, 0, 0), NullLogger.Instance);
+            await using SslStream sslB = await ServerHandshake.IdentifyAndSecureAsync(
+                clientB, "localhost", "multi-b", new Version(1, 0, 0, 0), NullLogger.Instance);
+
+            MainThreadDispatcher dispatcher = new(NullLogger<MainThreadDispatcher>.Instance);
+            using MessageHandler handlerA = new(
+                new MessageReader(sslA, true), new MessageWriter(sslA, true),
+                dispatcher, NullLogger<MessageHandler>.Instance);
+            using MessageHandler handlerB = new(
+                new MessageReader(sslB, true), new MessageWriter(sslB, true),
+                dispatcher, NullLogger<MessageHandler>.Instance);
+
+            Task<CreateRoomResponse> requestA =
+                handlerA.SendRequest<CreateRoomRequest, CreateRoomResponse>(new CreateRoomRequest());
+            Task<CreateRoomResponse> requestB =
+                handlerB.SendRequest<CreateRoomRequest, CreateRoomResponse>(new CreateRoomRequest());
+
+            await Task.WhenAll(requestA, requestB).WaitAsync(TimeSpan.FromSeconds(10));
+
+            CreateRoomResponse responseA = await requestA;
+            CreateRoomResponse responseB = await requestB;
+
+            Assert.False(string.IsNullOrWhiteSpace(responseA.RoomCode));
+            Assert.False(string.IsNullOrWhiteSpace(responseB.RoomCode));
+            Assert.NotEqual(responseA.RoomCode, responseB.RoomCode);
+        }
+        finally {
+            await host.StopAsync(TimeSpan.FromSeconds(10));
+        }
+    }
+
+    private static bool HasUser(UserManager users, string username) {
+        using ClientConnectionsSnapshot snapshot = users.RentSnapshot();
+        foreach (ClientConnection connection in snapshot) {
+            if (connection.Username == username) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static int GetFreePort() {
+        TcpListener probe = new(IPAddress.Loopback, 0);
+        probe.Start();
+        int port = ((IPEndPoint)probe.LocalEndpoint).Port;
+        probe.Stop();
+        return port;
     }
 }

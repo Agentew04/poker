@@ -4,44 +4,50 @@ using InstaPoker.Client.Graphics.Objects;
 
 namespace InstaPoker.Client.Game.Screens;
 
-public class WindowFrame : SceneObject {
+public class WindowFrame<T> : SceneObject where T : notnull {
     public WindowFrame(string name) : base(name) {
     }
 
     public override bool UseMouse => true;
     public override bool UseKeyboard => true;
+
+    private Dictionary<T,IScreen<T>> screens = [];
+    private Dictionary<IScreen<T>, SceneObject> objects = [];
     
-    [ChildObject] public readonly IdentifyScreen IdentifyScreen = new();
-    [ChildObject] public readonly MainMenuScreen MainMenuScreen = new();
-    [ChildObject] public readonly AdminLobbyScreen AdminLobbyScreen = new();
-    [ChildObject] public readonly PlayerLobbyScreen PlayerLobbyScreen = new();
-    [ChildObject] public readonly GameScreen GameScreen = new();
+    public T ActiveKey { get; private set; }
+    public SceneObject ActiveObject { get; private set; }
+    
 
-    public SceneObject ActiveScreen { get; set; } = null!;
+    public void AddScreen(IScreen<T> screen, bool isDefault = false) {
+        screens.Add(screen.Key, screen);
+        SceneObject obj = objects[screen] = (SceneObject)screen;
+        obj.Position = Vector2.Zero;
+        obj.Size = Size;
+        obj.Initialize();
 
-    public override void Initialize() {
-        ActiveScreen = IdentifyScreen;
-        
-        // aqui resolve os servicos das diferentes views
-        base.Initialize();
-    }
-
-    public override void Update(double delta) {
-        IdentifyScreen.IsEnabled = ActiveScreen == IdentifyScreen;
-        MainMenuScreen.IsEnabled = ActiveScreen == MainMenuScreen;
-        AdminLobbyScreen.IsEnabled = ActiveScreen == AdminLobbyScreen;
-        PlayerLobbyScreen.IsEnabled = ActiveScreen == PlayerLobbyScreen;
-        GameScreen.IsEnabled = ActiveScreen == GameScreen;
-
-        foreach (SceneObject child in GetChildren()) {
-            child.Size = Size;
-            child.Position = Vector2.Zero;
+        if (isDefault) {
+            SetScreen(screen.Key);
         }
-
-        base.Update(delta);
     }
 
-    public override void Render(RenderContext ctx) {
-        base.Render(ctx);
+    public void SetScreen(T key) {
+        IScreen<T> screen = screens[key];
+        SceneObject obj = objects[screen];
+        
+        ActiveKey = key;
+        ActiveObject = obj;
+        
+        obj.IsEnabled = true;
+        screen.OnShow();
+        
+        
+        // disable others
+        foreach (KeyValuePair<T, IScreen<T>> other in screens) {
+            if (other.Value == screen) {
+                continue;
+            }
+            SceneObject otherObj = objects[other.Value];
+            otherObj.IsEnabled = false;
+        }
     }
 }

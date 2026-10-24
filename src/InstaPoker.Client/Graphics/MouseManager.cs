@@ -26,7 +26,6 @@ public static class MouseManager {
             return;
         }
 
-        Console.WriteLine("cursor: " + cursor);
         Al.SetSystemMouseCursor(display, cursor);
     }
 

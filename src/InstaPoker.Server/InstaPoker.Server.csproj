@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\InstaPoker.Core\InstaPoker.Core.csproj" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.10" />
   </ItemGroup>
 
   <ItemGroup>

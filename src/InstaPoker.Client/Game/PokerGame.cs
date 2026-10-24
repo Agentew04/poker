@@ -24,9 +24,9 @@ public class PokerGame : AllegroWindow {
     private readonly RenderContext renderContext = new();
     private readonly DebugWindow debugWindow = new();
 
-    private readonly WindowFrame frame = new("frame");
+    private readonly WindowFrame<Screen> frame = new("frame");
 
-    public SceneObject RootObject => frame.ActiveScreen;
+    public SceneObject RootObject => frame.ActiveObject;
 
     /// <inheritdoc cref="AllegroWindow.Initialize"/>
     protected override void Initialize() {
@@ -35,41 +35,49 @@ public class PokerGame : AllegroWindow {
         RegisterImages();
         
         frame.Initialize();
-        frame.IdentifyScreen.OkClicked += () => frame.ActiveScreen = frame.MainMenuScreen;
+
+        AdminLobbyScreen adminLobby = new();
+        GameScreen game = new();
+        IdentifyScreen identify = new();
+        MainMenuScreen mainMenu = new();
+        PlayerLobbyScreen playerLobby = new();
         
-        frame.MainMenuScreen.CreateRoomClicked += () => {
-            frame.ActiveScreen = frame.AdminLobbyScreen;
-            frame.AdminLobbyScreen.OnShow();
-        };
-        frame.MainMenuScreen.JoinRoomClicked += code => {
-            frame.ActiveScreen = frame.PlayerLobbyScreen;
-            frame.PlayerLobbyScreen.OnShow(code);
-        };
-        frame.MainMenuScreen.LoggedOut += () => {
-            frame.ActiveScreen = frame.IdentifyScreen;
-            frame.AdminLobbyScreen.OnShow();
-        };
+        frame.AddScreen(adminLobby);
+        frame.AddScreen(game);
+        frame.AddScreen(identify);
+        frame.AddScreen(mainMenu);
+        frame.AddScreen(playerLobby);
         
-        frame.AdminLobbyScreen.UserLeft += () => {
-            frame.ActiveScreen = frame.MainMenuScreen;
+        identify.OkClicked += () => frame.SetScreen(Screen.MainMenu);
+        mainMenu.CreateRoomClicked += () => {
+            frame.SetScreen(Screen.AdminLobby);
         };
-        frame.PlayerLobbyScreen.UserLeft += () => {
-            frame.ActiveScreen = frame.MainMenuScreen;
+        mainMenu.JoinRoomClicked += code => {
+            playerLobby.Code = code;
+            frame.SetScreen(Screen.PlayerLobby);
         };
-        frame.PlayerLobbyScreen.UpgradedToAdmin += (users, settings, code) => {
-            frame.ActiveScreen = frame.AdminLobbyScreen;
-            frame.AdminLobbyScreen.OnUpgrade(users, settings, code);
+        mainMenu.LoggedOut += () => {
+            frame.SetScreen(Screen.Identify);
         };
-        frame.AdminLobbyScreen.GameStarted += () => {
-            frame.ActiveScreen = frame.GameScreen;
-            frame.GameScreen.OnShow();
+        adminLobby.UserLeft += () => {
+            frame.SetScreen(Screen.MainMenu);
         };
-        frame.PlayerLobbyScreen.GameStarted += () => {
-            frame.ActiveScreen = frame.GameScreen;
-            frame.GameScreen.OnShow();
+        playerLobby.UserLeft += () => {
+            frame.SetScreen(Screen.MainMenu);
         };
-        frame.GameScreen.UserLeft += () => {
-            frame.ActiveScreen = frame.MainMenuScreen;
+        playerLobby.UpgradedToAdmin += (users, settings, code) => {
+            adminLobby.IsFromUpgrade = true;
+            frame.SetScreen(Screen.AdminLobby);
+            adminLobby.OnUpgrade(users, settings, code);
+        };
+        adminLobby.GameStarted += () => {
+            frame.SetScreen(Screen.Game);
+        };
+        playerLobby.GameStarted += () => {
+            frame.SetScreen(Screen.Game);
+        };
+        game.UserLeft += () => {
+            frame.SetScreen(Screen.MainMenu);
         };
 
         debugWindow.Game = this;

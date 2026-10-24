@@ -10,7 +10,10 @@ using SubC.AllegroDotNet.Models;
 
 namespace InstaPoker.Client.Game.Screens;
 
-public class GameScreen() : SceneObject("GameScreen") {
+public class GameScreen() : SceneObject("GameScreen"), IScreen<Screen> {
+    
+    public Screen Key => Screen.Game;
+    
     public override bool UseMouse => true;
     public override bool UseKeyboard => true;
 

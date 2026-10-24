@@ -18,7 +18,9 @@ namespace InstaPoker.Client.Game.Screens;
 /// If for some reason the connection to the remote server fails, the client automatically tries again.
 /// There is no limit of retries.
 /// </remarks>
-public class IdentifyScreen() : SceneObject("Identify Screen") {
+public class IdentifyScreen() : SceneObject("Identify Screen"), IScreen<Screen> {
+    
+    public Screen Key => Screen.Identify;
     
     public override bool UseMouse => true;
     public override bool UseKeyboard => true;
@@ -148,6 +150,13 @@ public class IdentifyScreen() : SceneObject("Identify Screen") {
             nameTextBox.SetString(login.Username);
             OnOkClick();
         }
+
+        foreach (SceneObject child in GetChildren()) {
+            if (child == loading) {
+                continue;
+            }
+            child.IsEnabled = !loading.IsEnabled;
+        }
         base.Update(delta);
     }
 
@@ -167,4 +176,8 @@ public class IdentifyScreen() : SceneObject("Identify Screen") {
     /// and only fires this event when the username is valid.
     /// </summary>
     public event Action? OkClicked;
+
+    public void OnShow() {
+        // empty
+    }
 }

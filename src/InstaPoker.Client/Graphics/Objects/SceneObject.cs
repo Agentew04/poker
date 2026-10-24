@@ -273,6 +273,18 @@ public abstract class SceneObject {
 
     protected void AddChild(SceneObject child) {
         children.Add(child);
+
+        if (!child.isInitialized) {
+            IEnumerable<FieldInfo> services = child.GetType()
+                .GetMembers(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                .OfType<FieldInfo>()
+                .Where(x => x.GetCustomAttribute<ServiceAttribute>() is not null);
+            foreach (FieldInfo field in services) {
+                object? service = Service.Provider.GetService(field.FieldType);
+                field.SetValue(child, service);
+            }
+            child.Initialize();
+        }
     }
 
     public bool HasChild(SceneObject child) {

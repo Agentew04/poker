@@ -16,12 +16,13 @@ namespace InstaPoker.Client.Game.Screens;
 /// <summary>
 /// Screen that shows a lobby where the current user is <b>not</b> the owner/admin.
 /// </summary>
-public class PlayerLobbyScreen() : SceneObject("Player Lobby Screen") {
+public class PlayerLobbyScreen() : SceneObject("Player Lobby Screen"), IScreen<Screen> {
 
+    public Screen Key => Screen.PlayerLobby;
+    
     public override bool UseMouse => true;
     public override bool UseKeyboard => false;
     
-    private string code = string.Empty;
     private string title = string.Empty;
     [ChildObject] private readonly LoadingLabel loading = new(nameof(loading));
     private RoomSettings roomSettings = new();
@@ -29,6 +30,8 @@ public class PlayerLobbyScreen() : SceneObject("Player Lobby Screen") {
 
     [Service]
     private NetworkManager networkManager = null!;
+    
+    public string Code { get; set; }
 
     public override void Initialize() {
         loading.FontSize = 28;
@@ -39,17 +42,8 @@ public class PlayerLobbyScreen() : SceneObject("Player Lobby Screen") {
 
         base.Initialize();
     }
-
-    /// <summary>
-    /// Code executed when the users click on the button to join a room using a code.
-    /// </summary>
-    /// <param name="code">The code the user entered</param>
-    public void OnShow(string code) {
-        _ = JoinRoomAsync(code);
-    }
-
+    
     private async Task JoinRoomAsync(string code) {
-        this.code = code;
         loading.ShowDots = true;
         loading.Text = "Joining room";
         loading.Show();
@@ -284,7 +278,7 @@ public class PlayerLobbyScreen() : SceneObject("Player Lobby Screen") {
         users.ForEach(x => x.IsOwner = false);
         owner.IsOwner = true;
         if (owner.IsLocal) {
-            UpgradedToAdmin?.Invoke(users, roomSettings, code);
+            UpgradedToAdmin?.Invoke(users, roomSettings, Code);
         }
     }
     
@@ -301,4 +295,9 @@ public class PlayerLobbyScreen() : SceneObject("Player Lobby Screen") {
     public event Action<List<LobbyUser>, RoomSettings,string>? UpgradedToAdmin;
 
     public event Action? GameStarted;
+    
+    public void OnShow() {
+        _ = JoinRoomAsync(Code);
+        // empty
+    }
 }
