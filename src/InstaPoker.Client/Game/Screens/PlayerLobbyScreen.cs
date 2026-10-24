@@ -82,8 +82,7 @@ public class PlayerLobbyScreen() : SceneObject("Player Lobby Screen"), IScreen<S
     }
 
     public override void PositionElements() {
-        loading.Size = Size;
-        loading.Position = Vector2.Zero;
+        loading.Place().WithSize(Size).At(Vector2.Zero);
         base.PositionElements();
     }
 
@@ -164,8 +163,9 @@ public class PlayerLobbyScreen() : SceneObject("Player Lobby Screen"), IScreen<S
                     AddChild(user.Button);
                 }
 
-                user.Button.Size = new Vector2(100, Al.GetFontLineHeight(font));
-                user.Button.Position = new Vector2(p1.X + x + margin, p1.Y + y - Al.GetFontLineHeight(font) * 0.5f);
+                user.Button.Place()
+                    .WithSize(100, Al.GetFontLineHeight(font))
+                    .At(p1.X + x + margin, p1.Y + y - Al.GetFontLineHeight(font) * 0.5f);
             }
 
             y += Al.GetFontLineHeight(font) + spacing;

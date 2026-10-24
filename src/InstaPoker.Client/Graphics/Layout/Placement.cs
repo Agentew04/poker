@@ -37,6 +37,11 @@ public readonly struct Placement {
     }
 
     /// <summary>
+    /// Sets the target anchor directly. For a centered label this is the center point, not the top-left.
+    /// </summary>
+    public Placement AtAnchor(float x, float y) => AtAnchor(new Vector2(x, y));
+
+    /// <summary>
     /// Sets the target size explicitly. Objects that measure their own content (like <see cref="Label"/>)
     /// do not need this.
     /// </summary>

@@ -61,8 +61,7 @@ public class Fader(string name) : SceneObject(name) {
 
         alpha = Math.Clamp(alpha, 0f, 1f);
 
-        Content.Size = Size;
-        Content.Position = Vector2.Zero;
+        Content.Place().WithSize(Size).At(Vector2.Zero);
 
         ctx.AlphaStack.Push();
         ctx.AlphaStack.Multiply(alpha);

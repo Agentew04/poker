@@ -101,9 +101,8 @@ public class PokerGame : AllegroWindow {
 
         int matrixStackBefore = renderContext.Stack.Count;
         int alphaStackBefore = renderContext.AlphaStack.Count;
-        frame.Position = Vector2.Zero;
-        frame.Size = new Vector2(Width, Height);
-        
+        frame.Place().At(Vector2.Zero).WithSize(new Vector2(Width, Height));
+
         frame.PositionElements();
 
         frame.Render(renderContext);

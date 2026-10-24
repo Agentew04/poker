@@ -99,51 +99,35 @@ public class GameScreen() : SceneObject("GameScreen"), IScreen<Screen> {
 
     public override void PositionElements() {
         const float margin = 10;
-        leaveButton.Position = new Vector2(margin, margin);
-        leaveButton.Size = new Vector2(75, 30);
+        leaveButton.Place().WithSize(75, 30).At(margin, margin);
 
         const float playerSpace = 150;
         const float buttonSpacing = 20;
-        const float headerSpace = 50;
-        
-        checkButton.Size = new Vector2(100, 50);
-        callButton.Size = new Vector2(100, 50);
-        raiseButton.Size = new Vector2(100, 50);
-        raiseTextbox.Size = new Vector2(125, 50);
 
-        yourTurnLabel.Position = new Vector2(Size.X * 0.5f, Size.Y - playerSpace);
+        callButton.Place().WithSize(100, 50)
+            .At(0, Size.Y - playerSpace * 0.5f)
+            .CenterHorizontallyIn(this);
+        checkButton.Place().WithSize(100, 50)
+            .LeftOf(callButton, buttonSpacing)
+            .AlignCenterYWith(callButton);
+        raiseButton.Place().WithSize(100, 50)
+            .RightOf(callButton, buttonSpacing)
+            .AlignCenterYWith(callButton);
+        raiseTextbox.Place().WithSize(125, 50)
+            .RightOf(raiseButton, -1)
+            .AlignCenterYWith(raiseButton);
 
-        // center button
-        callButton.Position = new Vector2(Size.X * 0.5f, Size.Y - playerSpace * 0.5f);
-        // left button
-        checkButton.Position = new Vector2(
-            callButton.Position.X - callButton.Size.X * 0.5f - buttonSpacing,
-            Size.Y - playerSpace * 0.5f);
-        // right button
-        raiseButton.Position = new Vector2(
-            callButton.Position.X + callButton.Size.X * 0.5f + buttonSpacing,
-            Size.Y - playerSpace * 0.5f);
-        // txt box
-        raiseTextbox.Position = new Vector2(
-            raiseButton.Position.X + raiseButton.Size.X - 1,
-            Size.Y - playerSpace * 0.5f);
+        yourTurnLabel.Place().AtAnchor(Size.X * 0.5f, Size.Y - playerSpace);
 
         // balance
         balanceAmount.Text = LocalSettings.Amount.ToString();
         AllegroFont balTitleFont = FontManager.GetFont("ShareTech-Regular", balanceTitle.FontSize);
-        balanceTitle.Position = new Vector2(
-            Size.X - 2*margin,
-            Size.Y - playerSpace * 0.5f - margin*0.5f);
-        balanceAmount.Position = new Vector2(
-            Size.X - 2*margin - Al.GetTextWidth(balTitleFont, balanceTitle.Text)*0.5f, 
-            Size.Y - playerSpace*0.5f + margin*0.5f);
-            
-        // pot
-        float potWidthHalf = Size.X * 0.1f;
-        float potHeightHalf = potWidthHalf * 0.5f;
-        // potTitleLabel.Position = new Vector2(Size.X * 0.5f, headerSpace + potHeightHalf - 5);
-        // potAmountLabel.Position = new Vector2(Size.X * 0.5f, headerSpace + potHeightHalf + 5);
-
+        balanceTitle.Place().AtAnchor(
+            Size.X - 2 * margin,
+            Size.Y - playerSpace * 0.5f - margin * 0.5f);
+        balanceAmount.Place().AtAnchor(
+            Size.X - 2 * margin - Al.GetTextWidth(balTitleFont, balanceTitle.Text) * 0.5f,
+            Size.Y - playerSpace * 0.5f + margin * 0.5f);
 
         base.PositionElements();
     }

@@ -39,8 +39,8 @@ public class Pot : SceneObject{
 
     public override void PositionElements() {
         const int margin = 5;
-        titleLabel.Position = new Vector2(Size.X * 0.5f, Size.Y * 0.5f - margin);
-        amountLabel.Position = new Vector2(Size.X * 0.5f, Size.Y * 0.5f + margin);
+        titleLabel.Place().AtAnchor(Size.X * 0.5f, Size.Y * 0.5f - margin);
+        amountLabel.Place().AtAnchor(Size.X * 0.5f, Size.Y * 0.5f + margin);
         base.PositionElements();
     }
 

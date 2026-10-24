@@ -151,16 +151,13 @@ public class AdminLobbyScreen() : SceneObject("Admin Lobby Screen"), IScreen<Scr
     }
 
     public override void PositionElements() {
-        loading.Size = Size;
-        loading.Position = Vector2.Zero;
-        
-        startGameButton.Size = new Vector2(300, 60);
-        startGameButton.Position = new Vector2(
-            Size.X * 0.5f - startGameButton.Size.X * 0.5f,
-            Size.Y - Size.Y * 0.0625f - startGameButton.Size.Y * 0.5f
-        );
+        loading.Place().WithSize(Size).At(Vector2.Zero);
 
-        waitingPlayersLabel.Position = new Vector2(Size.X * 0.5f, Size.Y - Size.Y * 0.0625f);
+        startGameButton.Place().WithSize(300, 60)
+            .At(0, Size.Y - Size.Y * 0.0625f - startGameButton.Size.Y * 0.5f)
+            .CenterHorizontallyIn(this);
+
+        waitingPlayersLabel.Place().AtAnchor(Size.X * 0.5f, Size.Y - Size.Y * 0.0625f);
 
         base.PositionElements();
     }
@@ -233,8 +230,9 @@ public class AdminLobbyScreen() : SceneObject("Admin Lobby Screen"), IScreen<Scr
                     };
                     AddChild(user.Button);
                 }
-                user.Button.Size = new Vector2(100, Al.GetFontLineHeight(font));
-                user.Button.Position = new Vector2(p1.X + x + margin, p1.Y + y - Al.GetFontLineHeight(font) * 0.5f);
+                user.Button.Place()
+                    .WithSize(100, Al.GetFontLineHeight(font))
+                    .At(p1.X + x + margin, p1.Y + y - Al.GetFontLineHeight(font) * 0.5f);
             }
             else {
                 // kick button
@@ -248,8 +246,9 @@ public class AdminLobbyScreen() : SceneObject("Admin Lobby Screen"), IScreen<Scr
                     };
                     AddChild(user.Button);
                 }
-                user.Button.Size = new Vector2(100, Al.GetFontLineHeight(font));
-                user.Button.Position = new Vector2(p1.X + x + margin, p1.Y + y - Al.GetFontLineHeight(font) * 0.5f);
+                user.Button.Place()
+                    .WithSize(100, Al.GetFontLineHeight(font))
+                    .At(p1.X + x + margin, p1.Y + y - Al.GetFontLineHeight(font) * 0.5f);
             }
 
             y += Al.GetFontLineHeight(font) + spacing;
@@ -279,17 +278,23 @@ public class AdminLobbyScreen() : SceneObject("Admin Lobby Screen"), IScreen<Scr
         float targetWidth = p1.X - 2 * margin;
 
 
-        smallblindTextbox.Position = new Vector2(Al.GetTextWidth(font, "Small Blind: "), GetHeight(0));
-        maxBetTextbox.Position = new Vector2(Al.GetTextWidth(font, "Max Bet: "), GetHeight(1));
-        maxPlayersTextbox.Position = new Vector2(Al.GetTextWidth(font, "Max Players: "), GetHeight(2));
-        allinEnabledCheckbox.Position = new Vector2(
-            Al.GetTextWidth(font, "All-In Enabled:") + margin * 0.5f,
-            GetHeight(3) + itemHeight * 0.125f);
+        float smallBlindLabelWidth = Al.GetTextWidth(font, "Small Blind: ");
+        float maxBetLabelWidth = Al.GetTextWidth(font, "Max Bet: ");
+        float maxPlayersLabelWidth = Al.GetTextWidth(font, "Max Players: ");
 
-        smallblindTextbox.Size = new Vector2(targetWidth - smallblindTextbox.Position.X, itemHeight);
-        maxBetTextbox.Size = new Vector2(targetWidth - maxBetTextbox.Position.X, itemHeight);
-        maxPlayersTextbox.Size = new Vector2(targetWidth - maxPlayersTextbox.Position.X, itemHeight);
-        allinEnabledCheckbox.Size = new Vector2(itemHeight * 0.75f, itemHeight * 0.75f);
+        smallblindTextbox.Place()
+            .WithSize(targetWidth - smallBlindLabelWidth, itemHeight)
+            .At(smallBlindLabelWidth, GetHeight(0));
+        maxBetTextbox.Place()
+            .WithSize(targetWidth - maxBetLabelWidth, itemHeight)
+            .At(maxBetLabelWidth, GetHeight(1));
+        maxPlayersTextbox.Place()
+            .WithSize(targetWidth - maxPlayersLabelWidth, itemHeight)
+            .At(maxPlayersLabelWidth, GetHeight(2));
+        allinEnabledCheckbox.Place()
+            .WithSize(itemHeight * 0.75f, itemHeight * 0.75f)
+            .At(Al.GetTextWidth(font, "All-In Enabled:") + margin * 0.5f,
+                GetHeight(3) + itemHeight * 0.125f);
 
         Al.DrawText(font, Colors.Black, 0, GetHeight(0), FontAlignFlags.Left, "Small Blind: ");
         Al.DrawText(font, Colors.Black, 0, GetHeight(1), FontAlignFlags.Left, "Max Bet: ");

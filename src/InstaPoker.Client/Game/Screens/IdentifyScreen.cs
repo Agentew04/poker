@@ -118,8 +118,7 @@ public class IdentifyScreen() : SceneObject("Identify Screen"), IScreen<Screen> 
     }
 
     public override void PositionElements() {
-        loading.Size = Size;
-        loading.Position = Vector2.Zero;
+        loading.Place().WithSize(Size).At(Vector2.Zero);
 
         const float margin = 15;
 
@@ -129,29 +128,12 @@ public class IdentifyScreen() : SceneObject("Identify Screen"), IScreen<Screen> 
             .CenterHorizontallyIn(this)
             .Below(nameTextBox, margin);
         emptyNameFader.Place()
-            .At(0, Size.Y * 0.5f + okButton.Size.Y + 3 * margin)
             .WithSize(300, 50)
+            .At(0, Size.Y * 0.5f + okButton.Size.Y + 3 * margin)
             .CenterHorizontallyIn(this);
-            
-            
-        // nameTextBox.Size = new Vector2(500, 40);
-        // okButton.Size = new Vector2(300, 60);
-        // emptyNameFader.Size = new Vector2(300, 50);
-        
-        // nameTextBox.Position = new Vector2(
-        //     Size.X*0.5f - nameTextBox.Size.X * 0.5f,
-        //     Size.Y*0.5f - nameTextBox.Size.Y * 0.5f);
-        // okButton.Position = new Vector2(
-        //     Size.X*0.5f - okButton.Size.X * 0.5f,
-        //     Size.Y*0.5f + nameTextBox.Size.Y * 0.5f + margin
-        // );
-        // emptyNameFader.Position = new Vector2(
-        //     Size.X*0.5f - emptyNameFader.Size.X * 0.5f,
-        //     Size.Y*0.5f + okButton.Size.Y + 3*margin
-        // );
 
-        whatsyournameLabel.Position = new Vector2(Size.X*0.5f, Size.Y*0.25f);
-        
+        whatsyournameLabel.Place().AtAnchor(Size.X * 0.5f, Size.Y * 0.25f);
+
         base.PositionElements();
     }
 

@@ -103,45 +103,33 @@ public class MainMenuScreen() : SceneObject("Main Menu Screen"), IScreen<Screen>
     }
 
     public override void PositionElements() {
-        createRoomButton.Size = new Vector2(300, 60);
-        joinRoomButton.Size = new Vector2(300, 60);
-        codeTextBox.Size = new Vector2(200, 40);
-        emptyCodeFader.Size = new Vector2(300, 50);
-
         Vector2 mid = new(Size.X * 0.5f, Size.Y * 0.5f);
         const float buttonMargin = 15;
-        createRoomButton.Position = new Vector2(
-            mid.X - createRoomButton.Size.X*0.5f,
-            mid.Y - buttonMargin - createRoomButton.Size.Y
-        );
-        joinRoomButton.Position = new Vector2(
-            mid.X - joinRoomButton.Size.X*0.5f,
-            mid.Y + buttonMargin
-        );
-        codeTextBox.Position = new Vector2(
-            mid.X - codeTextBox.Size.X*0.5f,
-            mid.Y + buttonMargin + joinRoomButton.Size.Y - 1
-        );
-        emptyCodeFader.Position = new Vector2(
-            mid.X - emptyCodeFader.Size.X * 0.5f,
-            codeTextBox.Position.Y + codeTextBox.Size.Y + buttonMargin
-        );
 
-        titleLabel.Position = new Vector2(Size.X * 0.5f, Size.Y * 0.25f);
+        createRoomButton.Place().WithSize(300, 60)
+            .At(0, mid.Y - buttonMargin - 60)
+            .CenterHorizontallyIn(this);
+        joinRoomButton.Place().WithSize(300, 60)
+            .At(0, mid.Y + buttonMargin)
+            .CenterHorizontallyIn(this);
+        codeTextBox.Place().WithSize(200, 40)
+            .Below(joinRoomButton, -1)
+            .CenterHorizontallyIn(this);
+        emptyCodeFader.Place().WithSize(300, 50)
+            .Below(codeTextBox, buttonMargin)
+            .CenterHorizontallyIn(this);
 
-        titleImage.Size = new Vector2(128, 128);
-        titleImage.Position = new Vector2(
-            Size.X * 0.5f - Al.GetTextWidth(FontManager.GetFont("ShareTech-Regular", titleLabel.FontSize), titleLabel.Text) 
-            * 0.5f - 15,
-            Size.Y * 0.25f);
-        
-        
-        logoutButton.Size = new Vector2(80,40);
-        logoutButton.Position = new Vector2(5, 5);
-        usernameLabel.Position = new Vector2(
-            logoutButton.Position.X + logoutButton.Size.X + 5, 
-            5 + logoutButton.Size.Y * 0.5f - usernameLabel.FontSize*0.5f);
-        
+        titleLabel.Place().AtAnchor(Size.X * 0.5f, Size.Y * 0.25f);
+        titleLabel.Measure();
+
+        titleImage.Place().WithSize(128, 128)
+            .At(titleLabel.Bounds.Left - 15, Size.Y * 0.25f);
+
+        logoutButton.Place().WithSize(80, 40).At(5, 5);
+        usernameLabel.Place().AtAnchor(
+            logoutButton.Bounds.Right + 5,
+            5 + logoutButton.Bounds.Size.Y * 0.5f - usernameLabel.FontSize * 0.5f);
+
         base.PositionElements();
     }
     
