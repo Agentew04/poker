@@ -406,6 +406,20 @@ public class PlacementTests {
     }
 
     [Fact]
+    public void Relative_placement_uses_the_resolved_bounds_of_a_centered_sibling() {
+        CenteredNode sibling = new("centered sibling") {
+            Position = new Vector2(500, 425),
+            Size = new Vector2(100, 50)
+        };
+        CenteredNode target = new("centered target") { Size = new Vector2(100, 50) };
+
+        target.Place().LeftOf(sibling, margin: 20).AlignCenterYWith(sibling);
+
+        Assert.Equal(new Vector2(330, 400), target.Bounds.Position);
+        Assert.Equal(new Vector2(380, 425), target.Position);
+    }
+
+    [Fact]
     public void Placement_measures_content_sized_targets_without_WithSize() {
         AutoSizeNode target = new("auto") { DesiredSize = new Vector2(50, 20) };
         Node sibling = CreateNode(100, 200, 30, 40);

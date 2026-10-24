@@ -123,7 +123,7 @@ public class MainMenuScreen() : SceneObject("Main Menu Screen"), IScreen<Screen>
         titleLabel.Measure();
 
         titleImage.Place().WithSize(128, 128)
-            .At(titleLabel.Bounds.Left - 15, Size.Y * 0.25f);
+            .AtAnchor(titleLabel.Bounds.Left - 15, Size.Y * 0.25f);
 
         logoutButton.Place().WithSize(80, 40).At(5, 5);
         usernameLabel.Place().AtAnchor(

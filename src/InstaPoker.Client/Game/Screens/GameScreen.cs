@@ -105,8 +105,7 @@ public class GameScreen() : SceneObject("GameScreen"), IScreen<Screen> {
         const float buttonSpacing = 20;
 
         callButton.Place().WithSize(100, 50)
-            .At(0, Size.Y - playerSpace * 0.5f)
-            .CenterHorizontallyIn(this);
+            .AtAnchor(Size.X * 0.5f, Size.Y - playerSpace * 0.5f);
         checkButton.Place().WithSize(100, 50)
             .LeftOf(callButton, buttonSpacing)
             .AlignCenterYWith(callButton);
