@@ -26,16 +26,6 @@
   </ItemGroup>
 
   <ItemGroup>
-<!--    <None Update="Assets\Fonts\*.ttf">-->
-<!--      <CopyToOutputDirectory>Always</CopyToOutputDirectory>-->
-<!--    </None>-->
-<!--    <None Update="Assets\Audio\*.ogg">-->
-<!--      <CopyToOutputDirectory>Always</CopyToOutputDirectory>-->
-<!--    </None>-->
-<!--    <None Update="Assets\Textures\*.png">-->
-<!--      <CopyToOutputDirectory>Always</CopyToOutputDirectory>-->
-<!--    </None>-->
-    
     <EmbeddedResource Include="Assets/Fonts/*.ttf" LogicalName="Assets/Fonts/%(Filename)%(Extension)"/>
     <EmbeddedResource Include="Assets/Audio/*.ogg" LogicalName="Assets/Audio/%(Filename)%(Extension)"/>
     <EmbeddedResource Include="Assets/Textures/*.png" LogicalName="Assets/Textures/%(Filename)%(Extension)"/>

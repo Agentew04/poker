@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using System.Reflection;
 using InstaPoker.Client.Game;
+using InstaPoker.Client.Graphics.Layout;
 using InstaPoker.Client.Graphics.Styles;
 using InstaPoker.Client.Subsystems;
 using Microsoft.Extensions.DependencyInjection;
@@ -113,6 +114,14 @@ public abstract class SceneObject {
         }
     }
 
+    /// <summary>
+    /// Updates <see cref="Size"/> for objects whose size is derived from their content, like a
+    /// <see cref="Label"/>. Objects with an explicit size do not need to override this.
+    /// </summary>
+    public virtual void Measure() {
+        // empty: the size was set explicitly
+    }
+
     private static void InjectServices(SceneObject target) {
         IEnumerable<FieldInfo> services = target.GetType()
             .GetMembers(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
@@ -145,23 +154,11 @@ public abstract class SceneObject {
     /// <summary>
     /// Measures and positions all children inside itself.
     /// </summary>
+    /// <remarks>
+    /// <see cref="Position"/> is an anchor: this method must not mutate it. The resolved top-left corner is
+    /// available through <see cref="Bounds"/> and is what <see cref="Render"/> uses.
+    /// </remarks>
     public virtual void PositionElements() {
-        // realign position
-        Vector2 pos = Position;
-        if (HorizontalAlign == HorizontalAlign.Center) {
-            pos.X -= Size.X * 0.5f;
-        }else if (HorizontalAlign == HorizontalAlign.Right) {
-            pos.X -= Size.X;
-        }
-
-        if (VerticalAlign == VerticalAlign.Center) {
-            pos.Y -= Size.Y * 0.5f;
-        }else if (VerticalAlign == VerticalAlign.Bottom) {
-            pos.Y -= Size.Y;
-        }
-
-        Position = pos;
-        
         foreach (SceneObject child in children) {
             child.PositionElements();
         }
@@ -181,7 +178,8 @@ public abstract class SceneObject {
                 if (!child.AutoTransform) {
                     ctx.Stack.Replace(child.Transform);
                 }
-                ctx.Stack.Multiply(Matrix4x4.CreateTranslation(child.Position.X, child.Position.Y, 0));
+                ctx.Stack.Multiply(Matrix4x4.CreateTranslation(
+                    child.Bounds.Position.X, child.Bounds.Position.Y, 0));
                 
                 Matrix4x4 absolutePosition = ctx.Stack.Peek();
                 if (Clip) {
@@ -200,9 +198,37 @@ public abstract class SceneObject {
     }
     
     /// <summary>
-    /// Relative position of this object in relation of the parent object.
+    /// Anchor position of this object in relation to the parent object. How the anchor maps to the
+    /// rectangle depends on <see cref="HorizontalAlign"/> and <see cref="VerticalAlign"/>.
     /// </summary>
     public Vector2 Position { get; set; }
+
+    /// <summary>
+    /// Offset from the top-left corner to <see cref="Position"/>, based on the current alignment.
+    /// </summary>
+    public Vector2 PivotOffset => new(
+        HorizontalAlign switch {
+            HorizontalAlign.Center => Size.X * 0.5f,
+            HorizontalAlign.Right => Size.X,
+            _ => 0
+        },
+        VerticalAlign switch {
+            VerticalAlign.Center => Size.Y * 0.5f,
+            VerticalAlign.Bottom => Size.Y,
+            _ => 0
+        });
+
+    /// <summary>
+    /// The resolved bounds of this object in its parent's coordinate space, always with a top-left position.
+    /// </summary>
+    public Bounds Bounds => new(Position - PivotOffset, Size);
+
+    /// <summary>
+    /// Places the object by its resolved top-left corner, regardless of its alignment.
+    /// </summary>
+    public void PlaceAt(Vector2 topLeft) {
+        Position = topLeft + PivotOffset;
+    }
 
     /// <summary>
     /// The absolute size of the object in the screen.
@@ -316,6 +342,14 @@ public abstract class SceneObject {
 
     public virtual void OnDebugDraw() {
         // empty
+    }
+
+    /// <summary>
+    /// Returns a new placement object with this object as the target.
+    /// </summary>
+    /// <returns></returns>
+    public Placement Place() {
+        return new Placement(this);
     }
 }
 

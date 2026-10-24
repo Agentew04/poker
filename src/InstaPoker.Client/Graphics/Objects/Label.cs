@@ -32,12 +32,26 @@ public class Label : SceneObject {
         VerticalAlign = VerticalAlign.Center;
     }
 
-    public override void PositionElements() {
-        Vector2 size = Size;
+    private string? measuredText;
+    private int measuredFontSize = -1;
+    private Vector2 measuredSize;
+
+    /// <inheritdoc/>
+    public override void Measure() {
+        if (measuredText == Text && measuredFontSize == FontSize) {
+            Size = measuredSize;
+            return;
+        }
+
         AllegroFont font = FontManager.GetFont("ShareTech-Regular", FontSize);
-        size.X = Text.GetUtfStringWidth(font);
-        size.Y = Al.GetFontAscent(font);
-        Size = size;
+        measuredSize = new Vector2(Text.GetUtfStringWidth(font), Al.GetFontAscent(font));
+        measuredText = Text;
+        measuredFontSize = FontSize;
+        Size = measuredSize;
+    }
+
+    public override void PositionElements() {
+        Measure();
         base.PositionElements();
     }
 
