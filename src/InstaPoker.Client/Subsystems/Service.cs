@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.Design;
+using InstaPoker.Client.Graphics;
 using InstaPoker.Client.Subsystems.Account;
 using InstaPoker.Client.Subsystems.Network;
 using InstaPoker.Client.Subsystems.Settings;
@@ -21,6 +22,7 @@ public static class Service {
         services.AddSingleton<AccountStore>();
         services.AddSingleton<MainThreadDispatcher>();
         services.AddSingleton<NetworkManager>();
+        services.AddSingleton<AssetLoader>();
         
         services.AddLogging(builder => {
             builder.AddConsole();

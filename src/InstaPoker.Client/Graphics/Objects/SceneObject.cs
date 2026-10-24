@@ -71,41 +71,62 @@ public abstract class SceneObject {
     }
     
     /// <summary>
-    /// Method called after the Allegro Engine is initialized, before the first frame is rendered.
-    /// Constructors may be called before the engine is initialized. 
+    /// Injects the services declared with <see cref="ServiceAttribute"/> and then runs <see cref="Initialize"/>.
+    /// This is the only supported entry point for initializing a scene object: whoever initializes an object
+    /// injects its dependencies, so no caller can forget the injection step.
     /// </summary>
+    public void InitializeWithServices() {
+        if (isInitialized) {
+            return;
+        }
+
+        InjectServices(this);
+        Initialize();
+    }
+
+    /// <summary>
+    /// Method called after the Allegro Engine is initialized, before the first frame is rendered.
+    /// Constructors may be called before the engine is initialized.
+    /// </summary>
+    /// <remarks>
+    /// Prefer calling <see cref="InitializeWithServices"/> instead of this method directly. Overrides must
+    /// call <c>base.Initialize()</c> so the children declared with <see cref="ChildObjectAttribute"/> are
+    /// added to the scene graph.
+    /// </remarks>
     public virtual void Initialize() {
+        if (isInitialized) {
+            return;
+        }
+
         isInitialized = true;
-        
-        // como isso vem depois, assumimos que o pai que da fetch nos servicos dos filhos
-        
-        // children aqui ta vazio. tem que popular
-        List<SceneObject> childs = GetType()
+
+        IEnumerable<SceneObject> childFields = GetType()
             .GetMembers(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
             .OfType<FieldInfo>()
             .Where(x => x.GetCustomAttribute<ChildObjectAttribute>() is not null &&
                         typeof(SceneObject).IsAssignableFrom(x.FieldType))
-            .Select(x => x.GetValue(this) as SceneObject)
-            .Where(x => x is not null)
-            .ToList()!;
-        children.AddRange(childs);
-        
-        foreach (SceneObject child in children) {
+            .Select(x => x.GetValue(this))
+            .OfType<SceneObject>();
 
-            IEnumerable<FieldInfo> services = child.GetType()
-                .GetMembers(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-                .OfType<FieldInfo>()
-                .Where(x => x.GetCustomAttribute<ServiceAttribute>() is not null);
-            foreach (FieldInfo field in services) {
-                object? service = Service.Provider.GetService(field.FieldType);
-                field.SetValue(child, service);
+        foreach (SceneObject child in childFields) {
+            AddChild(child);
+        }
+    }
+
+    private static void InjectServices(SceneObject target) {
+        IEnumerable<FieldInfo> services = target.GetType()
+            .GetMembers(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+            .OfType<FieldInfo>()
+            .Where(x => x.GetCustomAttribute<ServiceAttribute>() is not null);
+
+        foreach (FieldInfo field in services) {
+            object? service = Service.Provider.GetService(field.FieldType);
+            if (service is null) {
+                throw new InvalidOperationException(
+                    $"Service {field.FieldType.FullName} is not registered " +
+                    $"(required by {target.GetType().Name}.{field.Name})");
             }
-            
-            // aqui os servicos ja foram resolvidos
-            child.Initialize();
-            if (!child.isInitialized) {
-                throw new Exception($"SceneObject {child.Name} did not call base Initialize");
-            }
+            field.SetValue(target, service);
         }
     }
     
@@ -272,18 +293,14 @@ public abstract class SceneObject {
     }
 
     protected void AddChild(SceneObject child) {
-        children.Add(child);
+        if (children.Contains(child)) {
+            return;
+        }
 
+        children.Add(child);
+        child.InitializeWithServices();
         if (!child.isInitialized) {
-            IEnumerable<FieldInfo> services = child.GetType()
-                .GetMembers(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-                .OfType<FieldInfo>()
-                .Where(x => x.GetCustomAttribute<ServiceAttribute>() is not null);
-            foreach (FieldInfo field in services) {
-                object? service = Service.Provider.GetService(field.FieldType);
-                field.SetValue(child, service);
-            }
-            child.Initialize();
+            throw new Exception($"SceneObject {child.Name} did not call base Initialize");
         }
     }
 

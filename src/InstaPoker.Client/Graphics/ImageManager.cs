@@ -1,5 +1,7 @@
 ﻿using System.Data;
 using System.Runtime.InteropServices.ComTypes;
+using InstaPoker.Client.Subsystems;
+using Microsoft.Extensions.DependencyInjection;
 using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
 using SubC.AllegroDotNet.Models;
@@ -9,7 +11,7 @@ namespace InstaPoker.Client.Graphics;
 /// <summary>
 /// Class responsible for registering, loading and creating new bitmaps from image files.
 /// </summary>
-public sealed class ImageManager : IDisposable{
+public sealed class ImageManager : IDisposable {
 
     private static ImageManager? _instance;
 
@@ -38,13 +40,25 @@ public sealed class ImageManager : IDisposable{
         if (LoadedImages.ContainsKey(alias)) {
             throw new ArgumentException($"Already exists a image with the alias {alias}");
         }
-        string path = $"Assets/Textures/{name}";
-        if (!File.Exists(path)) {
-            throw new FileNotFoundException($"The file {name} was not found. Is the extension correct?");
+
+        AssetLoader loader = Service.Provider.GetRequiredService<AssetLoader>();
+        byte[] bytes = loader.Read($"Assets/Textures/{name}");
+        using PinnedBytes pinned = new(bytes);
+        AllegroFile? file = Al.OpenMemfile(pinned.Pointer, bytes.Length, "r");
+
+        if (file is null) {
+            throw new FileLoadException($"Could not open {name} from memory");
         }
-        AllegroBitmap? bitmap = Al.LoadBitmap(path);
-        if (bitmap is null) {
-            throw new FileLoadException($"Could not load file {name} as an image.");
+        AllegroBitmap? bitmap;
+        try {
+            bitmap = Al.LoadBitmapF(file, Path.GetExtension(name)); // ".png"
+        }
+        finally {
+            Al.FClose(file);
+        }
+
+        if (bitmap == null) {
+            throw new FileLoadException("Couldnt load bitmap from memFile");
         }
         LoadedImages.Add(alias, bitmap);
     }

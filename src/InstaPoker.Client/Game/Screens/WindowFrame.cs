@@ -23,7 +23,8 @@ public class WindowFrame<T> : SceneObject where T : notnull {
         SceneObject obj = objects[screen] = (SceneObject)screen;
         obj.Position = Vector2.Zero;
         obj.Size = Size;
-        obj.Initialize();
+        obj.IsEnabled = false;
+        AddChild(obj);
 
         if (isDefault) {
             SetScreen(screen.Key);
@@ -36,7 +37,7 @@ public class WindowFrame<T> : SceneObject where T : notnull {
         
         ActiveKey = key;
         ActiveObject = obj;
-        
+        obj.Size = Size;
         obj.IsEnabled = true;
         screen.OnShow();
         
@@ -49,5 +50,10 @@ public class WindowFrame<T> : SceneObject where T : notnull {
             SceneObject otherObj = objects[other.Value];
             otherObj.IsEnabled = false;
         }
+    }
+
+    public override void PositionElements() {
+        ActiveObject.Size = Size;
+        base.PositionElements();
     }
 }

@@ -4,6 +4,7 @@ using InstaPoker.Client.Graphics.Objects;
 using InstaPoker.Client.Graphics.Styles;
 using InstaPoker.Client.Subsystems;
 using InstaPoker.Client.Subsystems.Account;
+using InstaPoker.Client.Subsystems.Network;
 using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
 using SubC.AllegroDotNet.Models;
@@ -31,6 +32,7 @@ public class MainMenuScreen() : SceneObject("Main Menu Screen"), IScreen<Screen>
     private readonly Toast emptyCodeBoard = new(nameof(emptyCodeBoard));
 
     [Service] private AccountStore accountStore = null!;
+    [Service] private NetworkManager networkManager = null!;
 
     public override void Initialize() {
         createRoomButton.Style = ButtonStyle.Default with {
@@ -92,6 +94,7 @@ public class MainMenuScreen() : SceneObject("Main Menu Screen"), IScreen<Screen>
 
     private void Logout() {
         accountStore.ClearLogin();
+        networkManager.Disconnect();
         LoggedOut?.Invoke();
     }
 
@@ -135,7 +138,9 @@ public class MainMenuScreen() : SceneObject("Main Menu Screen"), IScreen<Screen>
         
         logoutButton.Size = new Vector2(80,40);
         logoutButton.Position = new Vector2(5, 5);
-        usernameLabel.Position = new Vector2(logoutButton.Position.X + logoutButton.Size.X + 5, 5);
+        usernameLabel.Position = new Vector2(
+            logoutButton.Position.X + logoutButton.Size.X + 5, 
+            5 + logoutButton.Size.Y * 0.5f - usernameLabel.FontSize*0.5f);
         
         base.PositionElements();
     }

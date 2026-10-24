@@ -44,7 +44,7 @@ public class PokerGame : AllegroWindow {
         
         frame.AddScreen(adminLobby);
         frame.AddScreen(game);
-        frame.AddScreen(identify);
+        frame.AddScreen(identify, isDefault: true);
         frame.AddScreen(mainMenu);
         frame.AddScreen(playerLobby);
         

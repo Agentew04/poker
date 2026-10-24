@@ -73,6 +73,7 @@ public class IdentifyScreen() : SceneObject("Identify Screen"), IScreen<Screen> 
 
     private void OnOkClick() {
         if (!string.IsNullOrWhiteSpace(nameTextBox.GetString())) {
+            LocalSettings.Username = nameTextBox.GetString();
             accountStore.SaveLogin(new Login(nameTextBox.GetString(), string.Empty));
             connectionStarted = true;
             _ = ConnectAsync();

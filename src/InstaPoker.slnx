@@ -2,4 +2,5 @@
   <Project Path="InstaPoker.Client/InstaPoker.Client.csproj" />
   <Project Path="InstaPoker.Core/InstaPoker.Core.csproj" />
   <Project Path="InstaPoker.Server/InstaPoker.Server.csproj" />
+  <Project Path="../tests/InstaPoker.Tests/InstaPoker.Tests.csproj" />
 </Solution>

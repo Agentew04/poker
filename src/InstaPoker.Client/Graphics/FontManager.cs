@@ -1,4 +1,6 @@
-﻿using SubC.AllegroDotNet;
+﻿using InstaPoker.Client.Subsystems;
+using Microsoft.Extensions.DependencyInjection;
+using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
 using SubC.AllegroDotNet.Models;
 
@@ -9,10 +11,11 @@ namespace InstaPoker.Client.Graphics;
 /// </summary>
 public sealed class FontManager : IDisposable {
 
+    private const LoadFontFlags Flags = LoadFontFlags.TtfNoKerning | LoadFontFlags.TtfNoAutohint;
+
     private static FontManager? _instance;
-    
-    private static readonly Dictionary<string,int> FontsLoaded = [];
-    private static readonly List<Dictionary<int, AllegroFont>> Fonts = [];
+
+    private static readonly Dictionary<string, FontEntry> LoadedFonts = [];
 
     /// <summary>
     /// Creates a new instance of the manager and assigns it as the singleton.
@@ -20,7 +23,7 @@ public sealed class FontManager : IDisposable {
     public FontManager() {
         _instance ??= this;
     }
-    
+
     /// <summary>
     /// Registers a new font that can be loaded dynamically.
     /// </summary>
@@ -28,11 +31,16 @@ public sealed class FontManager : IDisposable {
     /// <param name="name">The name of the font. Does not include path or extension</param>
     /// <exception cref="FileNotFoundException">Thrown when no matching file is found at the Fonts/ directory</exception>
     public static void RegisterFont(string name) {
-        if (!File.Exists($"./Assets/Fonts/{name}.ttf")) {
-            throw new FileNotFoundException($"Font File with name {name}.ttf does not exist in the Fonts/ folder");
+        if (LoadedFonts.ContainsKey(name)) {
+            return;
         }
-        FontsLoaded[name] = Fonts.Count;
-        Fonts.Add(new Dictionary<int, AllegroFont>());
+
+        AssetLoader loader = Service.Provider.GetRequiredService<AssetLoader>();
+        // the pinned buffer must live as long as the fonts: Allegro keeps reading from the memfile
+        // while glyphs are rasterized
+        LoadedFonts[name] = new FontEntry {
+            Bytes = new PinnedBytes(loader.Read($"Assets/Fonts/{name}.ttf"))
+        };
     }
 
     /// <summary>
@@ -55,27 +63,48 @@ public sealed class FontManager : IDisposable {
         if (useSizeAsHeight) {
             size = -size;
         }
-        if (!FontsLoaded.TryGetValue(name, out int index)) {
+        if (!LoadedFonts.TryGetValue(name, out FontEntry? entry)) {
             throw new Exception("Font not registered");
         }
 
-        Dictionary<int, AllegroFont> sizes = Fonts[index];
-        if (sizes.TryGetValue(size, out AllegroFont? font)) return font;
-        font = Al.LoadTtfFont($"./Assets/Fonts/{name}.ttf", size, LoadFontFlags.TtfNoKerning|LoadFontFlags.TtfNoAutohint);
-        sizes[size] = font ?? throw new FileNotFoundException("Could not load font " + name);
+        if (entry.Sizes.TryGetValue(size, out AllegroFont? font)) {
+            return font;
+        }
+
+        // Each font owns the file it was loaded from and closes it on al_destroy_font, so every size
+        // needs its own memfile. Reusing one file makes the second load start at the previous font's
+        // seek position, which makes FT_Open_Face fail.
+        AllegroFile file = Al.OpenMemfile(entry.Bytes.Pointer, entry.Bytes.Length, "r")
+            ?? throw new InvalidOperationException($"Could not open memory file for font {name}");
+
+        font = Al.LoadTtfFontF(file, $"{name}.ttf", size, Flags);
+        if (font is null) {
+            // on failure FreeType already closed the file (see allegro ttf.c), so don't close it here
+            throw new FileNotFoundException($"Could not load font {name} at size {size}");
+        }
+
+        entry.Sizes[size] = font;
         return font;
     }
-    
+
     /// <summary>
     /// Disposes of all previously loaded fonts.
     /// </summary>
     public void Dispose() {
-        foreach (Dictionary<int, AllegroFont> sizes in Fonts) {
-            foreach (KeyValuePair<int, AllegroFont> kvp in sizes) {
-                Al.DestroyFont(kvp.Value);
+        foreach (FontEntry entry in LoadedFonts.Values) {
+            foreach (AllegroFont font in entry.Sizes.Values) {
+                // destroying the font also closes the memfile it owns
+                Al.DestroyFont(font);
             }
+            entry.Bytes.Dispose();
         }
 
+        LoadedFonts.Clear();
         _instance = null;
+    }
+
+    private sealed class FontEntry {
+        public required PinnedBytes Bytes { get; init; }
+        public Dictionary<int, AllegroFont> Sizes { get; } = [];
     }
 }

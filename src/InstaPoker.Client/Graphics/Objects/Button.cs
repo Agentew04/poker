@@ -56,7 +56,6 @@ public class Button(string name) : SceneObject(name) {
 
     public override void Update(double delta) {
         if (isHovering) {
-            Logger.LogInformation("A");
             MouseManager.RequestMouse(SystemMouseCursor.Link);
         }
         

@@ -3,7 +3,7 @@
 /// <summary>
 /// Represents a card of a traditional poker playing card set.
 /// </summary>
-public struct GameCard : IBinarySerializable{
+public struct GameCard : IBinarySerializable {
     
     /// <summary>
     /// The value of the card.
@@ -36,12 +36,13 @@ public struct GameCard : IBinarySerializable{
     }
 
     public void Write(BinaryWriter bw) {
-        bw.Write((byte)Value);
-        bw.Write((byte)Suit);
+        byte serialized = (byte)((((byte)Value << 2) & 0b111100) | ((byte)Suit & 0b11));
+        bw.Write(serialized);
     }
 
     public void Read(BinaryReader br) {
-        Value = br.ReadByte();
-        Suit = (Suit)br.ReadByte();
+        byte serialized = br.ReadByte();
+        Value = (serialized >> 2) & 0b1111;
+        Suit = (Suit)(serialized & 0b11);
     }
 }

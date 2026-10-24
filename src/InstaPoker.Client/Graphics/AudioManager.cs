@@ -1,4 +1,6 @@
-﻿using SubC.AllegroDotNet;
+﻿using InstaPoker.Client.Subsystems;
+using Microsoft.Extensions.DependencyInjection;
+using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Models;
 
 namespace InstaPoker.Client.Graphics;
@@ -25,7 +27,21 @@ public sealed class AudioManager : IDisposable{
     /// <exception cref="FileNotFoundException">Thrown when the file is not found on the disk. Common when the
     /// developer writes the wrong extension or the filepath is not correctly relative to the Audio folder.</exception>
     public static void RegisterAudio(string filename, string alias) {
-        AllegroSample? sample = Al.LoadSample($"./Assets/Audio/{filename}");
+        AssetLoader loader = Service.Provider.GetRequiredService<AssetLoader>();
+        using PinnedBytes pinnedBytes = new(loader.Read($"Assets/Audio/{filename}"));
+        AllegroFile? file = Al.OpenMemfile(pinnedBytes.Pointer, pinnedBytes.Length, "r");
+        if (file is null) {
+            throw new Exception("Couldnt open memfile");
+        }
+        
+        AllegroSample? sample;
+        try {
+            sample = Al.LoadSampleF(file, Path.GetExtension(filename));
+        }
+        finally {
+            Al.FClose(file); 
+            
+        }
         Samples[alias] = sample ?? throw new FileNotFoundException($"Could not load sample {alias} from {filename}");
     }
 
