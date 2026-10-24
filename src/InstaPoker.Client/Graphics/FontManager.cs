@@ -11,7 +11,12 @@ namespace InstaPoker.Client.Graphics;
 /// </summary>
 public sealed class FontManager : IDisposable {
 
-    private const LoadFontFlags Flags = LoadFontFlags.TtfNoKerning | LoadFontFlags.TtfNoAutohint;
+    // Allegro's TTF glyph pages are premultiplied by default; the game renders with straight
+    // alpha blending (Al.SetBlender(Alpha, InverseAlpha)), so ask for straight-alpha glyphs.
+    private const LoadFontFlags Flags =
+        LoadFontFlags.TtfNoKerning
+        | LoadFontFlags.TtfNoAutohint
+        | LoadFontFlags.NoPremultipliedAlpha;
 
     private static FontManager? _instance;
 
