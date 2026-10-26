@@ -31,7 +31,8 @@ public class GameScreen() : SceneObject("GameScreen"), IScreen<Screen> {
     [ChildObject] private readonly Label balanceTitle = new(nameof(balanceTitle));
     [ChildObject] private readonly Label balanceAmount = new(nameof(balanceAmount));
 
-    [Service] private NetworkManager networkManager = null!; 
+    [Service] private NetworkManager networkManager = null!;
+    [Service] private FontManager fontManager = null!;
 
     public override void Initialize() {
         AddChild(leaveButton);
@@ -120,7 +121,7 @@ public class GameScreen() : SceneObject("GameScreen"), IScreen<Screen> {
 
         // balance
         balanceAmount.Text = LocalSettings.Amount.ToString();
-        AllegroFont balTitleFont = FontManager.GetFont("ShareTech-Regular", balanceTitle.FontSize);
+        AllegroFont balTitleFont = fontManager.GetFont("ShareTech-Regular", balanceTitle.FontSize);
         balanceTitle.Place().AtAnchor(
             Size.X - 2 * margin,
             Size.Y - playerSpace * 0.5f - margin * 0.5f);

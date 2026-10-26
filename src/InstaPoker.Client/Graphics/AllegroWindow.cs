@@ -31,9 +31,6 @@ public abstract partial class AllegroWindow {
     private IntPtr displayPtr;
     private string? windowTitle;
     private readonly List<KeyGesture> gestures = [];
-    private readonly FontManager fontManager = new();
-    private readonly AudioManager audioManager = new();
-    private readonly ImageManager imageManager = new();
     private ImGuiController? imguiController;
     private readonly Queue<double> fpsSampleBuffer = new();
     private const int FpsSamplesCount = 32;
@@ -86,19 +83,12 @@ public abstract partial class AllegroWindow {
     }
 
     private void DeinitializeAllegro() {
-        imageManager.Dispose(); // destroy images
         Al.ShutdownImageAddon();
-        
-        audioManager.Dispose(); // destroy audio samples
         Al.UninstallAudio();
-        
         Al.UninstallMouse();
         Al.UninstallKeyboard();
         Al.ShutdownPrimitivesAddon();
-        
-        fontManager.Dispose(); // destroy fonts
         Al.ShutdownTtfAddon();
-        
         Al.UninstallSystem();
     }
 
@@ -127,7 +117,8 @@ public abstract partial class AllegroWindow {
         imguiController = new ImGuiController();
         AllegroEventQueue queue = Al.CreateEventQueue() ?? throw new Exception("Could not create event queue");
         RegisterEventSources(queue);
-        MouseManager.Initialize(Display!);
+        MouseManager mouseManager = Service.Provider.GetRequiredService<MouseManager>();
+        mouseManager.Initialize(Display!);
 
         // audio samples
         Al.ReserveSamples(4);
@@ -149,7 +140,7 @@ public abstract partial class AllegroWindow {
 
             CalculateFps(delta);
 
-            MouseManager.NewFrame();
+            mouseManager.NewFrame();
             ProcessEvents(queue);
             UpdateImGui(delta);
             DebugWindow.Show = imguiController.IsEnabled; // bad! juntou allegrowindow e pokergame
@@ -158,7 +149,7 @@ public abstract partial class AllegroWindow {
             Render();
             Al.UseTransform(ref transform);
             imguiController.Render();
-            MouseManager.CommitChanges();
+            mouseManager.CommitChanges();
             
             Al.FlipDisplay();
 
@@ -172,10 +163,11 @@ public abstract partial class AllegroWindow {
         }
 
         WindowClosing?.Invoke();
-        networkManager.Disconnect();
+        // networkManager.Disconnect();
         SynchronizationContext.SetSynchronizationContext(null);
         imguiController.Dispose();
         UnregisterEventSources(queue);
+        Service.Dispose();
         Al.DestroyEventQueue(queue);
         Al.DestroyDisplay(Display);
         Display = null;

@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 using ImGuiNET;
 using InstaPoker.Client.Graphics.Styles;
-using Microsoft.Extensions.Logging;
+using InstaPoker.Client.Subsystems;
 using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
 using SubC.AllegroDotNet.Models;
@@ -21,6 +21,10 @@ public class Button(string name) : SceneObject(name) {
     private bool isHovering;
     private bool isPressed;
 
+    [Service] private AudioManager audioManager = null!;
+    [Service] private FontManager fontManager = null!;
+    [Service] private MouseManager mouseManager = null!;
+    
     public override void Initialize() {
         Clip = true;
         base.Initialize();
@@ -42,7 +46,7 @@ public class Button(string name) : SceneObject(name) {
         Al.DrawFilledRectangle(0,0, Size.X, Size.Y, effectiveBackground);
 
         // draw label
-        AllegroFont font = FontManager.GetFont("ShareTech-Regular", Style.FontSize);
+        AllegroFont font = fontManager.GetFont("ShareTech-Regular", Style.FontSize);
         Al.DrawText(font, Style.Foreground, (int)(Size.X*0.5f),(int)(Size.Y*0.5f - Al.GetFontLineHeight(font)*0.5f),
             FontAlignFlags.Center, Text);
         
@@ -56,7 +60,7 @@ public class Button(string name) : SceneObject(name) {
 
     public override void Update(double delta) {
         if (isHovering) {
-            MouseManager.RequestMouse(SystemMouseCursor.Link);
+            mouseManager.RequestMouse(SystemMouseCursor.Link);
         }
         
         base.Update(delta);
@@ -87,7 +91,7 @@ public class Button(string name) : SceneObject(name) {
         }
 
         if (isPressed && isHovering) {
-            AllegroSample bopSample = AudioManager.GetAudio("bap");
+            AllegroSample bopSample = audioManager.GetAudio("bap");
             AllegroSampleID? nil = null;
             Al.PlaySample(bopSample, 1, 0, 1, PlayMode.Once, ref nil);
             Pressed?.Invoke();
@@ -99,17 +103,17 @@ public class Button(string name) : SceneObject(name) {
     /// Simulates a button press by code.
     /// </summary>
     public void Press() {
-        AllegroSample bopSample = AudioManager.GetAudio("bap");
+        AllegroSample bopSample = audioManager.GetAudio("bap");
         AllegroSampleID? nil = null;
         Al.PlaySample(bopSample, 1, 0, 1, PlayMode.Once, ref nil);
         Pressed?.Invoke();
     }
 
-    public override void OnDebugDraw() {
+    public override void OnImGuiDraw() {
         ImGui.Text($"Label: \"{Text}\"");
         if (ImGui.Button("Press")) {
             Press();
         }
-        base.OnDebugDraw();
+        base.OnImGuiDraw();
     }
 }

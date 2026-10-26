@@ -7,6 +7,7 @@ using Xunit;
 
 namespace InstaPoker.Tests;
 
+[Collection("Allegro")]
 public class FontManagerTests {
 
     [Fact]
@@ -17,19 +18,20 @@ public class FontManagerTests {
         try {
             Assert.True(Al.InitTtfAddon());
 
+            FontManager fontManager = new();
             try {
-                FontManager.RegisterFont("ShareTech-Regular");
+                fontManager.RegisterFont("ShareTech-Regular");
 
-                AllegroFont font30 = FontManager.GetFont("ShareTech-Regular", 30);
-                AllegroFont font28 = FontManager.GetFont("ShareTech-Regular", 28);
-                AllegroFont font22 = FontManager.GetFont("ShareTech-Regular", 22);
+                AllegroFont font30 = fontManager.GetFont("ShareTech-Regular", 30);
+                AllegroFont font28 = fontManager.GetFont("ShareTech-Regular", 28);
+                AllegroFont font22 = fontManager.GetFont("ShareTech-Regular", 22);
 
                 Assert.NotNull(font30);
                 Assert.NotNull(font28);
                 Assert.NotNull(font22);
             }
             finally {
-                new FontManager().Dispose();
+                fontManager.Dispose();
                 Al.ShutdownTtfAddon();
             }
         }

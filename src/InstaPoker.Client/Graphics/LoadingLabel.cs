@@ -1,8 +1,8 @@
-﻿using System.Numerics;
-using System.Text;
+﻿using System.Text;
 using ImGuiNET;
 using InstaPoker.Client.Graphics.Objects;
 using InstaPoker.Client.Graphics.Styles;
+using InstaPoker.Client.Subsystems;
 using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
 using SubC.AllegroDotNet.Models;
@@ -21,7 +21,9 @@ public class LoadingLabel(string name) : SceneObject(name) {
     private double lifetime = 0;
     private const double DotDelay = 1;
     private int dots = 0;
-    private StringBuilder sb = new();
+    private readonly StringBuilder sb = new();
+
+    [Service] private FontManager fontManager = null!; 
 
     public bool ShowDots { get; set; } = true;
 
@@ -32,7 +34,7 @@ public class LoadingLabel(string name) : SceneObject(name) {
         
         ctx.UpdateTransform();
 
-        AllegroFont font = FontManager.GetFont("ShareTech-Regular", FontSize);
+        AllegroFont font = fontManager.GetFont("ShareTech-Regular", FontSize);
 
         if (ShowDots) {
             sb.Clear();
@@ -70,7 +72,7 @@ public class LoadingLabel(string name) : SceneObject(name) {
         IsEnabled = false;
     }
 
-    public override void OnDebugDraw() {
+    public override void OnImGuiDraw() {
         ImGui.Text($"Text: \"{Text}\"");
         ImGui.Text($"Show dots: {ShowDots}");
     }

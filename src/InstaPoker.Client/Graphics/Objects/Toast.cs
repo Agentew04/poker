@@ -1,5 +1,6 @@
 ﻿using ImGuiNET;
 using InstaPoker.Client.Graphics.Styles;
+using InstaPoker.Client.Subsystems;
 using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
 using SubC.AllegroDotNet.Models;
@@ -15,6 +16,9 @@ public class Toast(string name) : SceneObject(name) {
     public int FontSize = 16;
     
     public TextBoardType Type { get; set; }
+
+    [Service]
+    private FontManager fontManager = null!;
 
     public override void Render(RenderContext ctx) {
         ctx.UpdateTransform();
@@ -48,14 +52,14 @@ public class Toast(string name) : SceneObject(name) {
         foregroundColor.A = ctx.Alpha;
 
         Al.DrawFilledRoundedRectangle(0,0, Size.X, Size.Y, 5,5, backgroundColor);
-        AllegroFont font = FontManager.GetFont("ShareTech-Regular", FontSize);
+        AllegroFont font = fontManager.GetFont("ShareTech-Regular", FontSize);
         Al.DrawMultilineText(font, foregroundColor,
             (int)(Size.X*0.5f),
             (int)(Size.Y*0.5f - Al.GetFontLineHeight(font)*0.5f), Size.X,
             Al.GetFontLineHeight(font), FontAlignFlags.Center, Text);
     }
 
-    public override void OnDebugDraw() {
+    public override void OnImGuiDraw() {
         ImGui.Text($"Text: \"{Text}\"");
     }
 }

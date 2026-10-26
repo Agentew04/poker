@@ -32,7 +32,6 @@ public class Fader(string name) : SceneObject(name) {
         }
     }
 
-    private double startTime;
     private double showDuration;
     private double delay;
     private bool active;
@@ -43,23 +42,10 @@ public class Fader(string name) : SceneObject(name) {
             return;
         }
         
-        double t = lifetime;
-        if (t < delay) {
+        if (lifetime < delay) {
             return;
         }
-
-        t -= delay;
-        float alpha = 1f;
-        const double fadeIn = 0.2;
-        const double fadeOut = 0.2;
-
-        if (t < fadeIn) {
-            alpha = (float)(t / fadeIn);
-        }else if (t > showDuration - fadeOut) {
-            alpha = (float)((showDuration - t) / fadeOut);
-        }
-
-        alpha = Math.Clamp(alpha, 0f, 1f);
+        float alpha = GetAlpha();
 
         Content.Place().WithSize(Size).At(Vector2.Zero);
 
@@ -70,14 +56,17 @@ public class Fader(string name) : SceneObject(name) {
     }
 
     public override void Update(double delta) {
-        if (!active) return;
+        if (!active) {
+            return;
+        }
 
         lifetime += delta;
 
         base.Update(delta);
         
-        if (lifetime > delay + showDuration)
+        if (lifetime > delay + showDuration) {
             active = false;
+        }
     }
 
     /// <summary>
@@ -103,9 +92,30 @@ public class Fader(string name) : SceneObject(name) {
         active = true;
     }
 
-    public override void OnDebugDraw() {
+    public override void OnImGuiDraw() {
         if (ImGui.Button("Show")) {
             ShowFor(5);
         }
+        
+        ImGui.Text($"Alpha: {GetAlpha():F2}");
     }
+
+    private float GetAlpha() {
+        double t = lifetime;
+        t -= delay;
+        float alpha = 1f;
+        const double fadeIn = 0.2;
+        const double fadeOut = 0.2;
+
+        if (t < fadeIn) {
+            alpha = (float)(t / fadeIn);
+        }else if (t > showDuration - fadeOut) {
+            alpha = (float)((showDuration - t) / fadeOut);
+        }
+
+        alpha = Math.Clamp(alpha, 0f, 1f);
+        return alpha;
+    }
+    
+    
 }

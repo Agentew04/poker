@@ -11,11 +11,16 @@ public static class CardMethods {
         Suit.Spades
     ]; 
     
-    public static IEnumerable<GameCard> CreateDeck() {
+    public static IEnumerable<GameCard> CreateDeck(bool addJokers = false) {
         foreach (Suit suit in suits) {
             for (int i = 1; i <= 13; i++) {
                 yield return new GameCard(i, suit);
             }
+        }
+
+        if (addJokers) {
+            yield return new GameCard(0, Suit.Diamonds);
+            yield return new GameCard(0, Suit.Clubs);
         }
     }
 

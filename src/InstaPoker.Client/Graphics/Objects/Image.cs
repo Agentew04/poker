@@ -1,4 +1,5 @@
 ﻿using InstaPoker.Client.Graphics.Styles;
+using InstaPoker.Client.Subsystems;
 using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
 using SubC.AllegroDotNet.Models;
@@ -17,13 +18,15 @@ public class Image(string name) : SceneObject(name) {
     /// The name of the image to be rendered.
     /// </summary>
     public string ImageName { get; set; } = string.Empty;
+
+    [Service] private ImageManager imageManager = null!;
     
     public override void Render(RenderContext ctx) {
         if (string.IsNullOrEmpty(ImageName)) {
             return;
         }
         ctx.UpdateTransform();
-        AllegroBitmap bitmap = ImageManager.GetImage(ImageName, (int)Size.X, (int)Size.Y);
+        AllegroBitmap bitmap = imageManager.GetImage(ImageName, (int)Size.X, (int)Size.Y);
         Al.DrawBitmap(bitmap, 0, 0, FlipFlags.None);
         base.Render(ctx);
     }

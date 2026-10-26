@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using ImGuiNET;
 using InstaPoker.Client.Graphics.Styles;
+using InstaPoker.Client.Subsystems;
 using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
 using SubC.AllegroDotNet.Models;
@@ -36,6 +37,8 @@ public class Label : SceneObject {
     private int measuredFontSize = -1;
     private Vector2 measuredSize;
 
+    [Service] private FontManager fontManager;
+
     /// <inheritdoc/>
     public override void Measure() {
         if (measuredText == Text && measuredFontSize == FontSize) {
@@ -43,7 +46,7 @@ public class Label : SceneObject {
             return;
         }
 
-        AllegroFont font = FontManager.GetFont("ShareTech-Regular", FontSize);
+        AllegroFont font = fontManager.GetFont("ShareTech-Regular", FontSize);
         measuredSize = new Vector2(Text.GetUtfStringWidth(font), Al.GetFontAscent(font));
         measuredText = Text;
         measuredFontSize = FontSize;
@@ -57,14 +60,14 @@ public class Label : SceneObject {
 
     public override void Render(RenderContext ctx) {
         ctx.UpdateTransform();
-        AllegroFont font = FontManager.GetFont("ShareTech-Regular", FontSize);
+        AllegroFont font = fontManager.GetFont("ShareTech-Regular", FontSize);
         Vector3 translation = Transform.Translation;
         float xDiff = MathF.Floor(translation.X) - translation.X;
         float yDiff = MathF.Floor(translation.Y) - translation.Y;
         Text.DrawUtfString(font, xDiff, yDiff, Foreground);
     }
 
-    public override void OnDebugDraw() {
+    public override void OnImGuiDraw() {
         ImGui.Text($"Text: \"{Text}\"");
     }
 }

@@ -1,6 +1,4 @@
-﻿using System.Data;
-using System.Runtime.InteropServices.ComTypes;
-using InstaPoker.Client.Subsystems;
+﻿using InstaPoker.Client.Subsystems;
 using Microsoft.Extensions.DependencyInjection;
 using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
@@ -12,19 +10,10 @@ namespace InstaPoker.Client.Graphics;
 /// Class responsible for registering, loading and creating new bitmaps from image files.
 /// </summary>
 public sealed class ImageManager : IDisposable {
-
-    private static ImageManager? _instance;
-
-    /// <summary>
-    /// Creates an instance of the manager and sets it as the singleton if there are no other instances created.
-    /// </summary>
-    public ImageManager() {
-        _instance ??= this;
-    }
-
-    private static readonly Dictionary<string, AllegroBitmap> LoadedImages = [];
-    private static readonly Dictionary<(string, int, int), AllegroBitmap> ResizedBitmaps = [];
-    private static readonly Dictionary<(int, int), AllegroBitmap> ScratchPads = [];
+    
+    private readonly Dictionary<string, AllegroBitmap> loadedImages = [];
+    private readonly Dictionary<(string, int, int), AllegroBitmap> resizedBitmaps = [];
+    private readonly Dictionary<(int, int), AllegroBitmap> scratchPads = [];
 
     /// <summary>
     /// Registers and loads an image given a filename.
@@ -36,8 +25,8 @@ public sealed class ImageManager : IDisposable {
     /// <exception cref="FileLoadException">Thrown when the Allegro library can't load the file
     /// <exception cref="ArgumentException">Thrown when an image with the given alias already exists</exception>
     /// as a bitmap image</exception>
-    public static void RegisterImage(string name, string alias) {
-        if (LoadedImages.ContainsKey(alias)) {
+    public void RegisterImage(string name, string alias) {
+        if (loadedImages.ContainsKey(alias)) {
             throw new ArgumentException($"Already exists a image with the alias {alias}");
         }
 
@@ -60,7 +49,7 @@ public sealed class ImageManager : IDisposable {
         if (bitmap == null) {
             throw new FileLoadException("Couldnt load bitmap from memFile");
         }
-        LoadedImages.Add(alias, bitmap);
+        loadedImages.Add(alias, bitmap);
     }
 
     /// <summary>
@@ -71,27 +60,27 @@ public sealed class ImageManager : IDisposable {
     /// <exception cref="KeyNotFoundException">Thrown when there are no registered images with the given alias
     /// </exception>
     /// <exception cref="ArgumentException">Thrown when the width or height are less or qual than 0</exception>
-    public static AllegroBitmap GetImage(string alias, int? width = null, int? height = null) {
-        if (LoadedImages.TryGetValue(alias, out AllegroBitmap? image)) {
-            if (width is null && height is null) {
-                return image;
-            }
-            width ??= Al.GetBitmapWidth(image);
-            height ??= Al.GetBitmapHeight(image);
-            if (width <= 0 || height <= 0) {
-                throw new ArgumentException("Invalid image size", width <= 0 ? nameof(width) : nameof(height));
-            }
-            // check if a resized bitmap already exists
-            if (ResizedBitmaps.TryGetValue((alias, width.Value, height.Value), out AllegroBitmap? resized)) {
-                return resized;
-            }
-            // does not exist. resize
-            resized = ResizeBitmap(image, width.Value, height.Value);
-            ResizedBitmaps.Add((alias, width.Value, height.Value), resized);
-            return resized;
+    public AllegroBitmap GetImage(string alias, int? width = null, int? height = null) {
+        if (!loadedImages.TryGetValue(alias, out AllegroBitmap? image)) {
+            throw new KeyNotFoundException($"There are not images loaded with the alias {alias}");
         }
 
-        throw new KeyNotFoundException($"There are not images loaded with the alias {alias}");
+        if (width is null && height is null) {
+            return image;
+        }
+        width ??= Al.GetBitmapWidth(image);
+        height ??= Al.GetBitmapHeight(image);
+        if (width <= 0 || height <= 0) {
+            throw new ArgumentException("Invalid image size", width <= 0 ? nameof(width) : nameof(height));
+        }
+        // check if a resized bitmap already exists
+        if (resizedBitmaps.TryGetValue((alias, width.Value, height.Value), out AllegroBitmap? resized)) {
+            return resized;
+        }
+        // does not exist. resize
+        resized = ResizeBitmap(image, width.Value, height.Value);
+        resizedBitmaps.Add((alias, width.Value, height.Value), resized);
+        return resized;
     }
 
     /// <summary>
@@ -102,11 +91,11 @@ public sealed class ImageManager : IDisposable {
     /// <param name="height">The vertical length of the image</param>
     /// <param name="clear">If the bitmap must be cleared before returning</param>
     /// <returns>A handle to a bitmap with the given dimensions</returns>
-    public static AllegroBitmap Borrow(int width, int height, bool clear = true) {
+    public AllegroBitmap Borrow(int width, int height, bool clear = true) {
         if (width <= 0 || height <= 0) {
             throw new ArgumentException("Invalid image size", width <= 0 ? nameof(width) : nameof(height));
         }
-        if (ScratchPads.TryGetValue((width, height), out AllegroBitmap? bitmap)) {
+        if (scratchPads.TryGetValue((width, height), out AllegroBitmap? bitmap)) {
             if (clear) {
                 bitmap.Clear();
             }
@@ -116,7 +105,7 @@ public sealed class ImageManager : IDisposable {
         if (bitmap is null) {
             throw new Exception("Could not create bitmap with given size");
         }
-        ScratchPads.Add((width,height), bitmap);
+        scratchPads.Add((width,height), bitmap);
         if (clear) {
             bitmap.Clear();
         }
@@ -142,21 +131,20 @@ public sealed class ImageManager : IDisposable {
     /// Releases all loaded images
     /// </summary>
     public void Dispose() {
-        _instance = null;
-        foreach ((string _, AllegroBitmap image) in LoadedImages) {
+        foreach ((string _, AllegroBitmap image) in loadedImages) {
             Al.DestroyBitmap(image);
         }
-        LoadedImages.Clear();
+        loadedImages.Clear();
         
-        foreach (((string,int,int) _, AllegroBitmap image) in ResizedBitmaps) {
+        foreach (((string,int,int) _, AllegroBitmap image) in resizedBitmaps) {
             Al.DestroyBitmap(image);
         }
-        ResizedBitmaps.Clear();
+        resizedBitmaps.Clear();
 
-        foreach (((int, int) _, AllegroBitmap img) in ScratchPads) {
+        foreach (((int, int) _, AllegroBitmap img) in scratchPads) {
             Al.DestroyBitmap(img);
         }
-        ScratchPads.Clear();
+        scratchPads.Clear();
     }
     
 }

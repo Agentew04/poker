@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using ImGuiNET;
 using InstaPoker.Client.Graphics.Styles;
+using InstaPoker.Client.Subsystems;
 using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
 using SubC.AllegroDotNet.Models;
@@ -35,6 +36,9 @@ public class TextBox(string name) : SceneObject(name) {
     private bool isPressed;
     private bool isSelected;
 
+    [Service] private FontManager fontManager = null!;
+    [Service] private MouseManager mouseManager = null!;
+
     public override void Initialize() {
         if (MaxCharacters > 0) {
             // pre allocate all space
@@ -59,7 +63,7 @@ public class TextBox(string name) : SceneObject(name) {
 
         Al.DrawFilledRectangle(0, 0, Size.X, Size.Y, background);
 
-        AllegroFont font = FontManager.GetFont("ShareTech-Regular", Style.FontSize);
+        AllegroFont font = fontManager.GetFont("ShareTech-Regular", Style.FontSize);
         AllegroColor color = charCount == 0 ? Style.PlaceholderForeground : Style.Foreground;
         string text = charCount == 0 && isSelected ? string.Empty : charCount == 0 ? Placeholder : cachedString!;
 
@@ -148,7 +152,7 @@ public class TextBox(string name) : SceneObject(name) {
 
     public override void Update(double delta) {
         if (isHovering) {
-            MouseManager.RequestMouse(SystemMouseCursor.Edit);
+            mouseManager.RequestMouse(SystemMouseCursor.Edit);
         }
     }
 
@@ -176,7 +180,7 @@ public class TextBox(string name) : SceneObject(name) {
 
     private bool IsKeyValid(char key) {
         // first check if font has key
-        AllegroFont font = FontManager.GetFont("ShareTech-Regular", Style.FontSize);
+        AllegroFont font = fontManager.GetFont("ShareTech-Regular", Style.FontSize);
         int _ = 0;
         if (!Al.GetGlyphDimensions(font, key, ref _, ref _, ref _, ref _)) {
             Console.WriteLine("Char " + key + " not in font");
@@ -255,7 +259,7 @@ public class TextBox(string name) : SceneObject(name) {
             return;
         }
 
-        if ((int)character == 127) {
+        if (character == 127) {
             Delete();
             return;
         }
@@ -299,7 +303,7 @@ public class TextBox(string name) : SceneObject(name) {
         cachedString = new string(buffer, 0, charCount);
     }
 
-    public override void OnDebugDraw() {
+    public override void OnImGuiDraw() {
         ImGui.Text($"Text: \"{GetString()}\"");
         ImGui.Text($"Placeholder: {Placeholder}");
     }

@@ -17,16 +17,12 @@ public sealed class FontManager : IDisposable {
         LoadFontFlags.TtfNoKerning
         | LoadFontFlags.TtfNoAutohint
         | LoadFontFlags.NoPremultipliedAlpha;
-
-    private static FontManager? _instance;
-
-    private static readonly Dictionary<string, FontEntry> LoadedFonts = [];
+    private readonly Dictionary<string, FontEntry> loadedFonts = [];
 
     /// <summary>
     /// Creates a new instance of the manager and assigns it as the singleton.
     /// </summary>
     public FontManager() {
-        _instance ??= this;
     }
 
     /// <summary>
@@ -35,15 +31,15 @@ public sealed class FontManager : IDisposable {
     /// <remarks>Only accepts fonts that have the .ttf extension.</remarks>
     /// <param name="name">The name of the font. Does not include path or extension</param>
     /// <exception cref="FileNotFoundException">Thrown when no matching file is found at the Fonts/ directory</exception>
-    public static void RegisterFont(string name) {
-        if (LoadedFonts.ContainsKey(name)) {
+    public void RegisterFont(string name) {
+        if (loadedFonts.ContainsKey(name)) {
             return;
         }
 
         AssetLoader loader = Service.Provider.GetRequiredService<AssetLoader>();
         // the pinned buffer must live as long as the fonts: Allegro keeps reading from the memfile
         // while glyphs are rasterized
-        LoadedFonts[name] = new FontEntry {
+        loadedFonts[name] = new FontEntry {
             Bytes = new PinnedBytes(loader.Read($"Assets/Fonts/{name}.ttf"))
         };
     }
@@ -64,11 +60,11 @@ public sealed class FontManager : IDisposable {
     /// Thrown when the corresponding font file can't be found. Ideally never thrown, because
     /// <see cref="RegisterFont"/> already thrown on error.
     /// </exception>
-    public static AllegroFont GetFont(string name, int size, bool useSizeAsHeight = false) {
+    public AllegroFont GetFont(string name, int size, bool useSizeAsHeight = false) {
         if (useSizeAsHeight) {
             size = -size;
         }
-        if (!LoadedFonts.TryGetValue(name, out FontEntry? entry)) {
+        if (!loadedFonts.TryGetValue(name, out FontEntry? entry)) {
             throw new Exception("Font not registered");
         }
 
@@ -96,7 +92,7 @@ public sealed class FontManager : IDisposable {
     /// Disposes of all previously loaded fonts.
     /// </summary>
     public void Dispose() {
-        foreach (FontEntry entry in LoadedFonts.Values) {
+        foreach (FontEntry entry in loadedFonts.Values) {
             foreach (AllegroFont font in entry.Sizes.Values) {
                 // destroying the font also closes the memfile it owns
                 Al.DestroyFont(font);
@@ -104,8 +100,7 @@ public sealed class FontManager : IDisposable {
             entry.Bytes.Dispose();
         }
 
-        LoadedFonts.Clear();
-        _instance = null;
+        loadedFonts.Clear();
     }
 
     private sealed class FontEntry {

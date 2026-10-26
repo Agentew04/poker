@@ -41,6 +41,7 @@ public class AdminLobbyScreen() : SceneObject("Admin Lobby Screen"), IScreen<Scr
     [ChildObject] private readonly Checkbox allinEnabledCheckbox = new(nameof(allinEnabledCheckbox));
 
     [Service] private NetworkManager networkManager = null!;
+    [Service] private FontManager fontManager = null!;
     
     public bool IsFromUpgrade { get; set; }
     
@@ -171,7 +172,7 @@ public class AdminLobbyScreen() : SceneObject("Admin Lobby Screen"), IScreen<Scr
         ctx.UpdateTransform();
 
         // draw title
-        AllegroFont titleFont = FontManager.GetFont("ShareTech-Regular", 36);
+        AllegroFont titleFont = fontManager.GetFont("ShareTech-Regular", 36);
         Al.DrawText(titleFont, Colors.Black,
             (int)(Size.X * 0.5f), (int)(Size.Y * 0.0625 - Al.GetFontLineHeight(titleFont) * 0.5f),
             FontAlignFlags.Center, title);
@@ -198,7 +199,7 @@ public class AdminLobbyScreen() : SceneObject("Admin Lobby Screen"), IScreen<Scr
         const float margin = 15;
         const float spacing = 5;
 
-        AllegroFont font = FontManager.GetFont("ShareTech-Regular", 26);
+        AllegroFont font = fontManager.GetFont("ShareTech-Regular", 26);
 
         ctx.Stack.Push();
         ctx.Stack.Multiply(Matrix4x4.CreateTranslation(p1.X, p1.Y, 0));
@@ -222,7 +223,6 @@ public class AdminLobbyScreen() : SceneObject("Admin Lobby Screen"), IScreen<Scr
                 // leave button
                 if (user.Button is null) {
                     user.Button = new Button("leave button");
-                    user.Button.Initialize(); // late initialize
                     user.Button.Text = "Leave";
                     user.Button.Pressed += OnUserLeave;
                     user.Button.Style = ButtonStyle.RedButton with {
@@ -237,9 +237,9 @@ public class AdminLobbyScreen() : SceneObject("Admin Lobby Screen"), IScreen<Scr
             else {
                 // kick button
                 if (user.Button is null) {
-                    user.Button = new Button("kick button");
-                    user.Button.Initialize(); // late initialize
-                    user.Button.Text = "Kick";
+                    user.Button = new Button("kick button") {
+                        Text = "Kick"
+                    };
                     user.Button.Pressed += () => OnUserKick(user);
                     user.Button.Style = ButtonStyle.RedButton with {
                         FontSize = 24
@@ -266,7 +266,7 @@ public class AdminLobbyScreen() : SceneObject("Admin Lobby Screen"), IScreen<Scr
 
         const float spacing = 10;
         const float margin = 15;
-        var font = FontManager.GetFont("ShareTech-Regular", 28);
+        AllegroFont font = fontManager.GetFont("ShareTech-Regular", 28);
         float itemHeight = Al.GetFontLineHeight(font);
 
         const int itemCount = 4; // TODO: trocar para 4 e add allowAllIn

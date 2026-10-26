@@ -57,11 +57,20 @@ public abstract class SceneObject {
 
     private bool isInitialized = false;
 
+    private string? loggerCategory = null;
     protected ILogger Logger {
         get {
             if (field == null) {
-                Type loggerType = typeof(ILogger<>).MakeGenericType(GetType());
-                field = (ILogger)Service.Provider.GetRequiredService(loggerType);
+                if (Service.Provider == null) {
+                    return new NullLogger();
+                }
+
+                string category = $"{GetType().Name}.{Name}";
+                if (field is null || loggerCategory is null) {
+                    field = Service.Provider
+                        .GetRequiredService<ILoggerFactory>()
+                        .CreateLogger(category);
+                }
             }
             return field;
         }
@@ -340,7 +349,11 @@ public abstract class SceneObject {
         children.Remove(child);
     }
 
-    public virtual void OnDebugDraw() {
+    public virtual void OnImGuiDraw() {
+        // empty
+    }
+
+    public virtual void OnDebugDraw(Bounds bounds) {
         // empty
     }
 

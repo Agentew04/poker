@@ -2,6 +2,8 @@
 using InstaPoker.Client.Game.Screens;
 using InstaPoker.Client.Graphics;
 using InstaPoker.Client.Graphics.Objects;
+using InstaPoker.Client.Subsystems;
+using Microsoft.Extensions.DependencyInjection;
 using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
 using SubC.AllegroDotNet.Models;
@@ -30,7 +32,7 @@ public class PokerGame : AllegroWindow {
 
     /// <inheritdoc cref="AllegroWindow.Initialize"/>
     protected override void Initialize() {
-        FontManager.RegisterFont("ShareTech-Regular");
+        Service.Provider.GetRequiredService<FontManager>().RegisterFont("ShareTech-Regular");
         RegisterAudio();
         RegisterImages();
         
@@ -151,34 +153,36 @@ public class PokerGame : AllegroWindow {
 
     private static void RegisterAudio() {
         // bap
-        AudioManager.RegisterAudio("bap1.ogg", "bap1");
-        AudioManager.RegisterAudio("bap2.ogg", "bap2");
-        AudioManager.RegisterAudio("bap3.ogg", "bap3");
-        AudioManager.RegisterAudio("bap4.ogg", "bap4");
-        AudioManager.RegisterAudio("bap5.ogg", "bap5");
-        AudioManager.RegisterAudio("bap6.ogg", "bap6");
-        AudioManager.RegisterAudio("bap7.ogg", "bap7");
-        AudioManager.RegisterAudio("bap8.ogg", "bap8");
-        AudioManager.RegisterAudio("bap9.ogg", "bap9");
-        AudioManager.CreateGroup("bap", "bap1", "bap2", "bap3", "bap4", "bap5", "bap6", "bap7", "bap8", "bap9");
-        
+        AudioManager mng = Service.Provider.GetRequiredService<AudioManager>();
+        mng.RegisterAudio("bap1.ogg", "bap1");
+        mng.RegisterAudio("bap2.ogg", "bap2");
+        mng.RegisterAudio("bap3.ogg", "bap3");
+        mng.RegisterAudio("bap4.ogg", "bap4");
+        mng.RegisterAudio("bap5.ogg", "bap5");
+        mng.RegisterAudio("bap6.ogg", "bap6");
+        mng.RegisterAudio("bap7.ogg", "bap7");
+        mng.RegisterAudio("bap8.ogg", "bap8");
+        mng.RegisterAudio("bap9.ogg", "bap9");
+        mng.CreateGroup("bap", "bap1", "bap2", "bap3", "bap4", "bap5", "bap6", "bap7", "bap8", "bap9");
+
         // bop
-        AudioManager.RegisterAudio("bop1.ogg", "bop1");
-        AudioManager.RegisterAudio("bop2.ogg", "bop2");
-        AudioManager.RegisterAudio("bop3.ogg", "bop3");
-        AudioManager.RegisterAudio("bop4.ogg", "bop4");
-        AudioManager.RegisterAudio("bop5.ogg", "bop5");
-        AudioManager.RegisterAudio("bop6.ogg", "bop6");
-        AudioManager.RegisterAudio("bop7.ogg", "bop7");
-        AudioManager.RegisterAudio("bop8.ogg", "bop8");
-        AudioManager.CreateGroup("bop", "bop1", "bop2", "bop3", "bop4", "bop5", "bop6", "bop7", "bop8");
+        mng.RegisterAudio("bop1.ogg", "bop1");
+        mng.RegisterAudio("bop2.ogg", "bop2");
+        mng.RegisterAudio("bop3.ogg", "bop3");
+        mng.RegisterAudio("bop4.ogg", "bop4");
+        mng.RegisterAudio("bop5.ogg", "bop5");
+        mng.RegisterAudio("bop6.ogg", "bop6");
+        mng.RegisterAudio("bop7.ogg", "bop7");
+        mng.RegisterAudio("bop8.ogg", "bop8");
+        mng.CreateGroup("bop", "bop1", "bop2", "bop3", "bop4", "bop5", "bop6", "bop7", "bop8");
     }
 
     private static void RegisterImages() {
-        ImageManager.RegisterImage("suit-clubs-512.png", "suit-clubs");
-        ImageManager.RegisterImage("suit-diamonds-512.png", "suit-diamonds");
-        ImageManager.RegisterImage("suit-hearts-512.png", "suit-hearts");
-        ImageManager.RegisterImage("suit-spades-512.png", "suit-spades");
-        ImageManager.RegisterImage("logo-128.png", "logo");
+        ImageManager mng = Service.Provider.GetRequiredService<ImageManager>();
+        mng.RegisterImage("suit-clubs-512.png", "suit-clubs");
+        mng.RegisterImage("suit-diamonds-512.png", "suit-diamonds");
+        mng.RegisterImage("suit-hearts-512.png", "suit-hearts");
+        mng.RegisterImage("suit-spades-512.png", "suit-spades");
+        mng.RegisterImage("logo-128.png", "logo");
     }
 }

@@ -36,8 +36,8 @@ public class DebugWindow {
         ImGui.Begin("Debug");
         if (ImGui.BeginTabBar("topBar")) {
 
-            NetworkTab();
             GraphicsTab();
+            NetworkTab();
 
             ImGui.EndTabBar();
         }
@@ -86,10 +86,9 @@ public class DebugWindow {
                 Highlighter.HighlightObject(obj);
             }
             // debug data about a UI item
-            ImGui.Text($"Input (Mouse={obj.UseMouse};Keyb={obj.UseKeyboard};)");
-            ImGui.Text($"Position: {obj.Position}");
-            ImGui.Text($"Size: {obj.Size}");
-            obj.OnDebugDraw();
+            ImGui.Text($"Input (Mouse={obj.UseMouse} Keyb={obj.UseKeyboard})");
+            ImGui.Text($"Position: {obj.Position}  Size: {obj.Size}");
+            obj.OnImGuiDraw();
             
             foreach (SceneObject child in obj.GetChildren()) {
                 if (!sceneGraphOcurrences.TryGetValue(child.GetType().Name, out int value)) {

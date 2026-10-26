@@ -28,8 +28,8 @@ public class PlayerLobbyScreen() : SceneObject("Player Lobby Screen"), IScreen<S
     private RoomSettings roomSettings = new();
     private List<LobbyUser> users = [];
 
-    [Service]
-    private NetworkManager networkManager = null!;
+    [Service] private NetworkManager networkManager = null!;
+    [Service] private FontManager fontManager = null!;
     
     public string Code { get; set; }
 
@@ -95,13 +95,13 @@ public class PlayerLobbyScreen() : SceneObject("Player Lobby Screen"), IScreen<S
         
         ctx.UpdateTransform();
         // title
-        AllegroFont titleFont = FontManager.GetFont("ShareTech-Regular", 36);
+        AllegroFont titleFont = fontManager.GetFont("ShareTech-Regular", 36);
         Al.DrawText(titleFont, Colors.Black,
         (int)(Size.X * 0.5f), (int)(Size.Y * 0.0625 - Al.GetFontLineHeight(titleFont) * 0.5f),
         FontAlignFlags.Center, title);
         
         // draw waiting for host
-        AllegroFont subtitlefont = FontManager.GetFont("ShareTech-Regular", 34);
+        AllegroFont subtitlefont = fontManager.GetFont("ShareTech-Regular", 34);
         Al.DrawText(subtitlefont, Colors.Black, 
             (int)(Size.X * 0.5f),
             (int)(Size.Y - Size.Y * 0.0625f - Al.GetFontLineHeight(subtitlefont)*0.5f),
@@ -126,7 +126,7 @@ public class PlayerLobbyScreen() : SceneObject("Player Lobby Screen"), IScreen<S
         const float margin = 15;
         const float spacing = 5;
 
-        AllegroFont font = FontManager.GetFont("ShareTech-Regular", 26);
+        AllegroFont font = fontManager.GetFont("ShareTech-Regular", 26);
         
         ctx.Stack.Push();
         ctx.Stack.Multiply(Matrix4x4.CreateTranslation(p1.X, p1.Y, 0));
@@ -183,7 +183,7 @@ public class PlayerLobbyScreen() : SceneObject("Player Lobby Screen"), IScreen<S
         
         const float spacing = 10;
         const float margin = 15;
-        var font = FontManager.GetFont("ShareTech-Regular", 28);
+        AllegroFont font = fontManager.GetFont("ShareTech-Regular", 28);
         float itemHeight = Al.GetFontLineHeight(font);
         
         const int itemCount = 4; // TODO: trocar para 4 e add allowAllIn

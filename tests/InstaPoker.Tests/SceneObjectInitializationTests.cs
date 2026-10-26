@@ -6,6 +6,7 @@ using Xunit;
 
 namespace InstaPoker.Tests;
 
+[Collection("Allegro")]
 public class SceneObjectInitializationTests {
 
     private static readonly object initGate = new();

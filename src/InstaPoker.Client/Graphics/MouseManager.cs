@@ -4,22 +4,22 @@ using SubC.AllegroDotNet.Models;
 
 namespace InstaPoker.Client.Graphics;
 
-public static class MouseManager {
+public sealed class MouseManager {
 
-    private static AllegroDisplay display;
-    private static SystemMouseCursor cursor;
-    private static bool requested;
+    private AllegroDisplay? display;
+    private SystemMouseCursor cursor;
+    private bool requested;
 
-    public static void Initialize(AllegroDisplay display) {
-        MouseManager.display = display;
+    public void Initialize(AllegroDisplay display) {
+        this.display = display;
     }
 
-    public static void RequestMouse(SystemMouseCursor cursor) {
-        MouseManager.cursor = cursor;
+    public void RequestMouse(SystemMouseCursor cursor) {
+        this.cursor = cursor;
         requested = true;
     }
 
-    public static void CommitChanges() {
+    public void CommitChanges() {
         if (!requested) {
             Al.SetSystemMouseCursor(display, SystemMouseCursor.Default);
             cursor = SystemMouseCursor.Default;
@@ -29,7 +29,7 @@ public static class MouseManager {
         Al.SetSystemMouseCursor(display, cursor);
     }
 
-    public static void NewFrame() {
+    public void NewFrame() {
         requested = false;
     }
 }

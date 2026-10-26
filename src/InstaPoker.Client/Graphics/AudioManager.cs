@@ -10,15 +10,9 @@ namespace InstaPoker.Client.Graphics;
 /// </summary>
 public sealed class AudioManager : IDisposable{
 
-    private static AudioManager? _instance;
-    
-    private static readonly Dictionary<string, AllegroSample> Samples = [];
-    private static readonly Dictionary<string, List<string>> Groups = [];
+    private readonly Dictionary<string, AllegroSample> samples = [];
+    private readonly Dictionary<string, List<string>> groups = [];
 
-    public AudioManager() {
-        _instance ??= this;
-    }
-    
     /// <summary>
     /// Registers a new audio effect.
     /// </summary>
@@ -26,7 +20,7 @@ public sealed class AudioManager : IDisposable{
     /// <param name="alias">The unique name for this audio</param>
     /// <exception cref="FileNotFoundException">Thrown when the file is not found on the disk. Common when the
     /// developer writes the wrong extension or the filepath is not correctly relative to the Audio folder.</exception>
-    public static void RegisterAudio(string filename, string alias) {
+    public void RegisterAudio(string filename, string alias) {
         AssetLoader loader = Service.Provider.GetRequiredService<AssetLoader>();
         using PinnedBytes pinnedBytes = new(loader.Read($"Assets/Audio/{filename}"));
         AllegroFile? file = Al.OpenMemfile(pinnedBytes.Pointer, pinnedBytes.Length, "r");
@@ -42,7 +36,7 @@ public sealed class AudioManager : IDisposable{
             Al.FClose(file); 
             
         }
-        Samples[alias] = sample ?? throw new FileNotFoundException($"Could not load sample {alias} from {filename}");
+        samples[alias] = sample ?? throw new FileNotFoundException($"Could not load sample {alias} from {filename}");
     }
 
     /// <summary>
@@ -53,17 +47,17 @@ public sealed class AudioManager : IDisposable{
     /// <exception cref="InvalidOperationException">Thrown when already exists a audio file with the same
     /// name as <paramref name="groupName"/> or an alias passed in <paramref name="aliases"/> was not previously
     /// registered with <see cref="RegisterAudio"/> </exception>
-    public static void CreateGroup(string groupName, params string[] aliases) {
-        if (Samples.ContainsKey(groupName)) {
+    public void CreateGroup(string groupName, params string[] aliases) {
+        if (samples.ContainsKey(groupName)) {
             throw new InvalidOperationException("Group cannot have same name as an existing audio sample");
         }
 
         foreach (string alias in aliases) {
-            if (!Samples.ContainsKey(alias)) {
+            if (!samples.ContainsKey(alias)) {
                 throw new InvalidOperationException($"Alias {alias} is not registered");
             }
         }
-        Groups.Add(groupName, aliases.ToList());
+        groups.Add(groupName, aliases.ToList());
     }
 
     /// <summary>
@@ -75,14 +69,14 @@ public sealed class AudioManager : IDisposable{
     /// <exception cref="InvalidOperationException">
     /// Thrown when there is no audio or group loaded with the given alias
     /// </exception>
-    public static AllegroSample GetAudio(string alias) {
-        if (Samples.TryGetValue(alias, out AllegroSample? sample)) {
+    public AllegroSample GetAudio(string alias) {
+        if (samples.TryGetValue(alias, out AllegroSample? sample)) {
             return sample;
         }
         // must be an group
-        if (Groups.TryGetValue(alias, out List<string>? aliases)) {
+        if (groups.TryGetValue(alias, out List<string>? aliases)) {
             int audioIndex = Random.Shared.Next(aliases.Count);
-            return Samples[aliases[audioIndex]];
+            return samples[aliases[audioIndex]];
         }
         throw new InvalidOperationException("Audio sample not loaded.");
     }
@@ -91,11 +85,10 @@ public sealed class AudioManager : IDisposable{
     /// Disposes of all loaded audio files. 
     /// </summary>
     public void Dispose() {
-        foreach (KeyValuePair<string, AllegroSample> sample in Samples) {
+        foreach (KeyValuePair<string, AllegroSample> sample in samples) {
             Al.DestroySample(sample.Value);
         }
-        Groups.Clear();
-        Samples.Clear();
-        _instance = null;
+        groups.Clear();
+        samples.Clear();
     }
 }

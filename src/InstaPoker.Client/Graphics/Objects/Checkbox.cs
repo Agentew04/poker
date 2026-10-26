@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using InstaPoker.Client.Graphics.Styles;
+using InstaPoker.Client.Subsystems;
 using SubC.AllegroDotNet;
 using SubC.AllegroDotNet.Enums;
 using SubC.AllegroDotNet.Models;
@@ -19,6 +20,8 @@ public class Checkbox(string name) : SceneObject(name) {
     private bool isPressed;
 
     public event Action<bool>? OnValueChanged;
+
+    [Service] private AudioManager audioManager = null!; 
 
     public override void Initialize() {
         checkVertices = new float[6];
@@ -101,7 +104,7 @@ public class Checkbox(string name) : SceneObject(name) {
             return;
         }
         if (isPressed && isHovering) {
-            AllegroSample bopSample = AudioManager.GetAudio("bop");
+            AllegroSample bopSample = audioManager.GetAudio("bop");
             AllegroSampleID? nil = null;
             Al.PlaySample(bopSample, 1, 0, 1, PlayMode.Once, ref nil);
             

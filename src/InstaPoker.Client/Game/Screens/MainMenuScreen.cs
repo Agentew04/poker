@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using InstaPoker.Client.Graphics;
+using InstaPoker.Client.Graphics.Layout;
 using InstaPoker.Client.Graphics.Objects;
 using InstaPoker.Client.Graphics.Styles;
 using InstaPoker.Client.Subsystems;
@@ -30,6 +31,11 @@ public class MainMenuScreen() : SceneObject("Main Menu Screen"), IScreen<Screen>
     [ChildObject] private readonly Button logoutButton = new(nameof(logoutButton));
     [ChildObject] private readonly Label usernameLabel = new(nameof(usernameLabel));
     private readonly Toast emptyCodeBoard = new(nameof(emptyCodeBoard));
+
+    [ChildObject] private readonly StackPanel panel = new(nameof(panel));
+    private readonly Label l1 = new(nameof(l1));
+    private readonly Button but = new(nameof(but));
+    private readonly Label l2 = new(nameof(l2));
 
     [Service] private AccountStore accountStore = null!;
     [Service] private NetworkManager networkManager = null!;
@@ -75,6 +81,14 @@ public class MainMenuScreen() : SceneObject("Main Menu Screen"), IScreen<Screen>
 
         usernameLabel.VerticalAlign = VerticalAlign.Top;
         usernameLabel.HorizontalAlign = HorizontalAlign.Left;
+        
+        l1.Text = "Teste1";
+        panel.Add(l1);
+        but.Text = "AA";
+        but.Style = ButtonStyle.Default;
+        panel.Add(but);
+        l2.Text = "Teste2";
+        panel.Add(l2);
         
         base.Initialize();
     }
@@ -129,6 +143,21 @@ public class MainMenuScreen() : SceneObject("Main Menu Screen"), IScreen<Screen>
         usernameLabel.Place().AtAnchor(
             logoutButton.Bounds.Right + 5,
             5 + logoutButton.Bounds.Size.Y * 0.5f - usernameLabel.FontSize * 0.5f);
+
+        l1.HorizontalAlign = HorizontalAlign.Center;
+        l1.VerticalAlign = VerticalAlign.Top;
+        but.VerticalAlign = VerticalAlign.Top;
+        l2.VerticalAlign = VerticalAlign.Top;
+        panel.Position = new Vector2(100,100);
+        panel.Padding = 10;
+        panel.Spacing = 5;
+        panel.Size = new Vector2(300, Size.Y-200);
+        panel.CrossAxisAlignment = CrossAxisAlignment.Start;
+        panel.ChildAlignment = ChildAlignment.Pivot;
+        panel.Direction = StackDirection.Horizontal;
+        but.HorizontalAlign = HorizontalAlign.Center;
+        
+        but.Size = new Vector2(50, 100);
 
         base.PositionElements();
     }
